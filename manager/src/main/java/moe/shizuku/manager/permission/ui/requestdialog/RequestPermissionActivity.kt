@@ -16,10 +16,8 @@ import kotlinx.coroutines.withTimeout
 import moe.shizuku.manager.R
 import moe.shizuku.manager.app.AppActivity
 import moe.shizuku.manager.databinding.ConfirmationDialogBinding
-import moe.shizuku.manager.utils.toHtml
 import moe.shizuku.manager.utils.ShizukuStateMachine
 import rikka.core.res.resolveColor
-import rikka.html.text.HtmlCompat
 import rikka.shizuku.Shizuku
 import rikka.shizuku.ShizukuApiConstants.REQUEST_PERMISSION_REPLY_ALLOWED
 import rikka.shizuku.ShizukuApiConstants.REQUEST_PERMISSION_REPLY_IS_ONETIME
@@ -123,13 +121,11 @@ class RequestPermissionActivity : AppActivity() {
                     dialog.dismiss()
                 }
                 title.text =
-                    HtmlCompat.fromHtml(
                         getString(
                             R.string.permission_warning_template,
                             label,
                             getString(R.string.permission_group_description),
-                        ),
-                    )
+                        )
             }
 
         dialog =

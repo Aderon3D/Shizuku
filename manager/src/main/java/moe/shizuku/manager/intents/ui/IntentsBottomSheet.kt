@@ -14,8 +14,6 @@ import moe.shizuku.manager.ShizukuSettings
 import moe.shizuku.manager.core.extensions.*
 import moe.shizuku.manager.databinding.IntentsBottomSheetBinding
 import moe.shizuku.manager.utils.EnvironmentUtils
-import moe.shizuku.manager.utils.toHtml
-import rikka.html.text.HtmlCompat
 
 class IntentsBottomSheet(
     private val context: Context,
@@ -87,7 +85,6 @@ class IntentsBottomSheet(
     //     binding.text2.apply {
     //         visibility = View.VISIBLE
     //         text = context.getString(R.string.intents_device_restriction, "adb tcpip 5555")
-    //             .toHtml(HtmlCompat.FROM_HTML_OPTION_TRIM_WHITESPACE)
     //     }
     // }
 

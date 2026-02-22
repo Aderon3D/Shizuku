@@ -16,8 +16,6 @@ import moe.shizuku.manager.databinding.AppListItemBinding
 import moe.shizuku.manager.utils.AppIconCache
 import moe.shizuku.manager.utils.ShizukuSystemApis
 import moe.shizuku.manager.utils.UserHandleCompat
-import moe.shizuku.manager.utils.toHtml
-import rikka.html.text.HtmlCompat
 import rikka.recyclerview.BaseViewHolder
 import rikka.recyclerview.BaseViewHolder.Creator
 import rikka.shizuku.Shizuku
@@ -78,7 +76,7 @@ class AppViewHolder(
                                 .getString(
                                     R.string.status_adb_restricted_message,
                                     "PLACEHOLDER",
-                                ).toHtml(HtmlCompat.FROM_HTML_OPTION_TRIM_WHITESPACE),
+                                )
                         ).setPositiveButton(android.R.string.ok, null)
                         .create()
                 dialog.setOnShowListener {

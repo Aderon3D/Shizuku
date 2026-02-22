@@ -24,13 +24,11 @@
 // import moe.shizuku.manager.databinding.HomeItemContainerBinding
 // import moe.shizuku.manager.databinding.HomeStartWirelessAdbBinding
 // import moe.shizuku.manager.home.showAccessibilityDialog
-// import moe.shizuku.manager.utils.toHtml
 // import moe.shizuku.manager.receiver.NotifCancelReceiver
 // import moe.shizuku.manager.starter.StarterActivity
 // import moe.shizuku.manager.utils.EnvironmentUtils
 // import moe.shizuku.manager.utils.ShizukuStateMachine
 // import rikka.core.content.asActivity
-// import rikka.html.text.HtmlCompat
 // import rikka.recyclerview.BaseViewHolder
 // import rikka.recyclerview.BaseViewHolder.Creator
 
@@ -97,10 +95,8 @@
 //             }
 //             binding.text1.movementMethod = LinkMovementMethod.getInstance()
 //             binding.text1.text = context.getString(R.string.home_wireless_adb_description)
-//                 .toHtml(HtmlCompat.FROM_HTML_OPTION_TRIM_WHITESPACE)
 //         } else {
 //             binding.text1.text = context.getString(R.string.home_wireless_adb_description_pre_11)
-//                 .toHtml(HtmlCompat.FROM_HTML_OPTION_TRIM_WHITESPACE)
 //             binding.button2.isVisible = false
 //             binding.button3.isVisible = false
 //         }

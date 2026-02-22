@@ -6,19 +6,16 @@
 // import moe.shizuku.manager.R
 // import moe.shizuku.manager.core.extensions.*
 // import moe.shizuku.manager.starter.Starter
-// import rikka.html.text.HtmlCompat
 
 // binding.button1.setOnClickListener { v: View ->
 //     val context = v.context
 //     MaterialAlertDialogBuilder(context)
 //         .setTitle(R.string.view_command)
 //         .setMessage(
-//             HtmlCompat.fromHtml(
 //                 context.getString(
 //                     R.string.home_adb_dialog_view_command_message,
 //                     Starter.adbCommand
 //                 )
-//             )
 //         )
 //         .setPositiveButton(android.R.string.copy) { _, _ ->
 //             context.copyToClipboard(Starter.adbCommand)

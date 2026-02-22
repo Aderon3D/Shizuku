@@ -10,8 +10,6 @@ import moe.shizuku.manager.R
 import moe.shizuku.manager.databinding.HomeStatusCardBinding
 import moe.shizuku.manager.model.ServiceStatus
 import moe.shizuku.manager.utils.ShizukuStateMachine
-import rikka.html.text.HtmlCompat
-import rikka.html.text.toHtml
 import rikka.shizuku.Shizuku
 import rikka.shizuku.ShizukuApiConstants
 
@@ -99,8 +97,8 @@ class StatusCard
                 } else {
                     ""
                 }
-            binding.title.text = title.toHtml(HtmlCompat.FROM_HTML_OPTION_TRIM_WHITESPACE)
-            binding.summary.text = summary.toHtml(HtmlCompat.FROM_HTML_OPTION_TRIM_WHITESPACE)
+            binding.title.text = title
+            binding.summary.text = summary
         }
 
         private fun stopButton() {

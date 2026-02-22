@@ -48,9 +48,7 @@ import moe.shizuku.manager.receiver.ShizukuReceiverStarter
 import moe.shizuku.manager.utils.EnvironmentUtils
 import moe.shizuku.manager.utils.SettingsHelper
 import moe.shizuku.manager.utils.ShizukuStateMachine
-import moe.shizuku.manager.utils.toHtml
 import rikka.core.util.ResourceUtils
-import rikka.html.text.HtmlCompat
 import rikka.material.app.LocaleDelegate
 import rikka.recyclerview.addEdgeSpacing
 import rikka.recyclerview.addItemSpacing
@@ -422,7 +420,7 @@ class SettingsFragment :
 
             MaterialAlertDialogBuilder(context)
                 .setTitle(R.string.tcp_restart_required)
-                .setMessage(HtmlCompat.fromHtml(message))
+                .setMessage(message)
                 .setPositiveButton(android.R.string.ok) { _, _ ->
                     applyChange()
                     ShizukuReceiverStarter.start(context, true)
@@ -497,11 +495,7 @@ class SettingsFragment :
                 }
 
             localizedLocales.add(
-                if (index != currentLocaleIndex) {
-                    "$localeName<br><small>$localizedLocaleName<small>".toHtml()
-                } else {
-                    localizedLocaleName
-                },
+                localizedLocaleName
             )
         }
 

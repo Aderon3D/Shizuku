@@ -9,9 +9,7 @@ import androidx.core.view.isVisible
 import moe.shizuku.manager.R
 import moe.shizuku.manager.app.AppBarActivity
 import moe.shizuku.manager.databinding.TerminalTutorialActivityBinding
-import moe.shizuku.manager.utils.toHtml
 import rikka.compatibility.DeviceCompatibility
-import rikka.html.text.HtmlCompat
 import rikka.insets.*
 import kotlin.math.roundToInt
 
@@ -92,14 +90,11 @@ class ShellTutorialActivity : AppBarActivity() {
                 miui.isVisible = true
             }
 
-            val shName = "<font face=\"monospace\">$SH_NAME</font>"
-            val dexName = "<font face=\"monospace\">$DEX_NAME</font>"
+            text1.text = getString(R.string.terminal_tutorial_1, SH_NAME, DEX_NAME)
 
-            text1.text = getString(R.string.terminal_tutorial_1, shName, dexName).toHtml()
-
-            text2.text = getString(R.string.terminal_tutorial_2, shName).toHtml()
+            text2.text = getString(R.string.terminal_tutorial_2, SH_NAME)
             command2.text = "cp /sdcard/chosen-folder/* /data/data/terminal.package.name/files"
-            summary2.text = getString(R.string.terminal_tutorial_2_tip, shName, shName, ".bashrc").toHtml()
+            summary2.text = getString(R.string.terminal_tutorial_2_tip, SH_NAME, SH_NAME, ".bashrc")
 
             text3.text = getString(R.string.terminal_tutorial_3)
             command3.text = "sh /path/to/$SH_NAME"
