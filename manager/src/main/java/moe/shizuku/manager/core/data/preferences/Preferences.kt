@@ -13,9 +13,9 @@ object Preferences {
     // -------------------------
 
     val START_MODE =
-        Preference<Int>(
+        Preference<StartMode>(
             key = "startMode",
-            default = StartMode::class.defaultValue,
+            default = StartMode.PC,
         )
 
     val START_ON_BOOT =
@@ -59,9 +59,9 @@ object Preferences {
         )
 
     val THEME =
-        Preference<Int>(
+        Preference<Theme>(
             key = "theme",
-            default = Theme::class.defaultValue,
+            default = Theme.SYSTEM,
         )
 
     val AMOLED_BLACK =
@@ -86,9 +86,9 @@ object Preferences {
             default = true,
         )
     val UPDATE_CHANNEL =
-        Preference<Int>(
+        Preference<UpdateChannel>(
             key = "update_channel",
-            default = UpdateChannel::class.defaultValue,
+            default = UpdateChannel.STABLE,
         )
 
     val LAST_PROMPTED_VERSION =

@@ -28,12 +28,12 @@ object PreferencesDataSource {
     // -------------------------
 
     fun set(pref: Preference<Boolean>, value: Boolean) =
-        prefs.edit().putBoolean(pref.key, pref.default).apply()
+        prefs.edit().putBoolean(pref.key, value).apply()
 
     fun set(pref: Preference<Int>, value: Int) =
-        prefs.edit().putInt(pref.key, pref.default).apply()
+        prefs.edit().putInt(pref.key, value).apply()
 
     fun set(pref: Preference<String?>, value: String?) =
-        prefs.edit().putString(pref.key, pref.default).apply()
+        prefs.edit().putString(pref.key, value).apply()
 
 }
