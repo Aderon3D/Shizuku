@@ -1,37 +1,34 @@
 package moe.shizuku.manager.receiver
 
-import android.Manifest.permission.WRITE_SECURE_SETTINGS
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.net.toUri
 import com.topjohnwu.superuser.Shell
 import moe.shizuku.manager.R
 import moe.shizuku.manager.core.android.receivers.NotifAttemptReceiver
 import moe.shizuku.manager.core.android.receivers.NotifCancelReceiver
 import moe.shizuku.manager.core.android.receivers.NotifRestoreReceiver
-import moe.shizuku.manager.core.android.settings.SettingsPage
-import moe.shizuku.manager.core.data.preferences.PreferencesRepository
+import moe.shizuku.manager.core.android.settings.SystemSettingsPage
+import moe.shizuku.manager.core.data.preferences.StartMode
 import moe.shizuku.manager.core.extensions.TAG
-import moe.shizuku.manager.core.models.preferences.StartMode
+import moe.shizuku.manager.core.extensions.hasWriteSecureSettings
 import moe.shizuku.manager.core.utils.EnvironmentUtils
 import moe.shizuku.manager.shizukuservice.workers.AdbStartWorker
 import moe.shizuku.manager.starter.Starter
 import moe.shizuku.manager.utils.ShizukuStateMachine
 import moe.shizuku.manager.utils.UserHandleCompat
+import moe.shizuku.manager.core.data.preferences.PreferencesRepository as prefs
 
 object ShizukuReceiverStarter {
     const val NOTIFICATION_ID = 1447
     private const val CHANNEL_ID = "AdbStartWorker"
-
-    private val prefs = PreferencesRepository
 
     enum class WorkerState {
         AWAITING_WIFI,
@@ -47,14 +44,14 @@ object ShizukuReceiverStarter {
         if ((UserHandleCompat.myUserId() > 0 || ShizukuStateMachine.isRunning()) && !forceStart) return
 
         if (prefs.getStartMode() == StartMode.ROOT) {
-            rootStart(context)
+            rootStart()
         } else if ((
                     Build.VERSION.SDK_INT >= Build.VERSION_CODES.R || EnvironmentUtils.isTelevision() ||
                             EnvironmentUtils.getAdbTcpPort() > 0
                     ) &&
             prefs.getStartMode() == StartMode.WADB
         ) {
-            if (context.checkSelfPermission(WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_GRANTED) {
+            if (context.hasWriteSecureSettings()) {
                 AdbStartWorker.enqueue(context)
                 updateNotification(context, WorkerState.AWAITING_WIFI)
             } else {
@@ -105,7 +102,7 @@ object ShizukuReceiverStarter {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             )
 
-        val wifiIntent = SettingsPage.InternetPanel.buildIntent(context)
+        val wifiIntent = SystemSettingsPage.InternetPanel.buildIntent(context)
         val wifiPendingIntent =
             PendingIntent.getActivity(
                 context,
@@ -154,7 +151,7 @@ object ShizukuReceiverStarter {
         nm.notify(NOTIFICATION_ID, buildNotification(context, msg))
     }
 
-    private fun rootStart(context: Context) {
+    private fun rootStart() {
         if (!Shell.getShell().isRoot) {
             Shell.getCachedShell()?.close()
             return
@@ -182,7 +179,7 @@ object ShizukuReceiverStarter {
         val webpageIntent =
             Intent(
                 Intent.ACTION_VIEW,
-                Uri.parse("https://github.com/thedjchi/Shizuku/wiki#shizuku-isnt-starting-on-boot-for-me")
+                "https://github.com/thedjchi/Shizuku/wiki#shizuku-isnt-starting-on-boot-for-me".toUri()
             )
         val pendingWebpageIntent =
             PendingIntent.getActivity(

@@ -7,10 +7,10 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 import moe.shizuku.manager.R
-import moe.shizuku.manager.databinding.AboutDialogBinding
+import moe.shizuku.manager.core.extensions.openUrl
 import moe.shizuku.manager.core.utils.AppIconCache
-import moe.shizuku.manager.core.android.browser.CustomTabsHelper
-import moe.shizuku.manager.utils.UpdateHelper
+import moe.shizuku.manager.databinding.AboutDialogBinding
+import moe.shizuku.manager.updater.UpdateHelper
 
 class AboutDialog(
     private val activity: ComponentActivity
@@ -46,15 +46,13 @@ class AboutDialog(
             }
 
             btnGitHub.setOnClickListener {
-                CustomTabsHelper.launchUrlOrCopy(
-                    activity,
+                activity.openUrl(
                     "https://www.github.com/thedjchi/Shizuku"
                 )
             }
 
             btnDonate.setOnClickListener {
-                CustomTabsHelper.launchUrlOrCopy(
-                    activity,
+                activity.openUrl(
                     "https://www.buymeacoffee.com/thedjchi"
                 )
             }

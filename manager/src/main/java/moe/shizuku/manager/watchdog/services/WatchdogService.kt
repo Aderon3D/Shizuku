@@ -8,14 +8,13 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
-import android.net.Uri
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.net.toUri
 import moe.shizuku.manager.R
-import moe.shizuku.manager.ShizukuSettings
-import moe.shizuku.manager.core.android.settings.SettingsPage
+import moe.shizuku.manager.core.android.settings.SystemSettingsPage
 import moe.shizuku.manager.core.ui.MainActivity
 import moe.shizuku.manager.receiver.ShizukuReceiverStarter
 import moe.shizuku.manager.utils.ShizukuStateMachine
@@ -62,7 +61,6 @@ class WatchdogService : Service() {
     override fun onDestroy() {
         ShizukuStateMachine.removeListener(stateListener)
         isRunning.set(false)
-        ShizukuSettings.setWatchdog(applicationContext, false)
         super.onDestroy()
     }
 
@@ -138,7 +136,7 @@ class WatchdogService : Service() {
         val learnMoreIntent =
             Intent(Intent.ACTION_VIEW).apply {
                 data =
-                    Uri.parse("https://github.com/thedjchi/Shizuku/wiki#shizuku-keeps-stopping-randomly")
+                    "https://github.com/thedjchi/Shizuku/wiki#shizuku-keeps-stopping-randomly".toUri()
             }
         val learnMorePendingIntent =
             PendingIntent.getActivity(
@@ -149,7 +147,7 @@ class WatchdogService : Service() {
             )
 
         val disableIntent =
-            SettingsPage.Notifications.NotificationChannel.buildIntent(applicationContext)
+            SystemSettingsPage.Notifications.NotificationChannel.buildIntent(applicationContext)
         val disablePendingIntent =
             PendingIntent.getActivity(
                 this,

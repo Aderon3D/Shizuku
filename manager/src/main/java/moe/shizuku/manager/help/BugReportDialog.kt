@@ -9,13 +9,14 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import androidx.core.net.toUri
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import moe.shizuku.manager.BuildConfig
 import moe.shizuku.manager.R
-import moe.shizuku.manager.core.android.browser.CustomTabsHelper
 import moe.shizuku.manager.core.extensions.applyTemplateArgs
 import moe.shizuku.manager.core.extensions.asLink
+import moe.shizuku.manager.core.extensions.openUrl
 import moe.shizuku.manager.core.extensions.toast
 import moe.shizuku.manager.databinding.BugReportDialogBinding
 import moe.shizuku.manager.shizukuservice.workers.AdbStartWorker
@@ -50,8 +51,7 @@ class BugReportDialog : DialogFragment() {
             .setTitle(R.string.bug_report)
             .setView(binding.root)
             .setPositiveButton("GitHub") { _, _ ->
-                CustomTabsHelper.launchUrlOrCopy(
-                    context,
+                requireContext().openUrl(
                     "https://github.com/thedjchi/Shizuku/issues/new"
                 )
             }.setNegativeButton(R.string.bug_report_dialog_button_email) { _, _ ->
@@ -67,16 +67,14 @@ class BugReportDialog : DialogFragment() {
                 val intent =
                     Intent(
                         Intent.ACTION_SENDTO,
-                        Uri.parse(
-                            "mailto:" + context.getString(R.string.support_email) +
-                                    "?subject=" + Uri.encode("[ISSUE TITLE]") +
-                                    "&body=" + Uri.encode(plainBody),
-                        ),
+                        ("mailto:" + context.getString(R.string.support_email) +
+                                "?subject=" + Uri.encode("[ISSUE TITLE]") +
+                                "&body=" + Uri.encode(plainBody)).toUri(),
                     )
                 try {
                     context.startActivity(intent)
                     dismiss()
-                } catch (e: ActivityNotFoundException) {
+                } catch (_: ActivityNotFoundException) {
                     context.toast(R.string.error_no_email_app)
                 }
             }.setNeutralButton(android.R.string.cancel) { dialog, _ ->

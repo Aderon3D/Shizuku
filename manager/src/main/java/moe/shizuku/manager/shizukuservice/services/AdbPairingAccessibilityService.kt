@@ -12,17 +12,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import moe.shizuku.manager.core.ui.MainActivity
 import moe.shizuku.manager.R
-import moe.shizuku.manager.ShizukuSettings
 import moe.shizuku.manager.core.adb.AdbInvalidPairingCodeException
 import moe.shizuku.manager.core.adb.AdbKey
 import moe.shizuku.manager.core.adb.AdbKeyException
 import moe.shizuku.manager.core.adb.AdbPairingClient
 import moe.shizuku.manager.core.adb.PreferenceAdbKeyStore
-import moe.shizuku.manager.core.extensions.*
-import moe.shizuku.manager.home.HomeFragment
+import moe.shizuku.manager.core.data.KeyValueDataSource
+import moe.shizuku.manager.core.extensions.toast
+import moe.shizuku.manager.core.ui.MainActivity
 import moe.shizuku.manager.core.utils.EnvironmentUtils
+import moe.shizuku.manager.home.HomeFragment
 import java.net.ConnectException
 
 @SuppressLint("AccessibilityPolicy")
@@ -90,7 +90,10 @@ class AdbPairingAccessibilityService : AccessibilityService() {
 
                 val key =
                     try {
-                        AdbKey(PreferenceAdbKeyStore(ShizukuSettings.getPreferences()), "shizuku")
+                        AdbKey(
+                            PreferenceAdbKeyStore(KeyValueDataSource.getPreferences()),
+                            "shizuku"
+                        )
                     } catch (_: Throwable) {
                         toastMsg = getString(R.string.adb_error_key_store)
                         return@launch

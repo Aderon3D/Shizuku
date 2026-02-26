@@ -9,14 +9,14 @@ import android.service.quicksettings.TileService
 import android.util.Log
 import moe.shizuku.manager.watchdog.services.WatchdogService
 
-sealed class SettingsPage(
+sealed class SystemSettingsPage(
     private val action: String,
     private val fragmentArg: String? = null,
 ) {
     sealed class Developer(
         action: String = Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS,
         fragmentArg: String? = null,
-    ) : SettingsPage(action, fragmentArg) {
+    ) : SystemSettingsPage(action, fragmentArg) {
         object HighlightUsbDebugging : Developer(fragmentArg = "enable_adb")
 
         object HighlightWirelessDebugging : Developer(fragmentArg = "toggle_adb_wireless")
@@ -56,7 +56,7 @@ sealed class SettingsPage(
     sealed class Notifications(
         action: String = Settings.ACTION_APP_NOTIFICATION_SETTINGS,
         fragmentArg: String? = null,
-    ) : SettingsPage(action, fragmentArg) {
+    ) : SystemSettingsPage(action, fragmentArg) {
         override fun buildIntent(context: Context): Intent =
             super.buildIntent(context).apply {
                 putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
@@ -72,9 +72,9 @@ sealed class SettingsPage(
         }
     }
 
-    object InternetPanel : SettingsPage(Settings.Panel.ACTION_INTERNET_CONNECTIVITY)
+    object InternetPanel : SystemSettingsPage(Settings.Panel.ACTION_INTERNET_CONNECTIVITY)
 
-    object Accessibility : SettingsPage(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+    object Accessibility : SystemSettingsPage(Settings.ACTION_ACCESSIBILITY_SETTINGS)
 
     protected val defaultFlags =
         Intent.FLAG_ACTIVITY_NEW_TASK or

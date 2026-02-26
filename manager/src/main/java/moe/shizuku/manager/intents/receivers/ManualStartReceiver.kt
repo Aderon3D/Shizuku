@@ -3,7 +3,7 @@ package moe.shizuku.manager.receiver
 import android.content.Context
 import android.content.Intent
 import moe.shizuku.manager.BuildConfig
-import moe.shizuku.manager.core.android.receivers.AuthenticatedReceiver
+import moe.shizuku.manager.intents.receivers.AuthenticatedReceiver
 
 class ManualStartReceiver : AuthenticatedReceiver() {
     override fun onAuthenticated(context: Context, intent: Intent) {

@@ -1,137 +1,14 @@
 package moe.shizuku.manager;
 
-import static java.lang.annotation.RetentionPolicy.SOURCE;
-
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.text.TextUtils;
 
-import androidx.annotation.IntDef;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDelegate;
 
-import java.lang.annotation.Retention;
 import java.util.Locale;
 
-import moe.shizuku.manager.core.android.receivers.BootCompleteReceiver;
 import moe.shizuku.manager.core.utils.EnvironmentUtils;
-import moe.shizuku.manager.core.utils.Token;
-import moe.shizuku.manager.watchdog.services.WatchdogService;
 
 public class ShizukuSettings {
-
-    public static final String NAME = "settings";
-    private static SharedPreferences sPreferences;
-
-    public static SharedPreferences getPreferences() {
-        return sPreferences;
-    }
-
-    public static void initialize(Context context) {
-        if (sPreferences == null) {
-            sPreferences = context.getSharedPreferences(NAME, Context.MODE_PRIVATE);
-        }
-    }
-
-    @LaunchMethod
-    public static int getLastLaunchMode() {
-        return getPreferences().getInt("mode", LaunchMethod.UNKNOWN);
-    }
-
-    public static void setLastLaunchMode(@LaunchMethod int method) {
-        getPreferences().edit().putInt("mode", method).apply();
-    }
-
-    public static boolean getAutoDisableUsbDebugging() {
-        return getPreferences().getBoolean(Keys.KEY_AUTO_DISABLE_USB_DEBUGGING, false);
-    }
-
-    public static String getLastPromptedVersion() {
-        return getPreferences().getString("lastPromptedVersion", "");
-    }
-
-    public static void setLastPromptedVersion(String version) {
-        getPreferences().edit().putString("lastPromptedVersion", version).apply();
-    }
-
-    public static String getAuthToken() {
-        String authToken = getPreferences().getString("auth_token", null);
-        if (authToken == null || authToken.isEmpty()) {
-            authToken = generateAuthToken();
-        }
-        return authToken;
-    }
-
-    public static String generateAuthToken() {
-        String token = Token.generateToken();
-        getPreferences().edit().putString("auth_token", token).apply();
-        return token;
-    }
-
-    public static boolean getStartOnBoot(Context context) {
-        ComponentName bootCompleteReceiver = new ComponentName(context.getPackageName(), BootCompleteReceiver.class.getName());
-        int state = context.getPackageManager().getComponentEnabledSetting(bootCompleteReceiver);
-        return state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED;
-    }
-
-    public static void setStartOnBoot(Context context, boolean enable) {
-        ComponentName bootCompleteReceiver = new ComponentName(context.getPackageName(), BootCompleteReceiver.class.getName());
-        context.getPackageManager().setComponentEnabledSetting(
-                bootCompleteReceiver,
-                enable ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                PackageManager.DONT_KILL_APP
-        );
-        getPreferences().edit().putBoolean(Keys.KEY_START_ON_BOOT, enable).apply();
-    }
-
-    public static boolean getWatchdog() {
-        return getPreferences().getBoolean(Keys.KEY_WATCHDOG, false);
-    }
-
-    public static boolean isWatchdogRunning() {
-        return WatchdogService.isRunning();
-    }
-
-    public static void setWatchdog(Context context, boolean enable) {
-        if (enable) {
-            WatchdogService.start(context);
-        } else {
-            WatchdogService.stop(context);
-        }
-        getPreferences().edit().putBoolean(Keys.KEY_WATCHDOG, enable).apply();
-        return;
-    }
-
-    public static boolean getTcpMode() {
-        return getPreferences().getBoolean(Keys.KEY_TCP_MODE, true);
-    }
-
-    public static void setTcpMode(boolean enable) {
-        getPreferences().edit().putBoolean(Keys.KEY_TCP_MODE, enable).apply();
-    }
-
-    public static int getTcpPort() {
-        try {
-            return Integer.parseInt(getPreferences().getString(Keys.KEY_TCP_PORT, "5555"));
-        } catch (NumberFormatException e) {
-            return 5555;
-        }
-    }
-
-    public static void setTcpPort(@Nullable Integer port) {
-        if (port != null) {
-            getPreferences().edit().putString(Keys.KEY_TCP_PORT, Integer.toString(port)).apply();
-        } else {
-            getPreferences().edit().remove(Keys.KEY_TCP_PORT).apply();
-        }
-
-    }
-
-    public static boolean getLegacyPairing() {
-        return getPreferences().getBoolean(Keys.KEY_LEGACY_PAIRING, false);
-    }
 
     @AppCompatDelegate.NightMode
     public static int getNightMode() {
@@ -148,46 +25,5 @@ public class ShizukuSettings {
             return Locale.getDefault();
         }
         return Locale.forLanguageTag(tag);
-    }
-
-    public static boolean getCheckForUpdates() {
-        return getPreferences().getBoolean(Keys.KEY_CHECK_FOR_UPDATES, true);
-    }
-
-    public static int getUpdateChannel() {
-        return getPreferences().getInt(Keys.KEY_UPDATE_CHANNEL, UpdateMode.STABLE);
-    }
-
-    @IntDef({
-            LaunchMethod.UNKNOWN,
-            LaunchMethod.ROOT,
-            LaunchMethod.ADB,
-    })
-    @Retention(SOURCE)
-    public @interface LaunchMethod {
-        int UNKNOWN = -1;
-        int ROOT = 0;
-        int ADB = 1;
-    }
-
-    public static class Keys {
-        public static final String KEY_START_ON_BOOT = "start_on_boot";
-        public static final String KEY_WATCHDOG = "watchdog";
-        public static final String KEY_TCP_MODE = "tcp_mode";
-        public static final String KEY_TCP_PORT = "tcp_port";
-        public static final String KEY_AUTO_DISABLE_USB_DEBUGGING = "auto_disable_usb_debugging";
-        public static final String KEY_LANGUAGE = "language";
-        public static final String KEY_THEME = "theme";
-        public static final String KEY_AMOLED_BLACK = "amoled_black";
-        public static final String KEY_DYNAMIC_COLOR = "dynamic_color";
-        public static final String KEY_CHECK_FOR_UPDATES = "check_for_updates";
-        public static final String KEY_UPDATE_CHANNEL = "update_channel";
-        public static final String KEY_LEGACY_PAIRING = "legacy_pairing";
-        public static final String KEY_CATEGORY_ADVANCED = "category_advanced";
-    }
-
-    public static class UpdateMode {
-        public static final int STABLE = 0;
-        public static final int BETA = 1;
     }
 }

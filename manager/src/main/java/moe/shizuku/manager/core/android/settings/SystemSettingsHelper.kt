@@ -8,14 +8,14 @@ import android.provider.Settings
 import androidx.activity.result.ActivityResultLauncher
 import androidx.core.net.toUri
 
-object SettingsHelper {
+object SystemSettingsHelper {
 
     fun launchOrHighlightWirelessDebugging(context: Context) {
         val adbEnabled =
             Settings.Global.getInt(context.contentResolver, Settings.Global.ADB_ENABLED, 0)
         if (adbEnabled > 0) {
-            SettingsPage.Developer.WirelessDebugging.launch(context)
-        } else SettingsPage.Developer.HighlightWirelessDebugging.launch(context)
+            SystemSettingsPage.Developer.WirelessDebugging.launch(context)
+        } else SystemSettingsPage.Developer.HighlightWirelessDebugging.launch(context)
     }
 
     fun isIgnoringBatteryOptimizations(context: Context): Boolean {

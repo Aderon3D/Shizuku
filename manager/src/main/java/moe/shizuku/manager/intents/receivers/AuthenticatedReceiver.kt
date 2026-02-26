@@ -1,4 +1,4 @@
-package moe.shizuku.manager.core.android.receivers
+package moe.shizuku.manager.intents.receivers
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -7,9 +7,9 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
-import moe.shizuku.manager.core.ui.MainActivity
 import moe.shizuku.manager.R
-import moe.shizuku.manager.ShizukuSettings
+import moe.shizuku.manager.core.ui.MainActivity
+import moe.shizuku.manager.intents.data.TokenRepository
 
 abstract class AuthenticatedReceiver : BroadcastReceiver() {
     companion object {
@@ -23,7 +23,7 @@ abstract class AuthenticatedReceiver : BroadcastReceiver() {
         intent: Intent,
     ) {
         val authToken = intent.getStringExtra("auth")
-        val expectedToken = ShizukuSettings.getAuthToken()
+        val expectedToken = TokenRepository.getAuthToken()
 
         if (authToken.isNullOrEmpty()) {
             context.notify(

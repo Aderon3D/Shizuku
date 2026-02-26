@@ -1,6 +1,6 @@
 package moe.shizuku.manager.shizukuservice.models
 
-import moe.shizuku.manager.core.models.preferences.StartMode
+import moe.shizuku.manager.core.data.preferences.StartMode
 
 data class ServiceConfig(
     val startMode: StartMode,

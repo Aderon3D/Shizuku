@@ -1,16 +1,20 @@
-package moe.shizuku.manager.utils
+package moe.shizuku.manager.updater
 
-import android.content.Context
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.decodeFromString
 import moe.shizuku.manager.R
 import moe.shizuku.manager.ShizukuApplication
-import moe.shizuku.manager.ShizukuSettings
-import moe.shizuku.manager.core.extensions.*
-import moe.shizuku.manager.utils.ApkUtils.*
+import moe.shizuku.manager.core.data.KeyValueDataSource
+import moe.shizuku.manager.core.data.KeyValueEntry
+import moe.shizuku.manager.core.data.preferences.PreferencesRepository
+import moe.shizuku.manager.core.data.preferences.UpdateChannel
+import moe.shizuku.manager.core.extensions.toast
+import moe.shizuku.manager.utils.ApkUtils.changePackageName
+import moe.shizuku.manager.utils.ApkUtils.getVersionName
+import moe.shizuku.manager.utils.ApkUtils.installPackage
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
@@ -19,6 +23,23 @@ import java.security.MessageDigest
 object UpdateHelper {
     private val app = ShizukuApplication.application
     private val appContext = ShizukuApplication.appContext
+
+    private val source = KeyValueDataSource
+
+    val LAST_PROMPTED_VERSION =
+        KeyValueEntry<String?>(
+            key = "last_prompted_version",
+            default = null,
+        )
+
+    fun getLastPromptedVersion() =
+        source.get(LAST_PROMPTED_VERSION)
+
+    fun setLastPromptedVersion(value: String?) =
+        source.set(
+            LAST_PROMPTED_VERSION,
+            value,
+        )
 
     private val client = OkHttpClient()
     private val json = Json { ignoreUnknownKeys = true }
@@ -40,7 +61,7 @@ object UpdateHelper {
             )
 
         override fun toString(): String =
-            if (commit == 0)  "$major.$minor.$patch" else "$major.$minor.$patch.r$commit"
+            if (commit == 0) "$major.$minor.$patch" else "$major.$minor.$patch.r$commit"
 
         companion object {
             fun parse(tag: String): Version? {
@@ -88,11 +109,11 @@ object UpdateHelper {
         }
     }
 
-    fun isCheckForUpdatesEnabled(): Boolean = ShizukuSettings.getCheckForUpdates()
+    fun isCheckForUpdatesEnabled(): Boolean = PreferencesRepository.getCheckForUpdates()
 
     suspend fun isNewUpdateAvailable(): Boolean {
         val lastPromptedVersion =
-            Version.parse(ShizukuSettings.getLastPromptedVersion())
+            Version.parse(getLastPromptedVersion() ?: "")
                 ?: Version.parse(getVersionName())
                 ?: return false
         return if (isUpdateAvailable()) latestRelease.version > lastPromptedVersion else false
@@ -100,16 +121,17 @@ object UpdateHelper {
 
     suspend fun isUpdateAvailable(): Boolean {
         try {
-            val latest = fetchLatestRelease().version ?: return false
+            val latest = fetchLatestRelease().version
             val current = Version.parse(getVersionName()) ?: return false
             return latest > current
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             appContext.toast(R.string.update_check_failed)
             return false
         }
     }
 
-    fun updateLastPromptedVersion() = ShizukuSettings.setLastPromptedVersion(latestRelease.version.toString())
+    fun updateLastPromptedVersion() =
+        setLastPromptedVersion(latestRelease.version.toString())
 
     suspend fun update() {
         if (!::latestRelease.isInitialized && !isUpdateAvailable()) return
@@ -117,16 +139,19 @@ object UpdateHelper {
         appContext.toast(R.string.update_downloading)
 
         val apk =
-            latestRelease.download()?.run {
+            latestRelease.download().run {
                 val pm = appContext.packageManager
                 val apkPackageName = pm.getPackageArchiveInfo(
                     this.path, 0
                 )?.packageName
                 if (app.packageName != apkPackageName) {
                     try {
-                        android.util.Log.d("UpdateHelper", "Changing package name from $apkPackageName to ${app.packageName}")
+                        Log.d(
+                            "UpdateHelper",
+                            "Changing package name from $apkPackageName to ${app.packageName}"
+                        )
                         changePackageName(app.packageName)
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         appContext.toast(R.string.update_failed)
                         return@update
                     }
@@ -156,7 +181,7 @@ object UpdateHelper {
 
             val releases = json.decodeFromString<List<GitHubRelease>>(body)
             val filtered =
-                if (ShizukuSettings.getUpdateChannel() == ShizukuSettings.UpdateMode.BETA) {
+                if (PreferencesRepository.getUpdateChannel() == UpdateChannel.BETA) {
                     releases
                 } else {
                     releases.filter { !it.prerelease }

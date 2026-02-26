@@ -29,27 +29,19 @@ import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import moe.shizuku.manager.R
-import moe.shizuku.manager.ShizukuSettings
-import moe.shizuku.manager.ShizukuSettings.Keys.KEY_AMOLED_BLACK
-import moe.shizuku.manager.ShizukuSettings.Keys.KEY_CATEGORY_ADVANCED
-import moe.shizuku.manager.ShizukuSettings.Keys.KEY_DYNAMIC_COLOR
-import moe.shizuku.manager.ShizukuSettings.Keys.KEY_LANGUAGE
-import moe.shizuku.manager.ShizukuSettings.Keys.KEY_LEGACY_PAIRING
-import moe.shizuku.manager.ShizukuSettings.Keys.KEY_START_ON_BOOT
-import moe.shizuku.manager.ShizukuSettings.Keys.KEY_TCP_MODE
-import moe.shizuku.manager.ShizukuSettings.Keys.KEY_TCP_PORT
-import moe.shizuku.manager.ShizukuSettings.Keys.KEY_THEME
-import moe.shizuku.manager.ShizukuSettings.Keys.KEY_UPDATE_CHANNEL
-import moe.shizuku.manager.ShizukuSettings.Keys.KEY_WATCHDOG
 import moe.shizuku.manager.adb.AdbStarter
 import moe.shizuku.manager.app.SnackbarHelper
 import moe.shizuku.manager.core.android.receivers.NotifCancelReceiver
-import moe.shizuku.manager.core.android.settings.SettingsHelper
+import moe.shizuku.manager.core.android.settings.SystemSettingsHelper
+import moe.shizuku.manager.core.data.preferences.PreferenceKeys
+import moe.shizuku.manager.core.data.preferences.PreferenceSync
+import moe.shizuku.manager.core.data.preferences.PreferencesRepository
 import moe.shizuku.manager.core.extensions.toast
 import moe.shizuku.manager.core.ui.ThemeHelper
 import moe.shizuku.manager.core.utils.EnvironmentUtils
 import moe.shizuku.manager.receiver.ShizukuReceiverStarter
 import moe.shizuku.manager.utils.ShizukuStateMachine
+import moe.shizuku.manager.watchdog.services.WatchdogService
 import rikka.core.util.ResourceUtils
 import rikka.material.app.LocaleDelegate
 import rikka.recyclerview.addItemSpacing
@@ -78,8 +70,8 @@ class SettingsFragment :
 
     private val stateListener: (ShizukuStateMachine.State) -> Unit = {
         if (ShizukuStateMachine.isRunning()) {
-            tcpModePreference.icon = maybeGetRestartIcon(KEY_TCP_MODE)
-            tcpPortPreference.icon = maybeGetRestartIcon(KEY_TCP_PORT)
+            tcpModePreference.icon = maybeGetRestartIcon(PreferenceKeys.TCP_MODE.key)
+            tcpPortPreference.icon = maybeGetRestartIcon(PreferenceKeys.TCP_PORT.key)
         }
     }
 
@@ -90,25 +82,25 @@ class SettingsFragment :
         val context = requireContext()
 
         preferenceManager.setStorageDeviceProtected()
-        preferenceManager.sharedPreferencesName = ShizukuSettings.NAME
+        preferenceManager.sharedPreferencesName = "settings"
         preferenceManager.sharedPreferencesMode = Context.MODE_PRIVATE
         setPreferencesFromResource(R.xml.settings, null)
 
-        startOnBootPreference = findPreference(KEY_START_ON_BOOT)!!
-        watchdogPreference = findPreference(KEY_WATCHDOG)!!
-        tcpModePreference = findPreference(KEY_TCP_MODE)!!
-        tcpPortPreference = findPreference(KEY_TCP_PORT)!!
-        languagePreference = findPreference(KEY_LANGUAGE)!!
-        themePreference = findPreference(KEY_THEME)!!
-        amoledBlackPreference = findPreference(KEY_AMOLED_BLACK)!!
-        dynamicColorPreference = findPreference(KEY_DYNAMIC_COLOR)!!
-        updateChannelPreference = findPreference(KEY_UPDATE_CHANNEL)!!
-        legacyPairingPreference = findPreference(KEY_LEGACY_PAIRING)!!
-        advancedCategory = findPreference(KEY_CATEGORY_ADVANCED)!!
+        startOnBootPreference = findPreference(PreferenceKeys.START_ON_BOOT.key)!!
+        watchdogPreference = findPreference(PreferenceKeys.WATCHDOG.key)!!
+        tcpModePreference = findPreference(PreferenceKeys.TCP_MODE.key)!!
+        tcpPortPreference = findPreference(PreferenceKeys.TCP_PORT.key)!!
+        languagePreference = findPreference(PreferenceKeys.LANGUAGE.key)!!
+        themePreference = findPreference(PreferenceKeys.THEME.key)!!
+        amoledBlackPreference = findPreference(PreferenceKeys.AMOLED_BLACK.key)!!
+        dynamicColorPreference = findPreference(PreferenceKeys.DYNAMIC_COLOR.key)!!
+        updateChannelPreference = findPreference(PreferenceKeys.UPDATE_CHANNEL.key)!!
+        legacyPairingPreference = findPreference(PreferenceKeys.LEGACY_PAIRING.key)!!
+        advancedCategory = findPreference("category_advanced")!!
 
         batteryOptimizationListener =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-                val accepted = SettingsHelper.isIgnoringBatteryOptimizations(requireContext())
+                val accepted = SystemSettingsHelper.isIgnoringBatteryOptimizations(requireContext())
                 batteryOptimizationContinuation?.resume(accepted)
             }
 
@@ -118,15 +110,15 @@ class SettingsFragment :
                 EnvironmentUtils.isTelevision() ||
                 EnvironmentUtils.isRooted()
             ) {
-                isChecked = ShizukuSettings.getStartOnBoot(context)
+                isChecked = PreferenceSync.isBootReceiverEnabled(context)
 
                 setOnPreferenceChangeListener { _, newValue ->
                     if (newValue is Boolean) {
                         val doToggle = {
                             maybeToggleBatterySensitiveSetting(newValue) { result ->
                                 if (result) {
-                                    ShizukuSettings.setStartOnBoot(context, newValue)
-                                    isChecked = ShizukuSettings.getStartOnBoot(context)
+                                    PreferencesRepository.setStartOnBoot(newValue)
+                                    isChecked = PreferenceSync.isBootReceiverEnabled(context)
                                 }
                             }
                         }
@@ -159,14 +151,14 @@ class SettingsFragment :
         }
 
         watchdogPreference.apply {
-            isChecked = ShizukuSettings.isWatchdogRunning()
+            isChecked = WatchdogService.isRunning()
 
             setOnPreferenceChangeListener { _, newValue ->
                 if (newValue is Boolean) {
                     maybeToggleBatterySensitiveSetting(newValue) { result ->
                         if (result) {
-                            ShizukuSettings.setWatchdog(context, newValue)
-                            isChecked = newValue
+                            PreferencesRepository.setWatchdog(newValue)
+                            isChecked = WatchdogService.isRunning()
                         }
                     }
                 }
@@ -177,26 +169,29 @@ class SettingsFragment :
         tcpModePreference.apply {
             if (EnvironmentUtils.isTlsSupported()) {
                 summary = context.getString(R.string.settings_tcp_mode_summary)
-                icon = maybeGetRestartIcon(KEY_TCP_MODE)
+                icon = maybeGetRestartIcon(PreferenceKeys.TCP_MODE.key)
                 setOnPreferenceChangeListener { _, newValue ->
                     if (newValue is Boolean) {
                         val applyChange: () -> Unit = {
-                            ShizukuSettings.setTcpMode(newValue)
+                            PreferencesRepository.setTcpMode(newValue)
                             isChecked = newValue
                             isEnabled = true
                             summary = context.getString(R.string.settings_tcp_mode_summary)
-                            icon = maybeGetRestartIcon(KEY_TCP_MODE)
+                            icon = maybeGetRestartIcon(PreferenceKeys.TCP_MODE.key)
                             tcpPortPreference.isVisible = newValue
                         }
 
                         if (!newValue && !ShizukuStateMachine.isRunning() && needsRestart(
-                                KEY_TCP_MODE,
+                                PreferenceKeys.TCP_MODE.key,
                                 newValue
                             )
                         ) {
                             promptStopTcp { applyChange() }
                         } else {
-                            maybePromptRestart(KEY_TCP_MODE, newValue) { applyChange() }
+                            maybePromptRestart(
+                                PreferenceKeys.TCP_MODE.key,
+                                newValue
+                            ) { applyChange() }
                         }
                     }
                     false
@@ -211,23 +206,22 @@ class SettingsFragment :
 
         tcpPortPreference.apply {
             isVisible = tcpModePreference.isVisible && tcpModePreference.isChecked
-            icon = maybeGetRestartIcon(KEY_TCP_PORT)
+            icon = maybeGetRestartIcon(PreferenceKeys.TCP_PORT.key)
 
             setOnBindEditTextListener { editText ->
-                editText.hint = "5555"
+                editText.hint = PreferenceKeys.TCP_PORT.default.toString()
                 editText.inputType = InputType.TYPE_CLASS_NUMBER
-                editText.setSelection(editText.text.length)
             }
 
             setOnPreferenceChangeListener { _, newValue ->
-                val port = (newValue as? String)?.toIntOrNull()
-                if (port == null || port in 1..65535) {
+                val port = (newValue as? String)?.toIntOrNull() ?: PreferenceKeys.TCP_PORT.default
+                if (port in 1..65535) {
                     val applyChange: () -> Unit = {
-                        ShizukuSettings.setTcpPort(port)
-                        text = port?.toString()
-                        icon = maybeGetRestartIcon(KEY_TCP_PORT)
+                        PreferencesRepository.setTcpPort(port)
+                        text = port.toString()
+                        icon = maybeGetRestartIcon(PreferenceKeys.TCP_PORT.key)
                     }
-                    maybePromptRestart(KEY_TCP_PORT, port ?: 5555) { applyChange() }
+                    maybePromptRestart(PreferenceKeys.TCP_PORT.key, port) { applyChange() }
                 } else {
                     SnackbarHelper.show(
                         context,
@@ -270,7 +264,7 @@ class SettingsFragment :
 
         amoledBlackPreference.apply {
             if (ShizukuSettings.getNightMode() != AppCompatDelegate.MODE_NIGHT_NO) {
-                isChecked = ThemeHelper.isBlackNightTheme(context)
+                isChecked = ThemeHelper.isBlackNightTheme()
                 setOnPreferenceChangeListener { _, _ ->
                     if (ResourceUtils.isNightMode(context.resources.configuration)) {
                         activity?.recreate()
@@ -298,7 +292,7 @@ class SettingsFragment :
             }
         }
 
-        updateChannelPreference.value = ShizukuSettings.getUpdateChannel()
+        updateChannelPreference.value = PreferencesRepository.getUpdateChannel().value
 
         legacyPairingPreference.apply {
             isVisible = !EnvironmentUtils.isTelevision()
@@ -324,7 +318,8 @@ class SettingsFragment :
         key: String?,
     ) {
         when (key) {
-            KEY_WATCHDOG -> watchdogPreference.isChecked = ShizukuSettings.isWatchdogRunning()
+            PreferenceKeys.WATCHDOG.key -> watchdogPreference.isChecked =
+                WatchdogService.isRunning()
         }
     }
 
@@ -361,13 +356,13 @@ class SettingsFragment :
     ): Boolean {
         val currentPort = EnvironmentUtils.getAdbTcpPort()
         return when (setting) {
-            KEY_TCP_MODE -> {
-                val newMode = newValue as? Boolean ?: ShizukuSettings.getTcpMode()
+            PreferenceKeys.TCP_MODE.key -> {
+                val newMode = newValue as? Boolean ?: PreferencesRepository.getTcpMode()
                 (currentPort > 0) != newMode
             }
 
-            KEY_TCP_PORT -> {
-                val newPort = newValue as? Int ?: ShizukuSettings.getTcpPort()
+            PreferenceKeys.TCP_PORT.key -> {
+                val newPort = newValue as? Int ?: PreferencesRepository.getTcpPort()
                 (currentPort > 0) && (currentPort != newPort)
             }
 
@@ -424,7 +419,7 @@ class SettingsFragment :
             val message =
                 buildString {
                     append(context.getString(R.string.tcp_restart_required_message))
-                    if (setting == KEY_TCP_MODE) {
+                    if (setting == PreferenceKeys.TCP_MODE.key) {
                         append(context.getString(R.string.tcp_restart_required_message_wifi_required))
                     }
                 }
@@ -445,7 +440,7 @@ class SettingsFragment :
         onResult: (Boolean) -> Unit,
     ) {
         val context = requireContext()
-        if (!newValue || SettingsHelper.isIgnoringBatteryOptimizations(context) || EnvironmentUtils.isTelevision()) {
+        if (!newValue || SystemSettingsHelper.isIgnoringBatteryOptimizations(context) || EnvironmentUtils.isTelevision()) {
             onResult(true)
             return
         }
@@ -461,7 +456,7 @@ class SettingsFragment :
                         duration = 6000,
                         actionText = context.getString(R.string.fix),
                         action = {
-                            SettingsHelper.requestIgnoreBatteryOptimizations(
+                            SystemSettingsHelper.requestIgnoreBatteryOptimizations(
                                 context,
                                 batteryOptimizationListener
                             )

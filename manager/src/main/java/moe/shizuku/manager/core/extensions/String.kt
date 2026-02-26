@@ -8,7 +8,6 @@ import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.view.View
 import android.widget.TextView
-import moe.shizuku.manager.core.android.browser.CustomTabsHelper
 
 fun String.appendRandomSuffix(n: Int = 5): String {
     require(n > 0) { "The length of the random suffix (n) must be greater than 0." }
@@ -30,7 +29,7 @@ fun String.asLink(url: String): CharSequence {
     return SpannableString(this).apply {
         setSpan(object : ClickableSpan() {
             override fun onClick(v: View) {
-                CustomTabsHelper.launchUrlOrCopy(v.context, url)
+                v.context.openUrl(url)
             }
 
             override fun updateDrawState(ds: TextPaint) {

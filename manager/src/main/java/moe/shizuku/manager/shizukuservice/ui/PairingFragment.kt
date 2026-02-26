@@ -15,7 +15,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import moe.shizuku.manager.adb.AdbPairingService
-import moe.shizuku.manager.core.android.settings.SettingsHelper
+import moe.shizuku.manager.core.android.settings.SystemSettingsHelper
 import moe.shizuku.manager.core.extensions.TAG
 import moe.shizuku.manager.core.extensions.toast
 import moe.shizuku.manager.databinding.PairingFragmentBinding
@@ -51,7 +51,7 @@ class PairingFragment : Fragment() {
             }
 
             developerOptions.setOnClickListener {
-                SettingsHelper.launchOrHighlightWirelessDebugging(requireContext())
+                SystemSettingsHelper.launchOrHighlightWirelessDebugging(requireContext())
             }
         }
     }
@@ -59,7 +59,7 @@ class PairingFragment : Fragment() {
     private fun isNotificationEnabled(): Boolean {
         val nm =
             requireContext().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val channel = nm.getNotificationChannel(AdbPairingService.Companion.NOTIFICATION_CHANNEL)
+        val channel = nm.getNotificationChannel(AdbPairingService.NOTIFICATION_CHANNEL)
         return nm.areNotificationsEnabled() &&
                 (channel == null || channel.importance != NotificationManager.IMPORTANCE_NONE)
     }
@@ -70,7 +70,7 @@ class PairingFragment : Fragment() {
     }
 
     private fun startPairingService() {
-        val intent = AdbPairingService.Companion.startIntent(requireContext())
+        val intent = AdbPairingService.startIntent(requireContext())
         try {
             requireContext().startForegroundService(intent)
         } catch (e: Throwable) {

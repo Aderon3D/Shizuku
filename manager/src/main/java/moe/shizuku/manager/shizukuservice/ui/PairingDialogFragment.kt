@@ -21,14 +21,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import moe.shizuku.manager.R
-import moe.shizuku.manager.ShizukuSettings
 import moe.shizuku.manager.core.adb.AdbInvalidPairingCodeException
 import moe.shizuku.manager.core.adb.AdbKey
 import moe.shizuku.manager.core.adb.AdbKeyException
 import moe.shizuku.manager.core.adb.AdbMdns
 import moe.shizuku.manager.core.adb.AdbPairingClient
 import moe.shizuku.manager.core.adb.PreferenceAdbKeyStore
-import moe.shizuku.manager.core.android.settings.SettingsHelper
+import moe.shizuku.manager.core.android.settings.SystemSettingsHelper
+import moe.shizuku.manager.core.data.KeyValueDataSource
 import moe.shizuku.manager.core.extensions.toast
 import moe.shizuku.manager.databinding.AdbPairDialogBinding
 import java.net.ConnectException
@@ -78,7 +78,7 @@ class AdbPairDialogFragment : DialogFragment() {
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).isVisible = false
 
         dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener {
-            SettingsHelper.launchOrHighlightWirelessDebugging(it.context)
+            SystemSettingsHelper.launchOrHighlightWirelessDebugging(it.context)
         }
 
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
@@ -203,7 +203,7 @@ class ViewModel(
 
             val key =
                 try {
-                    AdbKey(PreferenceAdbKeyStore(ShizukuSettings.getPreferences()), "shizuku")
+                    AdbKey(PreferenceAdbKeyStore(KeyValueDataSource.getPreferences()), "shizuku")
                 } catch (e: Throwable) {
                     e.printStackTrace()
                     _result.postValue(AdbKeyException(e))

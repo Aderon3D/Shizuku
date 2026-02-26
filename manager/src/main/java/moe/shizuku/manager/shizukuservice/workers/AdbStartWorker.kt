@@ -29,9 +29,9 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import moe.shizuku.manager.R
-import moe.shizuku.manager.ShizukuSettings
 import moe.shizuku.manager.adb.AdbStarter
 import moe.shizuku.manager.core.adb.AdbMdns
+import moe.shizuku.manager.core.data.preferences.PreferencesRepository
 import moe.shizuku.manager.core.utils.EnvironmentUtils
 import moe.shizuku.manager.receiver.ShizukuReceiverStarter
 import moe.shizuku.manager.settings.BugReportDialogActivity
@@ -57,7 +57,7 @@ class AdbStartWorker(
             Settings.Global.putLong(cr, "adb_allowed_connection_time", 0L)
 
             val tcpPort = EnvironmentUtils.getAdbTcpPort()
-            if (tcpPort > 0 && !ShizukuSettings.getTcpMode()) {
+            if (tcpPort > 0 && !PreferencesRepository.getTcpMode()) {
                 AdbStarter.stopTcp(applicationContext, tcpPort)
             }
 

@@ -17,12 +17,12 @@ import kotlinx.coroutines.launch
 import moe.shizuku.manager.R
 import moe.shizuku.manager.adb.AdbPairingService
 import moe.shizuku.manager.app.SnackbarHelper
-import moe.shizuku.manager.core.android.settings.SettingsHelper
+import moe.shizuku.manager.core.android.settings.SystemSettingsHelper
 import moe.shizuku.manager.databinding.HomeActivityBinding
 import moe.shizuku.manager.management.AppsViewModel
 import moe.shizuku.manager.shizukuservice.ui.showAccessibilityDialog
+import moe.shizuku.manager.updater.UpdateHelper
 import moe.shizuku.manager.utils.ShizukuStateMachine
-import moe.shizuku.manager.utils.UpdateHelper
 import rikka.lifecycle.Status
 
 class HomeFragment : Fragment() {
@@ -97,7 +97,7 @@ class HomeFragment : Fragment() {
                     duration = Snackbar.LENGTH_INDEFINITE,
                     actionText = getString(R.string.fix),
                     action = {
-                        SettingsHelper.requestIgnoreBatteryOptimizations(
+                        SystemSettingsHelper.requestIgnoreBatteryOptimizations(
                             requireContext(),
                             null
                         )

@@ -1,22 +1,22 @@
 package moe.shizuku.manager.adb
 
-import android.Manifest.permission.WRITE_SECURE_SETTINGS
 import android.content.Context
-import android.content.pm.PackageManager
 import android.provider.Settings
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import moe.shizuku.manager.R
-import moe.shizuku.manager.ShizukuSettings
 import moe.shizuku.manager.core.adb.AdbClient
 import moe.shizuku.manager.core.adb.AdbKey
 import moe.shizuku.manager.core.adb.AdbKeyException
 import moe.shizuku.manager.core.adb.PreferenceAdbKeyStore
+import moe.shizuku.manager.core.data.KeyValueDataSource
+import moe.shizuku.manager.core.data.preferences.PreferencesRepository
+import moe.shizuku.manager.core.extensions.hasWriteSecureSettings
 import moe.shizuku.manager.core.extensions.toast
-import moe.shizuku.manager.starter.Starter
 import moe.shizuku.manager.core.utils.EnvironmentUtils
+import moe.shizuku.manager.starter.Starter
 import moe.shizuku.manager.utils.ShizukuStateMachine
 import java.io.EOFException
 import java.net.SocketException
@@ -28,7 +28,7 @@ object AdbStarter {
         port: Int,
         log: ((String) -> Unit)? = null,
     ) {
-        suspend fun AdbClient.runCommand(cmd: String) {
+        fun AdbClient.runCommand(cmd: String) {
             command(cmd) { log?.invoke(String(it)) }
         }
 
@@ -40,7 +40,7 @@ object AdbStarter {
                 val key =
                     runCatching {
                         AdbKey(
-                            PreferenceAdbKeyStore(ShizukuSettings.getPreferences()),
+                            PreferenceAdbKeyStore(KeyValueDataSource.getPreferences()),
                             "shizuku"
                         )
                     }
@@ -53,8 +53,8 @@ object AdbStarter {
                         }
 
                 var activePort = port
-                val tcpMode = ShizukuSettings.getTcpMode()
-                val tcpPort = ShizukuSettings.getTcpPort()
+                val tcpMode = PreferencesRepository.getTcpMode()
+                val tcpPort = PreferencesRepository.getTcpPort()
                 if (tcpMode && activePort != tcpPort) {
                     log?.invoke("Connecting on port $activePort...")
 
@@ -80,7 +80,7 @@ object AdbStarter {
                 }
             }
         } finally {
-            if (context.checkSelfPermission(WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_GRANTED) {
+            if (context.hasWriteSecureSettings()) {
                 Settings.Global.putInt(context.contentResolver, "adb_wifi_enabled", 0)
             }
         }
@@ -92,7 +92,7 @@ object AdbStarter {
     ) {
         runCatching {
             val cr = context.contentResolver
-            if (context.checkSelfPermission(WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_GRANTED) {
+            if (context.hasWriteSecureSettings()) {
                 Settings.Global.putInt(cr, Settings.Global.ADB_ENABLED, 1)
                 Settings.Global.putLong(cr, "adb_allowed_connection_time", 0L)
             }
@@ -101,7 +101,8 @@ object AdbStarter {
             if (adbEnabled == 0) throw IllegalStateException("ADB is not enabled")
 
             ShizukuStateMachine.set(ShizukuStateMachine.State.STOPPING)
-            val key = AdbKey(PreferenceAdbKeyStore(ShizukuSettings.getPreferences()), "shizuku")
+            val key =
+                AdbKey(PreferenceAdbKeyStore(KeyValueDataSource.getPreferences()), "shizuku")
             withContext(Dispatchers.IO) {
                 AdbClient("127.0.0.1", port, key).use { client ->
                     connectWithRetry(client)

@@ -1,52 +1,45 @@
 package moe.shizuku.manager.core.data.preferences
 
-import moe.shizuku.manager.core.models.preferences.StartMode
-import moe.shizuku.manager.core.models.preferences.Theme
-import moe.shizuku.manager.core.models.preferences.UpdateChannel
-
-data class Preference<T>(
-    val key: String,
-    val default: T,
-)
+import moe.shizuku.manager.core.data.KeyValueEntry
 
 @Suppress("RemoveExplicitTypeArguments")
-object Preferences {
+object PreferenceKeys {
     // -------------------------
     // BEHAVIOR
     // -------------------------
 
     val START_MODE =
-        Preference<StartMode>(
-            key = "startMode",
+        KeyValueEntry<StartMode>(
+            key = "start_mode",
             default = StartMode.PC,
         )
 
     val START_ON_BOOT =
-        Preference<Boolean>(
+        KeyValueEntry<Boolean>(
             key = "start_on_boot",
             default = false,
         )
 
     val WATCHDOG =
-        Preference<Boolean>(
+        KeyValueEntry<Boolean>(
             key = "watchdog",
             default = false,
         )
 
     val TCP_MODE =
-        Preference<Boolean>(
+        KeyValueEntry<Boolean>(
             key = "tcp_mode",
             default = true,
         )
 
     val TCP_PORT =
-        Preference<Int>(
+        KeyValueEntry<Int>(
             key = "tcp_port",
             default = 5555,
         )
 
     val AUTO_DISABLE_USB_DEBUGGING =
-        Preference<Boolean>(
+        KeyValueEntry<Boolean>(
             key = "auto_disable_usb_debugging",
             default = false,
         )
@@ -56,25 +49,25 @@ object Preferences {
     // -------------------------
 
     val LANGUAGE =
-        Preference<String?>(
+        KeyValueEntry<String?>(
             key = "language",
             default = "system",
         )
 
     val THEME =
-        Preference<Theme>(
+        KeyValueEntry<Theme>(
             key = "theme",
             default = Theme.SYSTEM,
         )
 
     val AMOLED_BLACK =
-        Preference<Boolean>(
+        KeyValueEntry<Boolean>(
             key = "amoled_black",
             default = false,
         )
 
     val DYNAMIC_COLOR =
-        Preference<Boolean>(
+        KeyValueEntry<Boolean>(
             key = "dynamic_color",
             default = true,
         )
@@ -84,20 +77,15 @@ object Preferences {
     // -------------------------
 
     val CHECK_FOR_UPDATES =
-        Preference<Boolean>(
+        KeyValueEntry<Boolean>(
             key = "check_for_updates",
             default = true,
         )
+
     val UPDATE_CHANNEL =
-        Preference<UpdateChannel>(
+        KeyValueEntry<UpdateChannel>(
             key = "update_channel",
             default = UpdateChannel.STABLE,
-        )
-
-    val LAST_PROMPTED_VERSION =
-        Preference<String?>(
-            key = "last_prompted_version",
-            default = null,
         )
 
     // -------------------------
@@ -105,18 +93,8 @@ object Preferences {
     // -------------------------
 
     val LEGACY_PAIRING =
-        Preference<Boolean>(
+        KeyValueEntry<Boolean>(
             key = "legacy_pairing",
             default = false,
-        )
-
-    // -------------------------
-    // OTHER
-    // -------------------------
-
-    val AUTH_TOKEN =
-        Preference<String?>(
-            key = "auth_token",
-            default = null,
         )
 }

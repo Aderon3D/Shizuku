@@ -1,8 +1,6 @@
 package moe.shizuku.manager.shizukuservice.ui
 
-import android.Manifest.permission.WRITE_SECURE_SETTINGS
 import android.content.Context
-import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
 import android.text.Spannable
@@ -12,12 +10,10 @@ import android.text.style.TypefaceSpan
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import moe.shizuku.manager.R
 import moe.shizuku.manager.adb.AdbPairingAccessibilityService
-import moe.shizuku.manager.core.android.settings.SettingsPage
+import moe.shizuku.manager.core.android.settings.SystemSettingsPage
+import moe.shizuku.manager.core.extensions.hasWriteSecureSettings
 
 fun showAccessibilityDialog(context: Context) {
-    val hasWriteSecureSettings =
-        (context.checkSelfPermission(WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_GRANTED)
-
     val installer = context.packageManager.getInstallerPackageName(context.packageName)
     val isInstalledByPlayOrAdb = (installer == "com.android.vending") || (installer == null)
     val hasAccessRestrictedSettings =
@@ -25,7 +21,7 @@ fun showAccessibilityDialog(context: Context) {
 
     if (context.isAccessibilityEnabled()) {
         context.showNavigateDialog()
-    } else if (hasWriteSecureSettings) {
+    } else if (context.hasWriteSecureSettings()) {
         if (context.enableAccessibilityService()) return
         context.showPermissionDialog()
     } else if (!hasAccessRestrictedSettings) {
@@ -61,7 +57,7 @@ private fun Context.showEnableDialog() {
         .setTitle(R.string.pairing_accessibility_required)
         .setMessage(R.string.pairing_accessibility_required_message)
         .setPositiveButton(R.string.enable) { _, _ ->
-            SettingsPage.Accessibility.launch(this)
+            SystemSettingsPage.Accessibility.launch(this)
         }.setNegativeButton(android.R.string.cancel, null)
         .show()
 }
@@ -81,7 +77,7 @@ private fun Context.showNavigateDialog() {
         .setTitle(R.string.pair)
         .setMessage(msg)
         .setPositiveButton(R.string.developer_options) { _, _ ->
-            SettingsPage.Developer.HighlightWirelessDebugging.launch(this)
+            SystemSettingsPage.Developer.HighlightWirelessDebugging.launch(this)
         }.setNegativeButton(android.R.string.cancel, null)
         .show()
 }

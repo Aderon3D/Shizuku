@@ -5,9 +5,9 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
 import android.os.SystemProperties
-import moe.shizuku.manager.ShizukuApplication
-import moe.shizuku.manager.ShizukuSettings
 import com.topjohnwu.superuser.Shell
+import moe.shizuku.manager.ShizukuApplication
+import moe.shizuku.manager.core.data.preferences.PreferencesRepository
 
 private val appContext = ShizukuApplication.appContext
 
@@ -33,7 +33,7 @@ object EnvironmentUtils {
     }
 
     fun isWifiRequired(): Boolean {
-        return (getAdbTcpPort() <= 0 || !ShizukuSettings.getTcpMode())
+        return (getAdbTcpPort() <= 0 || !PreferencesRepository.getTcpMode())
     }
 
     fun isRooted(): Boolean {
@@ -43,7 +43,8 @@ object EnvironmentUtils {
     fun getAdbTcpPort(): Int {
         var port = SystemProperties.getInt("service.adb.tcp.port", -1)
         if (port == -1) port = SystemProperties.getInt("persist.adb.tcp.port", -1)
-        if (port == -1 && isTelevision() && !isTlsSupported()) port = ShizukuSettings.getTcpPort()
+        if (port == -1 && isTelevision() && !isTlsSupported()) port =
+            PreferencesRepository.getTcpPort()
         return port
     }
 }

@@ -1,9 +1,7 @@
 package moe.shizuku.manager.shizukuservice.ui
 
-import android.Manifest.permission.WRITE_SECURE_SETTINGS
 import android.app.Dialog
 import android.content.DialogInterface
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -16,7 +14,8 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import moe.shizuku.manager.R
 import moe.shizuku.manager.core.adb.AdbMdns
-import moe.shizuku.manager.core.android.settings.SettingsPage
+import moe.shizuku.manager.core.android.settings.SystemSettingsPage
+import moe.shizuku.manager.core.extensions.hasWriteSecureSettings
 
 @RequiresApi(Build.VERSION_CODES.R)
 class StartSearchingDialogFragment : DialogFragment() {
@@ -51,12 +50,12 @@ class StartSearchingDialogFragment : DialogFragment() {
     private fun onDialogShow(dialog: AlertDialog) {
         adbMdns.start()
         val context = dialog.context
-        if (context.checkSelfPermission(WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_GRANTED) {
+        if (context.hasWriteSecureSettings()) {
             Settings.Global.putInt(context.contentResolver, "adb_wifi_enabled", 1)
         }
 
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-            SettingsPage.Developer.HighlightWirelessDebugging.launch(context)
+            SystemSettingsPage.Developer.HighlightWirelessDebugging.launch(context)
         }
 
         port.observe(this) {

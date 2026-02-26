@@ -8,9 +8,9 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import moe.shizuku.manager.BuildConfig
 import moe.shizuku.manager.R
-import moe.shizuku.manager.ShizukuSettings
-import moe.shizuku.manager.core.extensions.*
+import moe.shizuku.manager.core.extensions.copyToClipboard
 import moe.shizuku.manager.databinding.IntentsBottomSheetBinding
+import moe.shizuku.manager.intents.data.TokenRepository
 
 class IntentsBottomSheet(
     private val context: Context,
@@ -22,7 +22,7 @@ class IntentsBottomSheet(
     )
 
     fun show() {
-        val authToken = ShizukuSettings.getAuthToken()
+        val authToken = TokenRepository.getAuthToken()
 
         val sheetBinding =
             IntentsBottomSheetBinding.inflate(
@@ -61,7 +61,7 @@ class IntentsBottomSheet(
                     .setMessage(R.string.intents_token_regenerate_message)
                     .setNegativeButton(android.R.string.cancel, null)
                     .setPositiveButton(android.R.string.ok, { _, _ ->
-                        val authToken = ShizukuSettings.generateAuthToken()
+                        val authToken = TokenRepository.regenerateAuthToken()
                         extraEditText.setText(authToken)
                     })
                     .show()

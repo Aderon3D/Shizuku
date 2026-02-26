@@ -37,7 +37,7 @@ package moe.shizuku.manager.shizukuservice.starter
 //             context.sendBroadcast(Intent(context, NotifCancelReceiver::class.java))
 
 //             val cr = context.contentResolver
-//             if (context.checkSelfPermission(WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_GRANTED) {
+//             if (context.hasWriteSecureSettings()) {
 //                 Settings.Global.putInt(cr, Settings.Global.ADB_ENABLED, 1)
 //                 Settings.Global.putLong(cr, "adb_allowed_connection_time", 0L)
 //             }
