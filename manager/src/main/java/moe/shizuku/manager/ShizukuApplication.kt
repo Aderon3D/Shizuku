@@ -13,6 +13,7 @@ import moe.shizuku.manager.core.data.KeyValueDataSource
 import moe.shizuku.manager.core.data.preferences.PreferenceSync
 import moe.shizuku.manager.core.data.preferences.PreferencesRepository
 import moe.shizuku.manager.core.ui.LocaleHelper
+import moe.shizuku.manager.updater.data.ReleaseRepository
 import moe.shizuku.manager.watchdog.services.WatchdogManager
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 
@@ -54,6 +55,7 @@ class ShizukuApplication : Application() {
         PowerManagerHelper.init(context)
         WatchdogManager.init(context, applicationScope)
         PreferenceSync.init(context, applicationScope)
+        ReleaseRepository.init(context)
 
         LocaleHelper.migrate()
 

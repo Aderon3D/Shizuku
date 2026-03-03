@@ -1,10 +1,13 @@
 package moe.shizuku.manager.settings.models
 
 import moe.shizuku.manager.core.data.preferences.PreferenceKeys
+import moe.shizuku.manager.core.data.preferences.StartMode
 import moe.shizuku.manager.core.data.preferences.Theme
 import moe.shizuku.manager.core.data.preferences.UpdateChannel
 
 data class SettingsUiState(
+    val startModeValue: StartMode = PreferenceKeys.START_MODE.default,
+
     val isStartOnBootToggleable: Boolean = false,
     val startOnBootValue: Boolean = PreferenceKeys.START_ON_BOOT.default,
 
@@ -25,5 +28,6 @@ data class SettingsUiState(
 
     val updateChannelValue: UpdateChannel = PreferenceKeys.UPDATE_CHANNEL.default,
 
-    val isLegacyPairingVisible: Boolean = false
+    val isLegacyPairingVisible: Boolean = false,
+    val isAdvancedCategoryVisible: Boolean = false
 )

@@ -4,15 +4,14 @@ import android.content.Context
 import androidx.annotation.StringRes
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
-object RadioButtonDialog {
-    fun <T> show(
-        context: Context,
-        @StringRes titleRes: Int,
-        entries: List<T>,
-        currentValue: T,
-        getLabel: (T) -> String,
-        onConfirm: (T) -> Unit
-    ) {
+class RadioButtonDialog<T>(
+    private val context: Context,
+    @get:StringRes private val titleRes: Int,
+    private val entries: List<T>,
+    private val getLabel: (T) -> String,
+    private val onConfirm: (T) -> Unit
+) {
+    fun show(currentValue: T) {
         val options = entries.map { getLabel(it) }.toTypedArray()
         var selectedIndex = entries.indexOf(currentValue)
 

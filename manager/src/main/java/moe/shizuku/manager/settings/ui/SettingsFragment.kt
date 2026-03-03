@@ -2,6 +2,7 @@ package moe.shizuku.manager.settings.ui
 
 import android.content.Context
 import android.os.Bundle
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -28,8 +29,9 @@ import moe.shizuku.manager.core.extensions.applySystemBarsPadding
 import moe.shizuku.manager.core.ui.components.snackbar
 import moe.shizuku.manager.settings.models.SettingsEvent
 import moe.shizuku.manager.settings.models.SettingsUiState
+import moe.shizuku.manager.settings.ui.components.RadioButtonBottomSheet
 import moe.shizuku.manager.settings.ui.components.RadioButtonDialog
-import moe.shizuku.manager.settings.ui.components.TcpPortDialog
+import moe.shizuku.manager.settings.ui.components.TextInputDialog
 import moe.shizuku.manager.settings.ui.components.locale.LocaleDialog
 
 class SettingsFragment : PreferenceFragmentCompat() {
@@ -38,6 +40,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private fun <T : Preference> find(entry: KeyValueEntry<*>): T =
         findPreference(entry.key)!!
 
+    private val startModePreference: Preference
+            by lazy { find(PreferenceKeys.START_MODE) }
     private val startOnBootPreference: TwoStatePreference
             by lazy { find(PreferenceKeys.START_ON_BOOT) }
     private val watchdogPreference: TwoStatePreference
@@ -74,6 +78,13 @@ class SettingsFragment : PreferenceFragmentCompat() {
     ) {
         initSharedPrefs()
 
+        startModePreference.setOnPreferenceClickListener {
+            val currentStartMode = viewModel.uiState.value.startModeValue
+
+            startModeBottomSheet.show(currentValue = currentStartMode)
+            true
+        }
+
         startOnBootPreference.setOnPreferenceChangeListener { _, newValue ->
             viewModel.onStartOnBootChanged(newValue as Boolean)
             false
@@ -90,17 +101,19 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
 
         tcpPortPreference.setOnPreferenceClickListener {
-            showTcpPortDialog()
+            val currentPort = tcpPortPreference.summary.toString().toInt()
+            tcpPortDialog.show(currentValue = currentPort)
             true
         }
 
         languagePreference.setOnPreferenceClickListener {
-            LocaleDialog.show(requireContext())
+            LocaleDialog(requireContext()).show()
             true
         }
 
         themePreference.setOnPreferenceClickListener {
-            showThemeDialog()
+            val currentTheme = viewModel.uiState.value.themeValue
+            themeDialog.show(currentValue = currentTheme)
             true
         }
 
@@ -115,7 +128,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
 
         updateChannelPreference.setOnPreferenceClickListener {
-            showUpdateChannelDialog()
+            val currentUpdateChannel = viewModel.uiState.value.updateChannelValue
+            updateChannelDialog.show(currentValue = currentUpdateChannel)
             true
         }
 
@@ -142,6 +156,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
     }
 
     private fun updateUi(state: SettingsUiState) {
+        startModePreference.summary = getString(state.startModeValue.labelRes)
+
         startOnBootPreference.apply {
             isEnabled = state.isStartOnBootToggleable
             isChecked = state.startOnBootValue
@@ -176,7 +192,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         updateChannelPreference.summary = getString(state.updateChannelValue.labelRes)
 
         legacyPairingPreference.isVisible = state.isLegacyPairingVisible
-        advancedCategory.isVisible = state.isLegacyPairingVisible
+        advancedCategory.isVisible = state.isAdvancedCategoryVisible
     }
 
     private fun handleEvent(event: SettingsEvent) {
@@ -213,32 +229,43 @@ class SettingsFragment : PreferenceFragmentCompat() {
         setPreferencesFromResource(R.xml.settings, null)
     }
 
-    private fun showTcpPortDialog() {
-        val currentPort = tcpPortPreference.summary.toString().toInt()
-        TcpPortDialog.show(requireContext(), currentPort) {
-            viewModel.onTcpPortChanged(it)
+    private val startModeBottomSheet = RadioButtonBottomSheet(
+        context = requireContext(),
+        onConfirm = { viewModel.onStartModeChanged(it) }
+    )
+
+    private val tcpPortDialog = TextInputDialog(
+        context = requireContext(),
+        titleRes = R.string.settings_tcp_port,
+        placeholder = PreferenceKeys.TCP_PORT.default.toString(),
+        inputType = InputType.TYPE_CLASS_NUMBER,
+        maxLength = 5,
+        inputValidation = { input ->
+            val port = input?.toIntOrNull()
+            val isValid = (port == null) || (port in 1..65535)
+            if (!isValid) R.string.tcp_error_invalid_port else null
+        },
+        onConfirm = { input ->
+            val port = input.toIntOrNull() ?: PreferenceKeys.TCP_PORT.default
+            viewModel.onTcpPortChanged(port)
         }
-    }
+    )
 
-    private fun showThemeDialog() =
-        RadioButtonDialog.show(
-            context = requireContext(),
-            titleRes = R.string.settings_theme,
-            entries = Theme.entries,
-            currentValue = viewModel.uiState.value.themeValue,
-            getLabel = { getString(it.labelRes) },
-            onConfirm = { viewModel.onThemeChanged(it) }
-        )
+    private val themeDialog = RadioButtonDialog(
+        context = requireContext(),
+        titleRes = R.string.settings_theme,
+        entries = Theme.entries,
+        getLabel = { getString(it.labelRes) },
+        onConfirm = { viewModel.onThemeChanged(it) }
+    )
 
-    private fun showUpdateChannelDialog() =
-        RadioButtonDialog.show(
-            context = requireContext(),
-            titleRes = R.string.settings_update_channel,
-            entries = UpdateChannel.entries,
-            currentValue = viewModel.uiState.value.updateChannelValue,
-            getLabel = { getString(it.labelRes) },
-            onConfirm = { viewModel.onUpdateChannelChanged(it) }
-        )
+    private val updateChannelDialog = RadioButtonDialog(
+        context = requireContext(),
+        titleRes = R.string.settings_update_channel,
+        entries = UpdateChannel.entries,
+        getLabel = { getString(it.labelRes) },
+        onConfirm = { viewModel.onUpdateChannelChanged(it) }
+    )
 
     private fun showStartOnBootBugDialog() =
         MaterialAlertDialogBuilder(requireContext()).setTitle(android.R.string.dialog_alert_title)

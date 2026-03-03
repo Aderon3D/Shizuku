@@ -242,6 +242,7 @@
         Shizuku. It will be re-enabled when Shizuku starts again.</string>
 
     <!-- Settings - Behavior - Launch Mode -->
+    <string name="start_mode">Start mode</string>
     <string name="root">Root</string>
     <string name="wireless_debugging">Wireless debugging</string>
     <string name="wireless_debugging_requirement">Requires a Wi-Fi connection. With TCP mode, Wi-Fi

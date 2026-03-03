@@ -9,9 +9,11 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import moe.shizuku.manager.R
 import moe.shizuku.manager.core.ui.LocaleHelper
 
-object LocaleDialog {
+class LocaleDialog(
+    private val context: Context
+) {
 
-    fun show(context: Context) {
+    fun show() {
         val items = LocaleHelper.getLocaleEntries(context)
         val currentTag = AppCompatDelegate.getApplicationLocales().get(0)?.toLanguageTag() ?: ""
 

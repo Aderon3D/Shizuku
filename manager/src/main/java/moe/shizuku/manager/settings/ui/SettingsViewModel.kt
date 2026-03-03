@@ -17,6 +17,7 @@ import moe.shizuku.manager.core.android.settings.PowerManagerHelper
 import moe.shizuku.manager.core.data.KeyValueEntry
 import moe.shizuku.manager.core.data.preferences.PreferenceKeys
 import moe.shizuku.manager.core.data.preferences.PreferencesRepository
+import moe.shizuku.manager.core.data.preferences.StartMode
 import moe.shizuku.manager.core.data.preferences.Theme
 import moe.shizuku.manager.core.data.preferences.UpdateChannel
 import moe.shizuku.manager.core.ui.LocaleHelper
@@ -44,9 +45,17 @@ class SettingsViewModel : ViewModel() {
     private fun updateUiState() {
         val isTelevision = EnvironmentUtils.isTelevision()
         val isRooted = EnvironmentUtils.isRooted()
+        val startMode = PreferencesRepository.getStartMode()
+
+        val isTcpModeVisible = startMode == StartMode.WADB
+        val isTcpModeEnabled = PreferencesRepository.getTcpMode()
+
+        val isLegacyPairingVisible = !isTelevision
 
         _uiState.update { state ->
             state.copy(
+                startModeValue = startMode,
+
                 isStartOnBootToggleable = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
                         || isTelevision
                         || isRooted,
@@ -54,13 +63,13 @@ class SettingsViewModel : ViewModel() {
 
                 watchdogValue = PreferencesRepository.getWatchdog(),
 
-                isTcpModeVisible = true,
-                tcpModeValue = PreferencesRepository.getTcpMode(),
+                isTcpModeVisible = isTcpModeVisible,
+                tcpModeValue = isTcpModeEnabled,
 
-                isTcpPortVisible = true,
+                isTcpPortVisible = isTcpModeVisible && isTcpModeEnabled,
                 tcpPortValue = PreferencesRepository.getTcpPort(),
 
-                isAutoDisableUsbDebuggingVisible = true,
+                isAutoDisableUsbDebuggingVisible = startMode != StartMode.ROOT,
 
                 languageValue = LocaleHelper.getLocaleDisplayName(),
                 themeValue = PreferencesRepository.getTheme(),
@@ -69,9 +78,15 @@ class SettingsViewModel : ViewModel() {
 
                 updateChannelValue = PreferencesRepository.getUpdateChannel(),
 
-                isLegacyPairingVisible = !isTelevision
+                isLegacyPairingVisible = isLegacyPairingVisible,
+                isAdvancedCategoryVisible = isLegacyPairingVisible
             )
         }
+    }
+
+    fun onStartModeChanged(newValue: StartMode) {
+        PreferencesRepository.setStartMode(newValue)
+        updateUiState()
     }
 
     fun onStartOnBootChanged(newValue: Boolean) {

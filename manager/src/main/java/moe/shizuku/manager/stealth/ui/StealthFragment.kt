@@ -14,8 +14,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
-import androidx.core.view.marginEnd
-import androidx.core.view.marginStart
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.core.widget.addTextChangedListener
@@ -25,6 +23,7 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import moe.shizuku.manager.R
+import moe.shizuku.manager.core.extensions.applySystemBarsMargin
 import moe.shizuku.manager.core.extensions.applySystemBarsPadding
 import moe.shizuku.manager.core.extensions.dp
 import moe.shizuku.manager.core.ui.components.toast
@@ -128,21 +127,17 @@ class StealthFragment : Fragment() {
             scrollView.applySystemBarsPadding(start = true, end = true)
             packageNameContainer.applySystemBarsPadding(bottom = true)
             packageNameLayout.applySystemBarsPadding(start = true, end = true)
+            fab.applySystemBarsMargin(start = true, end = true)
+            loadingFab.applySystemBarsMargin(start = true, end = true)
 
-            val initialStart = fab.marginStart
-            val initialEnd = fab.marginEnd
             ViewCompat.setOnApplyWindowInsetsListener(root) { _, insets ->
                 val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
 
-                val fabStartMargin = systemBarsInsets.left + initialStart
-                val fabEndMargin = systemBarsInsets.right + initialEnd
                 val fabBottomMargin =
                     if (packageNameContainer.isVisible) (-12).dp else (systemBarsInsets.bottom + 16.dp)
 
                 listOf(fab, loadingFab).forEach {
                     it.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                        marginStart = fabStartMargin
-                        marginEnd = fabEndMargin
                         bottomMargin = fabBottomMargin
                     }
                 }
