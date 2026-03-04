@@ -2,7 +2,6 @@ package moe.shizuku.manager.settings.ui
 
 import android.content.Context
 import android.os.Build
-import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

@@ -30,10 +30,9 @@ import moe.shizuku.manager.core.extensions.applySystemBarsPadding
 import moe.shizuku.manager.core.ui.components.snackbar
 import moe.shizuku.manager.settings.models.SettingsEvent
 import moe.shizuku.manager.settings.models.SettingsUiState
-import moe.shizuku.manager.settings.ui.components.RadioButtonBottomSheet
 import moe.shizuku.manager.settings.ui.components.RadioButtonDialog
 import moe.shizuku.manager.settings.ui.components.TextInputDialog
-import moe.shizuku.manager.settings.ui.components.locale.LocaleDialog
+import moe.shizuku.manager.settings.ui.components.locale.LocaleBottomSheet
 
 class SettingsFragment : PreferenceFragmentCompat() {
     private val viewModel: SettingsViewModel by viewModels()
@@ -107,7 +106,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
 
         languagePreference.setOnPreferenceClickListener {
-            LocaleDialog(requireContext()).show()
+            LocaleBottomSheet(requireContext()).show()
             true
         }
 
@@ -230,7 +229,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     }
 
     private val startModeBottomSheet by lazy {
-        RadioButtonBottomSheet(
+        RadioButtonDialog(
             context = requireContext(),
             titleRes = R.string.start_mode,
             entries = StartMode.entries,
