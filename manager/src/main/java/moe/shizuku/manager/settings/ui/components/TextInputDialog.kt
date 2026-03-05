@@ -4,6 +4,7 @@ import android.content.Context
 import android.text.InputFilter
 import android.text.InputType
 import android.view.LayoutInflater
+import android.view.WindowManager
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.core.widget.addTextChangedListener
@@ -52,12 +53,13 @@ class TextInputDialog(
                 val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
                 positiveButton?.isEnabled = errorRes == null
 
-                binding.inputLayout.error = errorRes?.let{
+                binding.inputLayout.error = errorRes?.let {
                     context.getString(it)
                 }
             }
         }
 
+        dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
         dialog.show()
         binding.editText.requestFocus()
     }

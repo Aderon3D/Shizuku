@@ -1,6 +1,7 @@
 package moe.shizuku.manager.core.data.preferences
 
 import androidx.annotation.StringRes
+import androidx.appcompat.app.AppCompatDelegate
 import moe.shizuku.manager.R
 import moe.shizuku.manager.core.data.IntEnum
 
@@ -13,12 +14,12 @@ enum class StartMode(
 }
 
 enum class Theme(
-    override val value: Int,
+    @get:AppCompatDelegate.NightMode override val value: Int,
     @get:StringRes val labelRes: Int
 ) : IntEnum {
-    SYSTEM(-1, R.string.settings_system),
-    LIGHT(1, R.string.settings_theme_light),
-    DARK(2, R.string.settings_theme_dark)
+    SYSTEM(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM, R.string.settings_system),
+    LIGHT(AppCompatDelegate.MODE_NIGHT_NO, R.string.settings_theme_light),
+    DARK(AppCompatDelegate.MODE_NIGHT_YES, R.string.settings_theme_dark)
 }
 
 enum class UpdateChannel(

@@ -1,4 +1,4 @@
-package moe.shizuku.manager.watchdog.services
+package moe.shizuku.manager.watchdog
 
 import android.content.Context
 import kotlinx.coroutines.CoroutineScope
@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import moe.shizuku.manager.core.data.preferences.PreferencesRepository
+import moe.shizuku.manager.watchdog.services.WatchdogService
 
 object WatchdogManager {
     private val _isRunning = MutableStateFlow(false)

@@ -30,7 +30,7 @@ object LocaleHelper {
         val currentLocale = Locale.getDefault()
         val locales = context.getSupportedLocales()
 
-        val followSystem = LocaleEntry(
+        val systemDefault = LocaleEntry(
             context.getString(R.string.settings_system), "", ""
         )
 
@@ -43,7 +43,7 @@ object LocaleHelper {
             LocaleEntry(nameOwnLocale, nameCurrentLocale, locale.toLanguageTag())
         }.sortedBy { it.nameOwnLocale.lowercase() }
 
-        return listOf(followSystem) + sortedLanguages
+        return listOf(systemDefault) + sortedLanguages
     }
 
     fun getLocaleDisplayName(): String? =

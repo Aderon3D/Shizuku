@@ -2,88 +2,45 @@ package moe.shizuku.manager.intents.ui
 
 import android.content.Context
 import android.view.LayoutInflater
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 import moe.shizuku.manager.BuildConfig
 import moe.shizuku.manager.R
-import moe.shizuku.manager.core.extensions.copyToClipboard
+import moe.shizuku.manager.core.ui.components.BaseBottomSheet
 import moe.shizuku.manager.databinding.IntentsBottomSheetBinding
 import moe.shizuku.manager.intents.data.TokenRepository
 
 class IntentsBottomSheet(
-    private val context: Context,
-) {
-    private data class Field(
-        val layout: TextInputLayout,
-        val input: TextInputEditText,
-        val initText: String,
-    )
+    context: Context,
+) : BaseBottomSheet(context) {
 
-    fun show() {
+    private val sheetBinding = IntentsBottomSheetBinding.inflate(LayoutInflater.from(context))
+
+    init {
+        title = R.string.intents
+
         val authToken = TokenRepository.getAuthToken()
 
-        val sheetBinding =
-            IntentsBottomSheetBinding.inflate(
-                LayoutInflater.from(context),
-            )
-
         sheetBinding.apply {
-            val action = getIntentAction(buttonGroup.checkedButtonId)
-            val fields =
-                listOf(
-                    Field(actionLayout, actionEditText, action),
-                    Field(packageLayout, packageEditText, context.packageName),
-                    Field(targetLayout, targetEditText, "Broadcast Receiver"),
-                    Field(extraLayout, extraEditText, authToken),
-                )
+            fieldAction.text = getIntentAction(buttonGroup.checkedButtonId)
+            fieldPackage.text = context.packageName
+            fieldExtra.text = authToken
 
-            fields.forEach { (layout, input, initText) ->
-                input.setText(initText)
-                input.setKeyListener(null)
-
-                layout.setEndIconOnClickListener { v ->
-                    val token = input.text?.toString().orEmpty()
-                    v.context.copyToClipboard(token)
+            buttonRegenerateExtra.setOnClickListener {
+                promptRegenerateToken {
+                    val newToken = TokenRepository.regenerateAuthToken()
+                    fieldExtra.text = newToken
                 }
             }
 
             buttonGroup.addOnButtonCheckedListener { _, buttonId, isChecked ->
                 if (isChecked) {
-                    val action = getIntentAction(buttonId)
-                    actionEditText.setText(action)
+                    fieldAction.text = getIntentAction(buttonId)
                 }
             }
-            extraLayout.setStartIconOnClickListener {
-                MaterialAlertDialogBuilder(context)
-                    .setTitle(R.string.intents_token_regenerate)
-                    .setMessage(R.string.intents_token_regenerate_message)
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .setPositiveButton(android.R.string.ok, { _, _ ->
-                        val authToken = TokenRepository.regenerateAuthToken()
-                        extraEditText.setText(authToken)
-                    })
-                    .show()
-            }
         }
 
-        BottomSheetDialog(context).apply {
-            setContentView(sheetBinding.root)
-            show()
-        }
+        setContentView(sheetBinding.root)
     }
-
-    // if (
-    //     Build.VERSION.SDK_INT < Build.VERSION_CODES.R &&
-    //     !EnvironmentUtils.isTelevision() &&
-    //     !EnvironmentUtils.isRooted()
-    // ) {
-    //     binding.text2.apply {
-    //         visibility = View.VISIBLE
-    //         text = context.getString(R.string.intents_device_restriction, "adb tcpip 5555")
-    //     }
-    // }
 
     private fun getIntentAction(buttonId: Int): String =
         when (buttonId) {
@@ -91,4 +48,15 @@ class IntentsBottomSheet(
             R.id.buttonStop -> "${BuildConfig.APPLICATION_ID}.STOP"
             else -> ""
         }
+
+    private fun promptRegenerateToken(onConfirm: () -> Unit = {}) {
+        MaterialAlertDialogBuilder(context)
+            .setTitle(R.string.intents_token_regenerate)
+            .setMessage(R.string.intents_token_regenerate_message)
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                onConfirm()
+            }
+            .show()
+    }
 }

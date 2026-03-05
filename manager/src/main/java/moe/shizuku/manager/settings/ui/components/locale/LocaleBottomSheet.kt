@@ -1,36 +1,36 @@
 package moe.shizuku.manager.settings.ui.components.locale
 
 import android.content.Context
-import android.view.LayoutInflater
+import android.view.ViewGroup.LayoutParams
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.bottomsheet.BottomSheetDialog
+import androidx.recyclerview.widget.RecyclerView
 import moe.shizuku.manager.R
 import moe.shizuku.manager.core.ui.LocaleHelper
-import moe.shizuku.manager.databinding.LocaleBottomSheetBinding
+import moe.shizuku.manager.core.ui.components.BaseBottomSheet
 
 class LocaleBottomSheet(
-    private val context: Context
-) {
+    context: Context
+) : BaseBottomSheet(context) {
 
-    fun show() {
+    init {
+        title = R.string.settings_language
+
         val items = LocaleHelper.getLocaleEntries(context)
         val currentTag = AppCompatDelegate.getApplicationLocales().get(0)?.toLanguageTag() ?: ""
 
-        val binding = LocaleBottomSheetBinding.inflate(LayoutInflater.from(context))
-        val dialog = BottomSheetDialog(context)
-
-        binding.recyclerView.apply {
+        val recyclerView = RecyclerView(context).apply {
+            layoutParams = LayoutParams(
+                LayoutParams.MATCH_PARENT,
+                LayoutParams.WRAP_CONTENT
+            )
             layoutManager = LinearLayoutManager(context)
             adapter = LocaleAdapter(items, currentTag) { item ->
-                dialog.dismiss()
+                dismiss()
                 LocaleHelper.setLocale(item)
             }
         }
 
-        binding.title.setText(R.string.settings_language)
-
-        dialog.setContentView(binding.root)
-        dialog.show()
+        setContentView(recyclerView)
     }
 }

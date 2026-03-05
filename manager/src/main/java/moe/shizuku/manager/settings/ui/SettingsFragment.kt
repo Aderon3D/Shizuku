@@ -214,6 +214,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             entries = StartMode.entries,
             getLabel = { getString(it.labelRes) },
             getDescription = { viewModel.getStartModeDescription(it) },
+            footerRes = R.string.start_mode_footer,
             isEnabled = { viewModel.getStartModeSelectable(it) },
             onConfirm = { viewModel.onStartModeChanged(it) }
         )

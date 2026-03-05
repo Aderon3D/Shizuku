@@ -15,7 +15,7 @@ import moe.shizuku.manager.core.data.preferences.PreferencesRepository
 import moe.shizuku.manager.core.ui.LocaleHelper
 import moe.shizuku.manager.core.ui.ThemeHelper
 import moe.shizuku.manager.updater.data.ReleaseRepository
-import moe.shizuku.manager.watchdog.services.WatchdogManager
+import moe.shizuku.manager.watchdog.WatchdogManager
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 
 class ShizukuApplication : Application() {

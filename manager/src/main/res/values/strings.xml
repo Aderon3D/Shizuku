@@ -200,6 +200,7 @@
     <string name="intents_action">Action</string>
     <string name="intents_package">Package</string>
     <string name="intents_target">Target</string>
+    <string name="intents_target_broadcast">Broadcast Receiver</string>
     <string name="intents_extra">Extra</string>
 
     <!-- Intents - Auth -->
@@ -233,6 +234,7 @@
     <!-- Settings - Start mode -->
     <string name="settings_service">Service</string>
     <string name="start_mode">Start mode</string>
+    <string name="start_mode_footer">You can always start the service from a PC using an ADB command</string>
     <string name="root">Root</string>
     <string name="wireless_debugging">Wireless debugging</string>
     <string name="wireless_debugging_requirement">Requires a Wi-Fi connection. With TCP mode, Wi-Fi

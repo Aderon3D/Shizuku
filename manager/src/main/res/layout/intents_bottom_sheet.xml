@@ -1,139 +1,154 @@
-<androidx.core.widget.NestedScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/root"
-    android:orientation="vertical"
-    android:padding="24dp"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <LinearLayout
-        android:orientation="vertical"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:showDividers="middle"
-        android:divider="@drawable/spacing_list_item_vertical">
+        android:paddingHorizontal="24dp"
+        android:paddingBottom="24dp"
+        android:clipToPadding="false"
+        android:clipChildren="false">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:id="@+id/description"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:textAppearance="?textAppearanceTitleLarge"
-            android:text="@string/intents" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
+            android:text="@string/intents_description"
             android:textAppearance="?textAppearanceBodyMedium"
-            android:text="@string/intents_description" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:text="@string/intents_device_restriction"
-            android:textAppearance="?textAppearanceBodyMedium"
-            android:visibility="gone"
-            tools:visibility="visible" />
+            android:textColor="?colorOnSurfaceVariant"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <com.google.android.material.button.MaterialButtonToggleGroup
             android:id="@+id/buttonGroup"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            app:singleSelection="true"
+            android:layout_marginTop="16dp"
+            app:checkedButton="@id/buttonStart"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/description"
             app:selectionRequired="true"
-            app:checkedButton="@id/buttonStart">
+            app:singleSelection="true">
 
             <com.google.android.material.button.MaterialButton
-                style="?attr/materialButtonOutlinedStyle"
                 android:id="@+id/buttonStart"
+                style="?attr/materialButtonOutlinedStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/start" />
 
             <com.google.android.material.button.MaterialButton
-                style="?attr/materialButtonOutlinedStyle"
                 android:id="@+id/buttonStop"
+                style="?attr/materialButtonOutlinedStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/stop" />
 
         </com.google.android.material.button.MaterialButtonToggleGroup>
 
-        <com.google.android.material.textfield.TextInputLayout
-            style="@style/StaticCopyTextInput"
-            android:id="@+id/actionLayout"
+        <!-- Target -->
+        <TextView
+            android:id="@+id/labelTarget"
+            style="@style/IntentsLabel"
+            android:layout_marginTop="24dp"
+            android:text="@string/intents_target"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/buttonGroup" />
+
+        <TextView
+            android:id="@+id/textTarget"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/intents_action">
+            android:layout_marginTop="-12dp"
+            android:minHeight="48dp"
+            android:gravity="center_vertical"
+            android:text="@string/intents_target_broadcast"
+            android:textAppearance="?textAppearanceBodyLarge"
+            android:textColor="?colorOnSurface"
+            app:layout_constraintTop_toBottomOf="@id/labelTarget" />
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/actionEditText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="none"
-                android:textColor="?colorOnSurface" />
+        <!-- Action -->
+        <TextView
+            android:id="@+id/labelAction"
+            style="@style/IntentsLabel"
+            android:layout_marginTop="16dp"
+            android:text="@string/intents_action"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/textTarget" />
 
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            style="@style/StaticCopyTextInput"
-            android:id="@+id/packageLayout"
+        <moe.shizuku.manager.core.ui.components.CopyTextField
+            android:id="@+id/fieldAction"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/intents_package">
+            android:layout_marginTop="-12dp"
+            app:layout_constraintTop_toBottomOf="@id/labelAction" />
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/packageEditText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="none"
-                android:textColor="?colorOnSurface" />
+        <!-- Package -->
+        <TextView
+            android:id="@+id/labelPackage"
+            style="@style/IntentsLabel"
+            android:layout_marginTop="16dp"
+            android:text="@string/intents_package"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/fieldAction"/>
 
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            style="@style/StaticCopyTextInput"
-            android:id="@+id/targetLayout"
+        <moe.shizuku.manager.core.ui.components.CopyTextField
+            android:id="@+id/fieldPackage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/intents_target">
+            android:layout_marginTop="-12dp"
+            app:layout_constraintTop_toBottomOf="@id/labelPackage" />
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/targetEditText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="none"
-                android:textColor="?colorOnSurface" />
+        <!-- Extra -->
+        <TextView
+            android:id="@+id/labelExtra"
+            style="@style/IntentsLabel"
+            android:layout_marginTop="16dp"
+            android:text="@string/intents_extra"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/fieldPackage"/>
 
-        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonRegenerateExtra"
+            style="?attr/materialIconButtonStyle"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="-16dp"
+            android:contentDescription="@string/intents_token_regenerate"
+            app:icon="@drawable/ic_autorenew"
+            app:iconTint="?colorError"
+            app:layout_constraintBottom_toBottomOf="@+id/fieldExtra"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/fieldExtra"/>
 
-        <com.google.android.material.textfield.TextInputLayout
-            style="@style/StaticCopyTextInput"
-            android:id="@+id/extraLayout"
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/textExtraPrefix"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:hint="@string/intents_extra"
-            android:maxLines="1"
-            app:startIconCheckable="true"
-            app:startIconDrawable="@drawable/ic_autorenew"
-            app:prefixTextColor="?colorOnSurfaceVariant"
-            app:prefixText="auth: ">
+            android:text="auth:"
+            android:textAppearance="?textAppearanceBodyLarge"
+            android:textColor="?colorOnSurfaceVariant"
+            app:layout_constraintBottom_toBottomOf="@+id/fieldExtra"
+            app:layout_constraintStart_toEndOf="@id/buttonRegenerateExtra"
+            app:layout_constraintTop_toTopOf="@+id/fieldExtra"
+            tools:ignore="HardcodedText" />
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/extraEditText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="none"
-                android:textColor="?colorOnSurface"
-                android:singleLine="true"
-                android:scrollHorizontally="true" />
+        <moe.shizuku.manager.core.ui.components.CopyTextField
+            android:id="@+id/fieldExtra"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="-4dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/textExtraPrefix"
+            app:layout_constraintTop_toBottomOf="@id/labelExtra" />
 
-        </com.google.android.material.textfield.TextInputLayout>
-
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.core.widget.NestedScrollView>
