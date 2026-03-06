@@ -1,4 +1,4 @@
-package moe.shizuku.manager.adb
+package moe.shizuku.manager.shizukuservice.services
 
 import android.app.ForegroundServiceStartNotAllowedException
 import android.app.Notification
@@ -14,7 +14,9 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.core.os.bundleOf
 import androidx.lifecycle.Observer
+import androidx.navigation.NavDeepLinkBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -27,7 +29,6 @@ import moe.shizuku.manager.core.adb.AdbPairingClient
 import moe.shizuku.manager.core.adb.PreferenceAdbKeyStore
 import moe.shizuku.manager.core.data.KeyValueDataSource
 import moe.shizuku.manager.core.extensions.TAG
-import moe.shizuku.manager.core.ui.MainActivity
 import moe.shizuku.manager.core.ui.ThemeHelper
 import moe.shizuku.manager.core.ui.components.toast
 import moe.shizuku.manager.home.HomeFragment
@@ -42,8 +43,6 @@ class AdbPairingService : Service() {
         private const val REPLY_REQUEST_ID = 1
         private const val STOP_REQUEST_ID = 2
         private const val RETRY_REQUEST_ID = 3
-        private const val LAUNCH_REQUEST_ID = 4
-        private const val START_REQUEST_ID = 5
         private const val START_ACTION = "start"
         private const val STOP_ACTION = "stop"
         private const val REPLY_ACTION = "reply"
@@ -263,7 +262,7 @@ class AdbPairingService : Service() {
                     if (!success) {
                         addAction(retryNotificationAction)
                     } else {
-                        setContentIntent(launchPendingIntent)
+                        setContentIntent(launchIntent.createPendingIntent())
                         addAction(startNotificationAction)
                         setAutoCancel(true)
                     }
@@ -273,36 +272,16 @@ class AdbPairingService : Service() {
     }
 
     private val launchIntent by lazy {
-        Intent(this, MainActivity::class.java).apply {
-            addFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK or
-                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                        Intent.FLAG_ACTIVITY_SINGLE_TOP,
-            )
-        }
-    }
-
-    private val launchPendingIntent by lazy {
-        PendingIntent.getActivity(
-            this,
-            LAUNCH_REQUEST_ID,
-            launchIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
+        NavDeepLinkBuilder(this)
+            .setGraph(R.navigation.nav_graph)
+            .setDestination(R.id.home_fragment)
     }
 
     private val startNotificationAction by lazy {
-        val startIntent =
-            Intent(launchIntent)
-                .putExtra(HomeFragment.EXTRA_START_SERVICE_VIA_WADB, true)
-
         val pendingIntent =
-            PendingIntent.getActivity(
-                this,
-                START_REQUEST_ID,
-                startIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-            )
+            launchIntent
+                .setArguments(bundleOf(HomeFragment.ARG_START_SERVICE to true))
+                .createPendingIntent()
 
         Notification.Action
             .Builder(

@@ -2,13 +2,10 @@ package moe.shizuku.manager.home
 
 import android.app.NotificationManager
 import android.content.Context
-import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -17,7 +14,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import moe.shizuku.manager.R
-import moe.shizuku.manager.adb.AdbPairingService
+import moe.shizuku.manager.shizukuservice.services.AdbPairingService
 import moe.shizuku.manager.core.android.settings.PowerManagerHelper
 import moe.shizuku.manager.core.extensions.applySystemBarsPadding
 import moe.shizuku.manager.core.ui.components.snackbar
@@ -30,8 +27,8 @@ import rikka.lifecycle.Status
 
 class HomeFragment : Fragment() {
     companion object {
-        const val EXTRA_SHOW_PAIRING_DIALOG = "show_pairing_dialog"
-        const val EXTRA_START_SERVICE_VIA_WADB = "start_service_via_wadb"
+        const val ARG_SHOW_PAIRING_DIALOG = "show_pairing_dialog"
+        const val ARG_START_SERVICE = "start_service"
     }
 
     private val homeModel: HomeViewModel by viewModels()
@@ -67,6 +64,19 @@ class HomeFragment : Fragment() {
             viewLifecycleOwner,
             Lifecycle.State.RESUMED
         )
+
+        val shouldShowAccessibilityPairingDialog = arguments?.getBoolean(ARG_SHOW_PAIRING_DIALOG, false) ?: false
+        if (shouldShowAccessibilityPairingDialog) {
+            showAccessibilityDialog(requireContext())
+            arguments?.putBoolean(ARG_SHOW_PAIRING_DIALOG, false)
+        }
+
+        val shouldStartService = arguments?.getBoolean(ARG_START_SERVICE, false) ?: false
+        if (shouldStartService) {
+            val nm =
+                requireContext().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            nm.cancel(AdbPairingService.NOTIFICATION_ID)
+        }
 
         homeModel.serviceStatus.observe(viewLifecycleOwner) {
             if (it.status == Status.SUCCESS) {
@@ -131,21 +141,6 @@ class HomeFragment : Fragment() {
         }
 
         ShizukuStateMachine.addListener(stateListener)
-    }
-
-    @RequiresApi(Build.VERSION_CODES.R)
-    fun onNewIntent(intent: Intent?) {
-        intent?.let {
-            val showDialog = it.getBooleanExtra(EXTRA_SHOW_PAIRING_DIALOG, false)
-            if (showDialog) showAccessibilityDialog(requireContext())
-
-            val startWadb = it.getBooleanExtra(EXTRA_START_SERVICE_VIA_WADB, false)
-            if (startWadb) {
-                val nm =
-                    requireContext().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                nm.cancel(AdbPairingService.NOTIFICATION_ID)
-            }
-        }
     }
 
     override fun onResume() {

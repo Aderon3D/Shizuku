@@ -8,6 +8,8 @@ import android.os.Handler
 import android.os.Looper
 import android.view.accessibility.AccessibilityEvent
 import androidx.annotation.RequiresApi
+import androidx.core.os.bundleOf
+import androidx.navigation.NavDeepLinkBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -19,7 +21,6 @@ import moe.shizuku.manager.core.adb.AdbKeyException
 import moe.shizuku.manager.core.adb.AdbPairingClient
 import moe.shizuku.manager.core.adb.PreferenceAdbKeyStore
 import moe.shizuku.manager.core.data.KeyValueDataSource
-import moe.shizuku.manager.core.ui.MainActivity
 import moe.shizuku.manager.core.ui.components.toast
 import moe.shizuku.manager.core.utils.EnvironmentUtils
 import moe.shizuku.manager.home.HomeFragment
@@ -40,16 +41,7 @@ class AdbPairingAccessibilityService : AccessibilityService() {
             return
         }
 
-        val intent =
-            Intent(this, MainActivity::class.java).apply {
-                addFlags(
-                    Intent.FLAG_ACTIVITY_NEW_TASK or
-                            Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                            Intent.FLAG_ACTIVITY_SINGLE_TOP,
-                )
-                putExtra(HomeFragment.EXTRA_SHOW_PAIRING_DIALOG, true)
-            }
-        startActivity(intent)
+        navigateHome(showPairingDialog = true)
 
         handler.postDelayed({
             toast(R.string.pairing_timed_out)
@@ -121,14 +113,7 @@ class AdbPairingAccessibilityService : AccessibilityService() {
                                     )
                                 }. ${getString(R.string.pairing_successful_message)}"
 
-                            val intent =
-                                Intent(
-                                    this@AdbPairingAccessibilityService,
-                                    MainActivity::class.java
-                                ).apply {
-                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                                }
-                            startActivity(intent)
+                            navigateHome()
                         }
                     }
                 withContext(Dispatchers.Main) {
@@ -144,5 +129,14 @@ class AdbPairingAccessibilityService : AccessibilityService() {
     override fun onUnbind(intent: Intent?): Boolean {
         handler.removeCallbacksAndMessages(null)
         return super.onUnbind(intent)
+    }
+
+    private fun navigateHome(showPairingDialog: Boolean = false) {
+        NavDeepLinkBuilder(this)
+            .setGraph(R.navigation.nav_graph)
+            .setDestination(R.id.home_fragment)
+            .setArguments(bundleOf(HomeFragment.ARG_SHOW_PAIRING_DIALOG to showPairingDialog))
+            .createPendingIntent()
+            .send()
     }
 }

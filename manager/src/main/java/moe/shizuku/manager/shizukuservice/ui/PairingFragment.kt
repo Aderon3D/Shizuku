@@ -14,7 +14,7 @@ import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import moe.shizuku.manager.adb.AdbPairingService
+import moe.shizuku.manager.shizukuservice.services.AdbPairingService
 import moe.shizuku.manager.core.android.settings.SystemSettingsHelper
 import moe.shizuku.manager.core.extensions.TAG
 import moe.shizuku.manager.core.extensions.applySystemBarsPadding

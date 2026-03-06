@@ -32,7 +32,7 @@ class SettingsViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState = _uiState.asStateFlow()
 
-    private val _events = Channel<SettingsEvent>(Channel.BUFFERED)
+    private val _events = Channel<SettingsEvent>()
     val events = _events.receiveAsFlow()
 
     private var pendingBatteryOptimization: KeyValueEntry<*>? = null
@@ -177,21 +177,6 @@ class SettingsViewModel : ViewModel() {
     fun onUpdateChannelChanged(value: UpdateChannel) {
         PreferencesRepository.setUpdateChannel(value)
         updateUiState()
-    }
-
-    // TCP logic
-    // TODO remove context
-    fun onRestart(pref: KeyValueEntry<*>, newValue: Any, context: Context) {
-        when (pref) {
-            PreferenceKeys.TCP_MODE -> {
-                applyTcpModeChange(newValue as Boolean)
-            }
-
-            PreferenceKeys.TCP_PORT -> {
-                applyTcpPortChange(newValue as Int)
-            }
-        }
-        ShizukuReceiverStarter.start(context, true)
     }
 
     // TODO remove context

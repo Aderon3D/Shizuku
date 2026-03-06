@@ -10,6 +10,10 @@
         android:name="moe.shizuku.manager.home.HomeFragment"
         android:label="@string/app_name"
         tools:layout="@layout/home_fragment">
+        <argument
+            android:name="show_pairing_dialog"
+            android:defaultValue="false"
+            app:argType="boolean" />
         <action
             android:id="@+id/navigate_to_settings"
             app:destination="@id/settings_fragment" />
