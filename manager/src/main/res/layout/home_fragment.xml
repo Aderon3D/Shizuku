@@ -25,7 +25,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-        <moe.shizuku.manager.home.components.cards.StealthCard
+        <moe.shizuku.manager.home.components.cards.SimpleHomeCard
             android:id="@+id/stealthCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
@@ -35,17 +35,17 @@
             android:layout_marginTop="8dp"
             android:text="@string/home_integrations" />
 
-        <moe.shizuku.manager.home.components.cards.AuthorizedAppsCard
+        <moe.shizuku.manager.home.components.cards.SimpleHomeCard
             android:id="@+id/authorizedAppsCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-        <moe.shizuku.manager.home.components.cards.TerminalCard
+        <moe.shizuku.manager.home.components.cards.SimpleHomeCard
             android:id="@+id/terminalCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-        <moe.shizuku.manager.home.components.cards.IntentsCard
+        <moe.shizuku.manager.home.components.cards.SimpleHomeCard
             android:id="@+id/intentsCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
