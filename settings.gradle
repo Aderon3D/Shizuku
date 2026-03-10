@@ -8,9 +8,7 @@ pluginManagement {
         }
     }
 }
-plugins {
-    alias(libs.plugins.foojay.resolver)
-}
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {

@@ -3,7 +3,6 @@ agp = "8.11.2"
 androidx-annotation = "1.9.1"
 androidx-browser = "1.9.0"
 androidx-core = "1.17.0"
-androidx-core-lib = "1.17.0"
 androidx-fragment = "1.8.9"
 androidx-lifecycle = "2.10.0"
 androidx-navigation = "2.9.7"
@@ -14,18 +13,17 @@ apksig = "8.13.2"
 appiconloader = "1.5.0"
 arsclib = "1.3.8"
 boringssl = "20250114"
-bouncycastle = "1.80"
-foojay-resolver = "1.0.0"
+bouncycastle = "1.83"
 gson = "2.13.2"
 hidden-api = "4.4.0"
 hiddenapibypass = "6.1"
-kotlin = "2.2.20"
+kotlin = "2.3.10"
 kotlinx-coroutines = "1.10.2"
 kotlinx-serialization = "1.10.0"
-libcxx = "27.0.12077973"
+libcxx = "29.0.14206865"
 libsu = "6.0.0"
 material = "1.14.0-alpha09"
-okhttp = "4.12.0"
+okhttp = "5.3.2"
 refine = "4.4.0"
 rikkax-appcompat = "1.6.1"
 rikkax-compatibility = "2.0.0"
@@ -37,7 +35,7 @@ rikkax-recyclerview = "1.3.2"
 [libraries]
 androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "androidx-annotation" }
 androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "androidx-browser" }
-androidx-core = { group = "androidx.core", name = "core", version.ref = "androidx-core-lib" }
+androidx-core = { group = "androidx.core", name = "core", version.ref = "androidx-core" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidx-core" }
 androidx-fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "androidx-fragment" }
 androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "androidx-lifecycle" }
@@ -76,7 +74,6 @@ rikkax-recyclerview-ktx = { group = "dev.rikka.rikkax.recyclerview", name = "rec
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
-foojay-resolver = { id = "org.gradle.toolchains.foojay-resolver-convention", version.ref = "foojay-resolver" }
 idea = { id = "idea" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

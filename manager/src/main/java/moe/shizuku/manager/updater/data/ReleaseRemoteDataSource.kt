@@ -4,6 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
@@ -27,11 +28,11 @@ object ReleaseRemoteDataSource {
     private val json = Json { ignoreUnknownKeys = true }
 
     suspend fun fetchReleases(): List<GitHubReleaseDto> = withContext(Dispatchers.IO) {
-        val url = "https://api.github.com/repos/thedjchi/Shizuku/releases"
-        val request = Request.Builder().url(url).build()
+        val url = "https://api.github.com/repos/thedjchi/Shizuku/releases".toHttpUrl()
+        val request = Request(url)
         val response = client.newCall(request).execute()
         if (!response.isSuccessful) throw Exception("Couldn't fetch releases: ${response.code}")
-        val body = response.body?.string() ?: throw Exception("Empty response body")
+        val body = response.body.string()
 
         json.decodeFromString<List<GitHubReleaseDto>>(body)
     }
@@ -41,7 +42,7 @@ object ReleaseRemoteDataSource {
         val response = client.newCall(request).execute()
         if (!response.isSuccessful) throw Exception("Download failed: ${response.code}")
 
-        response.body?.byteStream()?.use { input ->
+        response.body.byteStream().use { input ->
             targetFile.outputStream().use { output ->
                 input.copyTo(output)
             }
