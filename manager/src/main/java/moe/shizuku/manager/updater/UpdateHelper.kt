@@ -4,7 +4,7 @@ import android.util.Log
 import moe.shizuku.manager.R
 import moe.shizuku.manager.ShizukuApplication
 import moe.shizuku.manager.core.data.preferences.PreferencesRepository
-import moe.shizuku.manager.core.ui.components.toast
+import moe.shizuku.manager.core.extensions.toast
 import moe.shizuku.manager.updater.data.ReleaseRepository
 import moe.shizuku.manager.updater.models.AppRelease
 import moe.shizuku.manager.core.utils.changePackageName

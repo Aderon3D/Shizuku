@@ -18,7 +18,7 @@ import moe.shizuku.manager.shizukuservice.services.AdbPairingService
 import moe.shizuku.manager.core.android.settings.SystemSettingsHelper
 import moe.shizuku.manager.core.extensions.TAG
 import moe.shizuku.manager.core.extensions.applySystemBarsPadding
-import moe.shizuku.manager.core.ui.components.toast
+import moe.shizuku.manager.core.extensions.toast
 import moe.shizuku.manager.databinding.PairingFragmentBinding
 import rikka.compatibility.DeviceCompatibility
 

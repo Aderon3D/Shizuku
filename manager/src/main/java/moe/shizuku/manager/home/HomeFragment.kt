@@ -18,7 +18,7 @@ import moe.shizuku.manager.R
 import moe.shizuku.manager.shizukuservice.services.AdbPairingService
 import moe.shizuku.manager.core.android.settings.PowerManagerHelper
 import moe.shizuku.manager.core.extensions.applySystemBarsPadding
-import moe.shizuku.manager.core.ui.components.snackbar
+import moe.shizuku.manager.core.extensions.snackbar
 import moe.shizuku.manager.databinding.HomeFragmentBinding
 import moe.shizuku.manager.intents.ui.IntentsBottomSheet
 import moe.shizuku.manager.permission.ui.authorizedapps.AppsViewModel
@@ -111,13 +111,11 @@ class HomeFragment : Fragment() {
             if (shouldShow) {
                 snackbar(
                     msg = getString(R.string.home_battery_optimization),
-                    duration = Snackbar.LENGTH_INDEFINITE,
-                    actionText = getString(R.string.fix),
-                    action = {
-                        val intent = PowerManagerHelper.getBatteryOptimizationIntent()
-                        startActivity(intent)
-                    }
-                )
+                    duration = Snackbar.LENGTH_INDEFINITE
+                ).setAction(R.string.fix) {
+                    val intent = PowerManagerHelper.getBatteryOptimizationIntent()
+                    startActivity(intent)
+                }.show()
             }
         }
         homeModel.checkBatteryOptimization()
@@ -137,14 +135,12 @@ class HomeFragment : Fragment() {
             if (UpdateHelper.isCheckForUpdatesEnabled() && UpdateHelper.isNewUpdateAvailable()) {
                 snackbar(
                     msg = getString(R.string.update_available),
-                    duration = Snackbar.LENGTH_INDEFINITE,
-                    actionText = getString(R.string.update),
-                    action = {
-                        lifecycleScope.launch {
-                            UpdateHelper.update()
-                        }
+                    duration = Snackbar.LENGTH_INDEFINITE
+                ).setAction(R.string.update) {
+                    lifecycleScope.launch {
+                        UpdateHelper.update()
                     }
-                )
+                }.show()
                 UpdateHelper.updateLastPromptedVersion()
             }
         }

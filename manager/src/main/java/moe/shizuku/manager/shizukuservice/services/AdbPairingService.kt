@@ -30,7 +30,7 @@ import moe.shizuku.manager.core.adb.PreferenceAdbKeyStore
 import moe.shizuku.manager.core.data.KeyValueDataSource
 import moe.shizuku.manager.core.extensions.TAG
 import moe.shizuku.manager.core.ui.ThemeHelper
-import moe.shizuku.manager.core.ui.components.toast
+import moe.shizuku.manager.core.extensions.toast
 import moe.shizuku.manager.home.HomeFragment
 import java.net.ConnectException
 

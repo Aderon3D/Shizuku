@@ -20,7 +20,7 @@ import moe.shizuku.manager.core.data.preferences.StartMode
 import moe.shizuku.manager.core.data.preferences.Theme
 import moe.shizuku.manager.core.data.preferences.UpdateChannel
 import moe.shizuku.manager.core.ui.LocaleHelper
-import moe.shizuku.manager.core.ui.components.toast
+import moe.shizuku.manager.core.extensions.toast
 import moe.shizuku.manager.core.utils.EnvironmentUtils
 import moe.shizuku.manager.settings.models.SettingsEvent
 import moe.shizuku.manager.settings.models.SettingsUiState

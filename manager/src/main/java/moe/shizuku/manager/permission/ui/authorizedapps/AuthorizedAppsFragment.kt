@@ -9,7 +9,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView.AdapterDataObserver
 import moe.shizuku.manager.core.extensions.applySystemBarsPadding
-import moe.shizuku.manager.core.ui.components.toast
+import moe.shizuku.manager.core.extensions.toast
 import moe.shizuku.manager.databinding.AuthorizedAppsFragmentBinding
 import moe.shizuku.manager.utils.ShizukuStateMachine
 import rikka.lifecycle.Status

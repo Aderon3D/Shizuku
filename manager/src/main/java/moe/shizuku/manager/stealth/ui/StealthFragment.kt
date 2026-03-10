@@ -26,7 +26,7 @@ import moe.shizuku.manager.R
 import moe.shizuku.manager.core.extensions.applySystemBarsMargin
 import moe.shizuku.manager.core.extensions.applySystemBarsPadding
 import moe.shizuku.manager.core.extensions.dp
-import moe.shizuku.manager.core.ui.components.toast
+import moe.shizuku.manager.core.extensions.toast
 import moe.shizuku.manager.databinding.StealthFragmentBinding
 import moe.shizuku.manager.core.utils.ORIGINAL_PACKAGE_NAME
 import moe.shizuku.manager.core.utils.buildApkFilename

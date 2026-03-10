@@ -1,4 +1,4 @@
-package moe.shizuku.manager.core.ui.components
+package moe.shizuku.manager.core.extensions
 
 import android.content.Context
 import android.widget.Toast

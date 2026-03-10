@@ -27,8 +27,9 @@ import moe.shizuku.manager.core.data.preferences.StartMode
 import moe.shizuku.manager.core.data.preferences.Theme
 import moe.shizuku.manager.core.data.preferences.UpdateChannel
 import moe.shizuku.manager.core.extensions.applySystemBarsPadding
+import moe.shizuku.manager.core.extensions.showSnackbar
+import moe.shizuku.manager.core.extensions.snackbar
 import moe.shizuku.manager.core.ui.LocaleHelper
-import moe.shizuku.manager.core.ui.components.snackbar
 import moe.shizuku.manager.settings.models.SettingsEvent
 import moe.shizuku.manager.settings.models.SettingsUiState
 import moe.shizuku.manager.settings.ui.components.SelectionBottomSheet
@@ -171,7 +172,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             }
 
             is SettingsEvent.Snackbar -> {
-                snackbar(event.msg)
+                showSnackbar(event.msg)
             }
 
             is SettingsEvent.PromptStopTcp -> {
@@ -270,11 +271,12 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 viewModel.applyStartOnBootChange(true)
             }.setNegativeButton(android.R.string.cancel, null).show()
 
-    private fun showBatteryOptimizationSnackbar() = snackbar(
-        msg = R.string.settings_battery_optimization, actionText = R.string.fix, action = {
-            val intent = PowerManagerHelper.getBatteryOptimizationIntent()
-            batteryOptimizationLauncher.launch(intent)
-        })
+    private fun showBatteryOptimizationSnackbar() =
+        snackbar(R.string.settings_battery_optimization)
+            .setAction(R.string.fix) {
+                val intent = PowerManagerHelper.getBatteryOptimizationIntent()
+                batteryOptimizationLauncher.launch(intent)
+            }
 
     private fun promptStopTcp() =
         MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.tcp_close_port)
