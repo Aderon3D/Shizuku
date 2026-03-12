@@ -1,4 +1,4 @@
-package moe.shizuku.manager.shizukuservice.starter
+package moe.shizuku.manager.shizukuservice.ui.components
 
 // import android.content.Intent
 // import android.view.View

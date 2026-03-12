@@ -113,8 +113,8 @@ public class ShizukuShellLoader {
             System.out.println("Entering shell...");
             var classLoader = new BaseDexClassLoader(sourceDir, null, librarySearchPath, ClassLoader.getSystemClassLoader());
             Class<?> cls = classLoader.loadClass("moe.shizuku.manager.shell.Shell");
-            cls.getDeclaredMethod("main", String[].class, String.class, IBinder.class, Handler.class)
-                    .invoke(null, args, callingPackage, binder, handler);
+            cls.getDeclaredMethod("main", String[].class, String.class, IBinder.class)
+                    .invoke(null, args, callingPackage, binder);
         } catch (ClassNotFoundException tr) {
             System.err.println("Class not found");
             System.err.println("Make sure you have Shizuku v12.0.0 or above installed");

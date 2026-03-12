@@ -5,234 +5,211 @@
     android:id="@+id/scrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:clipToPadding="false"
     app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@android:id/content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:paddingHorizontal="@dimen/margin_horizontal"
         android:paddingVertical="@dimen/margin_vertical">
 
-        <com.google.android.material.card.MaterialCardView style="@style/DialogCard">
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/descriptionCard"
+            style="@style/DialogCard"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="-8dp"
-                android:layout_marginTop="4dp"
-                android:importantForAccessibility="no"
-                android:src="@drawable/ic_help_outline_24dp"
-                android:tint="?colorOnSecondaryContainer"
-                android:tintMode="src_in" />
-
-            <TextView
-                android:id="@android:id/summary"
-                style="@style/TerminalTutorialText"
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="36dp"
-                android:duplicateParentState="true"
-                android:text="@string/terminal_apps_description"
-                android:textColor="?colorOnSecondaryContainer" />
+                android:layout_height="wrap_content">
 
+                <ImageView
+                    android:id="@+id/ic_help"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_help_outline_24dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:tint="?colorOnSecondaryContainer" />
+
+                <TextView
+                    android:id="@android:id/summary"
+                    style="@style/TutorialText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:text="@string/terminal_apps_description"
+                    android:textColor="?colorOnSecondaryContainer"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/ic_help"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/miui"
             style="@style/DialogCard"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:visibility="gone"
             app:cardBackgroundColor="?colorErrorContainer"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/descriptionCard"
             tools:visibility="visible">
 
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="-8dp"
-                android:layout_marginTop="4dp"
-                android:importantForAccessibility="no"
-                android:src="@drawable/ic_warning_24"
-                android:tint="?colorOnErrorContainer"
-                android:tintMode="src_in" />
-
-            <LinearLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:layout_marginStart="36dp"
-                android:orientation="vertical">
+                android:layout_height="wrap_content">
 
-                <TextView
-                    style="@style/TerminalTutorialText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:duplicateParentState="true"
-                    android:text="@string/terminal_tutorial_miui"
-                    android:textAppearance="?textAppearanceBodyMedium"
-                    android:textColor="?colorOnErrorContainer" />
-
-                <TextView
-                    style="@style/TerminalTutorialText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:duplicateParentState="true"
-                    android:text="@string/terminal_tutorial_miui_2"
-                    android:textAppearance="?textAppearanceBodyMedium"
-                    android:textColor="?colorOnErrorContainer" />
-
-            </LinearLayout>
-
-        </com.google.android.material.card.MaterialCardView>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:clipChildren="false"
-            android:clipToPadding="false"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_marginStart="8dp"
-                android:importantForAccessibility="no"
-                android:padding="4dp"
-                android:src="@drawable/ic_numeric_1_circle_outline_24"
-                android:tint="?android:textColorSecondary"
-                android:tintMode="src_in" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_weight="1"
-                android:clipChildren="false"
-                android:clipToPadding="false"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/text1"
-                    style="@style/TerminalTutorialText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    tools:text="@string/terminal_tutorial_1" />
-
-                <Button
-                    android:id="@android:id/button1"
+                <ImageView
+                    android:id="@+id/ic_warning"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_warning_24"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:tint="?colorOnErrorContainer" />
+
+                <TextView
+                    android:id="@+id/miui_text1"
+                    style="@style/TutorialText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:text="@string/terminal_tutorial_miui"
+                    android:textColor="?colorOnErrorContainer"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/ic_warning"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/miui_text2"
+                    style="@style/TutorialText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="@string/export"
-                    android:textAllCaps="false" />
+                    android:text="@string/terminal_tutorial_miui_2"
+                    android:textColor="?colorOnErrorContainer"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="@id/miui_text1"
+                    app:layout_constraintTop_toBottomOf="@id/miui_text1" />
 
-            </LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline_steps"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_begin="40dp" />
+
+        <!-- STEP 1 -->
+        <ImageView
+            android:id="@+id/icon1"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:layout_marginTop="24dp"
-            android:orientation="horizontal">
+            android:contentDescription="@string/terminal_step_1"
+            android:src="@drawable/ic_numeric_1_circle_outline_24"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/miui"
+            app:tint="?android:textColorSecondary" />
 
-            <ImageView
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_marginStart="8dp"
-                android:importantForAccessibility="no"
-                android:padding="4dp"
-                android:src="@drawable/ic_numeric_2_circle_outline_24"
-                android:tint="?android:textColorSecondary"
-                android:tintMode="src_in" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/text2"
-                    style="@style/TerminalTutorialText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    tools:text="@string/terminal_tutorial_2" />
-
-                <TextView
-                    android:id="@+id/command2"
-                    style="@style/TerminalTutorialText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8sp"
-                    android:fontFamily="monospace"
-                    android:textColor="?android:textColorSecondary"
-                    android:textIsSelectable="true"
-                    tools:text="@string/terminal_tutorial_3_command" />
-
-                <TextView
-                    android:id="@+id/summary2"
-                    style="@style/TerminalTutorialText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8sp"
-                    android:textColor="?android:textColorSecondary"
-                    tools:text="@string/terminal_tutorial_2_tip" />
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/text1"
+            style="@style/TutorialText"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:text="@string/terminal_tutorial_1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/guideline_steps"
+            app:layout_constraintTop_toTopOf="@id/icon1" />
+
+        <Button
+            android:id="@+id/button1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/export"
+            android:textAllCaps="false"
+            app:layout_constraintStart_toStartOf="@id/guideline_steps"
+            app:layout_constraintTop_toBottomOf="@id/text1" />
+
+        <!-- STEP 2 -->
+        <ImageView
+            android:id="@+id/icon2"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:layout_marginTop="24dp"
-            android:orientation="horizontal">
+            android:contentDescription="@string/terminal_step_2"
+            android:src="@drawable/ic_numeric_2_circle_outline_24"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/button1"
+            app:tint="?android:textColorSecondary" />
 
-            <ImageView
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_marginStart="8dp"
-                android:importantForAccessibility="no"
-                android:padding="4dp"
-                android:src="@drawable/ic_numeric_3_circle_outline_24"
-                android:tint="?android:textColorSecondary"
-                android:tintMode="src_in" />
+        <TextView
+            android:id="@+id/text2"
+            style="@style/TutorialText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/terminal_tutorial_2"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/guideline_steps"
+            app:layout_constraintTop_toTopOf="@id/icon2" />
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_weight="1"
-                android:orientation="vertical">
+        <TextView
+            android:id="@+id/command2"
+            style="@style/CommandBlock"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/guideline_steps"
+            app:layout_constraintTop_toBottomOf="@id/text2"
+            tools:text="cp /sdcard/path/to/chosen-folder/rish* ~" />
 
-                <TextView
-                    android:id="@+id/text3"
-                    style="@style/TerminalTutorialText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    tools:text="@string/terminal_tutorial_3" />
+        <!-- STEP 3 -->
+        <ImageView
+            android:id="@+id/icon3"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginTop="24dp"
+            android:contentDescription="@string/terminal_step_3"
+            android:src="@drawable/ic_numeric_3_circle_outline_24"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/command2"
+            app:tint="?android:textColorSecondary" />
 
-                <TextView
-                    android:id="@+id/command3"
-                    style="@style/TerminalTutorialText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8sp"
-                    android:fontFamily="monospace"
-                    android:textColor="?android:textColorSecondary"
-                    android:textIsSelectable="true"
-                    tools:text="@string/terminal_tutorial_3_command" />
+        <TextView
+            android:id="@+id/text3"
+            style="@style/TutorialText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/terminal_tutorial_3"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/guideline_steps"
+            app:layout_constraintTop_toTopOf="@id/icon3" />
 
-            </LinearLayout>
+        <TextView
+            android:id="@+id/command3"
+            style="@style/CommandBlock"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/guideline_steps"
+            app:layout_constraintTop_toBottomOf="@id/text3"
+            tools:text="sh rish" />
 
-        </LinearLayout>
-
-    </LinearLayout>
-
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.core.widget.NestedScrollView>

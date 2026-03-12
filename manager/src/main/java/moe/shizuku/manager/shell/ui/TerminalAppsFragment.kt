@@ -2,123 +2,103 @@ package moe.shizuku.manager.shell.ui
 
 import android.net.Uri
 import android.os.Bundle
-import android.provider.DocumentsContract
-import android.view.LayoutInflater
+import android.util.Log
 import android.view.View
-import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
+import androidx.documentfile.provider.DocumentFile
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import moe.shizuku.manager.R
+import moe.shizuku.manager.core.extensions.TAG
 import moe.shizuku.manager.core.extensions.applySystemBarsPadding
+import moe.shizuku.manager.core.extensions.showSnackbar
 import moe.shizuku.manager.databinding.TerminalAppsFragmentBinding
 import rikka.compatibility.DeviceCompatibility
+import java.io.IOException
 
 private const val SH_NAME = "rish"
 private const val DEX_NAME = "rish_shizuku.dex"
+private const val COPY_CMD = "cp /sdcard/path/to/chosen-folder/$SH_NAME* ~"
+private const val SHELL_CMD = "sh $SH_NAME"
 
-class TerminalAppsFragment : Fragment() {
-    private val openDocumentsTree =
-        registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { tree: Uri? ->
-            if (tree == null) return@registerForActivityResult
-
-            val cr = requireContext().contentResolver
-            val doc = DocumentsContract.buildDocumentUriUsingTree(
-                tree,
-                DocumentsContract.getTreeDocumentId(tree)
-            )
-            val child =
-                DocumentsContract.buildChildDocumentsUriUsingTree(
-                    tree,
-                    DocumentsContract.getTreeDocumentId(tree)
-                )
-
-            cr
-                .query(
-                    child,
-                    arrayOf(
-                        DocumentsContract.Document.COLUMN_DOCUMENT_ID,
-                        DocumentsContract.Document.COLUMN_DISPLAY_NAME
-                    ),
-                    null,
-                    null,
-                    null,
-                )?.use {
-                    while (it.moveToNext()) {
-                        val id = it.getString(0)
-                        val name = it.getString(1)
-                        if (name == SH_NAME || name == DEX_NAME) {
-                            DocumentsContract.deleteDocument(
-                                cr,
-                                DocumentsContract.buildDocumentUriUsingTree(tree, id)
-                            )
-                        }
-                    }
-                }
-
-            fun writeToDocument(name: String) {
-                DocumentsContract.createDocument(
-                    requireContext().contentResolver,
-                    doc,
-                    "application/octet-stream",
-                    name
-                )?.runCatching {
-                    cr.openOutputStream(this)?.let { output ->
-                        requireContext().assets.open(name).use { input ->
-                            if (name == SH_NAME) {
-                                input.bufferedReader().use {
-                                    val text =
-                                        it
-                                            .readText()
-                                            .replace("MANAGER_PKG", requireContext().packageName)
-                                    output.write(text.toByteArray())
-                                }
-                            } else {
-                                input.copyTo(output)
-                            }
-                        }
-                    }
-                }
-            }
-
-            writeToDocument(SH_NAME)
-            writeToDocument(DEX_NAME)
-        }
+class TerminalAppsFragment : Fragment(R.layout.terminal_apps_fragment) {
 
     private var _binding: TerminalAppsFragmentBinding? = null
     private val binding get() = _binding!!
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = TerminalAppsFragmentBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+    private val openFolderPicker =
+        registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { dirUri: Uri? ->
+            dirUri?.let { exportFiles(it) }
+        }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        binding.root.applySystemBarsPadding(bottom = true, start = true, end = true)
+        _binding = TerminalAppsFragmentBinding.bind(view)
 
         binding.apply {
-            if (DeviceCompatibility.isMiui()) {
-                miui.isVisible = true
-            }
+            root.applySystemBarsPadding(bottom = true, start = true, end = true)
 
-            text1.text = getString(R.string.terminal_tutorial_1, SH_NAME, DEX_NAME)
+            miui.isVisible = DeviceCompatibility.isMiui()
 
-            text2.text = getString(R.string.terminal_tutorial_2)
-            command2.text = "cp /sdcard/chosen-folder/* /data/data/terminal.package.name/files"
-            summary2.text = getString(R.string.terminal_tutorial_2_tip, SH_NAME, SH_NAME, ".bashrc")
-
-            text3.text = getString(R.string.terminal_tutorial_3)
-            command3.text = "sh /path/to/$SH_NAME"
-
-            button1.setOnClickListener { openDocumentsTree.launch(null) }
+            button1.setOnClickListener { openFolderPicker.launch(null) }
+            command2.text = COPY_CMD
+            command3.text = SHELL_CMD
         }
     }
+
+    private fun exportFiles(dirUri: Uri) =
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+            val context = requireContext().applicationContext
+
+            runCatching {
+                val dir = DocumentFile.fromTreeUri(context, dirUri)
+                    ?: throw IOException("Failed to open selected folder")
+
+                listOf(SH_NAME, DEX_NAME).forEach { fileName ->
+                    dir.findFile(fileName)?.delete()
+
+                    val mimeType = when (fileName) {
+                        SH_NAME -> "text/x-shellscript"
+                        DEX_NAME -> "application/octet-stream"
+                        else -> throw IOException("Unknown file: $fileName")
+                    }
+                    val file = dir.createFile(mimeType, fileName)
+                        ?: throw IOException("Failed to create file: $fileName")
+
+                    val fileStream = context.contentResolver.openOutputStream(file.uri)
+                        ?: throw IOException("Failed to open output stream for file: $fileName")
+
+                    fileStream.use { stream ->
+                        context.assets.open(fileName).use { asset ->
+                            if (fileName == SH_NAME) {
+                                val script = asset.bufferedReader().readText()
+                                    .replace("MANAGER_PKG", context.packageName)
+                                stream.write(script.toByteArray())
+                            } else {
+                                asset.copyTo(stream)
+                            }
+                        }
+                    }
+                }
+            }.onSuccess {
+                withContext(Dispatchers.Main) {
+                    showSnackbar(R.string.export_success)
+                }
+            }.onFailure {
+                if (it is CancellationException) throw it
+
+                Log.e(TAG, "Export failed", it)
+                withContext(Dispatchers.Main) {
+                    showSnackbar(R.string.export_failed)
+                }
+            }
+        }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

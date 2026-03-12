@@ -1,4 +1,4 @@
-package moe.shizuku.manager.shizukuservice.starter
+package moe.shizuku.manager.shizukuservice.ui.components
 
 // package moe.shizuku.manager.home
 

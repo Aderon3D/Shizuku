@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">Shizuku</string>
 
@@ -178,18 +179,17 @@
     <string name="terminal_apps_description">Terminal apps can run privileged shell commands using
         Shizuku.</string>
     <string name="terminal_tutorial_miui">MIUI may break the Storage Access
-        Framework, which the export button uses.</string>
+        Framework, which is used by the export function.</string>
     <string name="terminal_tutorial_miui_2">You may have to extract the file
         from the assets folder in Shizuku\'s APK instead.</string>
-    <string name="terminal_tutorial_1">Export %1$s and %2$s to a new folder.</string>
+    <string name="terminal_tutorial_1">Export the required files to a new folder.</string>
     <string name="export">Export</string>
-    <string name="terminal_tutorial_2">Use your terminal app to copy the files to its private files
-        directory.</string>
-    <string name="terminal_tutorial_2_tip">Tip: If your terminal app\'s home directory is in the
-        private files directory, place the files there to run %1$s without specifying a
-        path.\n\nOtherwise, you can add an alias for %2$s in your terminal\'s %3$s configuration
-        file.</string>
+    <string name="terminal_tutorial_2">Run the following command in your terminal app to copy the
+        files to its home directory:</string>
     <string name="terminal_tutorial_3">Open a shell with the following command:</string>
+    <string name="terminal_step_1">Step 1</string>
+    <string name="terminal_step_2">Step 2</string>
+    <string name="terminal_step_3">Step 3</string>
 
     <!-- Intents -->
     <string name="intents">Intents</string>
@@ -345,5 +345,7 @@
     <string name="error_no_email_app">No email app found</string>
     <string name="save">Save</string>
     <string name="apply">Apply</string>
+    <string name="export_success">Export succeeded</string>
+    <string name="export_failed">Export failed</string>
 
 </resources>

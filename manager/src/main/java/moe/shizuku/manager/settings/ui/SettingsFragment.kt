@@ -67,7 +67,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
         startModePreference.setOnPreferenceClickListener {
             val currentStartMode = viewModel.uiState.value.startModeValue
-            startModeBottomSheet.show(currentValue = currentStartMode)
+            startModeSelector.show(currentValue = currentStartMode)
             true
         }
 
@@ -88,36 +88,34 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
         tcpPortPreference.setOnPreferenceClickListener {
             val currentPort = tcpPortPreference.summary.toString().toInt()
-            tcpPortDialog.show(currentValue = currentPort)
+            tcpPortInput.show(currentValue = currentPort)
             true
         }
 
         languagePreference.setOnPreferenceClickListener {
             val currentLanguage = viewModel.uiState.value.languageValue
-            languageBottomSheet.show(currentValue = currentLanguage)
+            languageSelector.show(currentValue = currentLanguage)
             true
         }
 
         themePreference.setOnPreferenceClickListener {
             val currentTheme = viewModel.uiState.value.themeValue
-            themeDialog.show(currentValue = currentTheme)
+            themeSelector.show(currentValue = currentTheme)
             true
         }
 
         updateChannelPreference.setOnPreferenceClickListener {
             val currentUpdateChannel = viewModel.uiState.value.updateChannelValue
-            updateChannelDialog.show(currentValue = currentUpdateChannel)
+            updateChannelSelector.show(currentValue = currentUpdateChannel)
             true
         }
-
-        updateUi(viewModel.uiState.value)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 launch {
                     viewModel.uiState.collect { state ->
                         updateUi(state)
@@ -186,16 +184,10 @@ class SettingsFragment : PreferenceFragmentCompat() {
     }
 
     // -------------------
-    // HELPER FUNCTIONS
+    // SELECTORS
     // -------------------
 
-    private fun initSharedPrefs() {
-        preferenceManager.sharedPreferencesName = KeyValueDataSource.PREFS_NAME
-        preferenceManager.sharedPreferencesMode = Context.MODE_PRIVATE
-        setPreferencesFromResource(R.xml.settings, null)
-    }
-
-    private val startModeBottomSheet by lazy {
+    private val startModeSelector by lazy {
         SelectionBottomSheet(
             context = requireContext(),
             titleRes = R.string.start_mode,
@@ -213,7 +205,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             onConfirm = { viewModel.onStartModeChanged(it) })
     }
 
-    private val tcpPortDialog by lazy {
+    private val tcpPortInput by lazy {
         TextInputDialog(
             context = requireContext(),
             titleRes = R.string.settings_tcp_port,
@@ -224,21 +216,23 @@ class SettingsFragment : PreferenceFragmentCompat() {
             onConfirm = { viewModel.onTcpPortChanged(it) })
     }
 
-    private val languageBottomSheet by lazy {
+    private val languageSelector by lazy {
         SelectionBottomSheet(
             context = requireContext(),
             titleRes = R.string.settings_language,
             entries = LocaleHelper.getLocaleEntries(requireContext()),
             itemMapper = { locale ->
-                SelectionItem(label = locale.nameOwnLocale.takeUnless { it.isBlank() } ?: getString(
+                SelectionItem(
+                    label = locale.nameOwnLocale.takeUnless { it.isBlank() } ?: getString(
                     R.string.settings_system
                 ),
-                    description = locale.nameCurrentLocale.takeUnless { it.isBlank() })
+                    description = locale.nameCurrentLocale.takeUnless { it.isBlank() }
+                )
             },
             onConfirm = { LocaleHelper.setLocale(it) })
     }
 
-    private val themeDialog by lazy {
+    private val themeSelector by lazy {
         SelectionBottomSheet(
             context = requireContext(),
             titleRes = R.string.settings_theme,
@@ -251,7 +245,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             onConfirm = { viewModel.onThemeChanged(it) })
     }
 
-    private val updateChannelDialog by lazy {
+    private val updateChannelSelector by lazy {
         SelectionBottomSheet(
             context = requireContext(),
             titleRes = R.string.settings_update_channel,
@@ -262,6 +256,16 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 )
             },
             onConfirm = { viewModel.onUpdateChannelChanged(it) })
+    }
+
+    // -------------------
+    // HELPER FUNCTIONS
+    // -------------------
+
+    private fun initSharedPrefs() {
+        preferenceManager.sharedPreferencesName = KeyValueDataSource.PREFS_NAME
+        preferenceManager.sharedPreferencesMode = Context.MODE_PRIVATE
+        setPreferencesFromResource(R.xml.settings, null)
     }
 
     private fun showStartOnBootBugDialog() =

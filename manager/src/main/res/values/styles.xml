@@ -30,10 +30,19 @@
         <item name="android:windowAnimationStyle">@android:style/Animation.Dialog</item>
     </style>
 
-    <style name="TerminalTutorialText">
+    <style name="TutorialText">
         <item name="android:textAppearance">?textAppearanceBodyMedium</item>
-        <item name="android:minHeight">32dp</item>
+        <item name="android:minHeight">24dp</item>
         <item name="android:gravity">center_vertical</item>
+    </style>
+
+    <style name="CommandBlock" parent="TutorialText">
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:background">?colorSurfaceVariant</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:elevation">1dp</item>
+        <item name="android:textColor">?android:textColorSecondary</item>
+        <item name="android:textIsSelectable">true</item>
     </style>
 
     <style name="DialogCard" parent="@style/Widget.Material3.CardView.Filled">

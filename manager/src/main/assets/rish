@@ -1,20 +1,22 @@
 #!/system/bin/sh
 BASEDIR=$(dirname "$0")
+SCRIPT=$(basename "$0")
 DEX="$BASEDIR"/rish_shizuku.dex
 
 if [ ! -f "$DEX" ]; then
-  echo "Cannot find $DEX, please check the tutorial in Shizuku app"
+  echo "Cannot find $DEX. Please ensure that all required files are in the same directory."
   exit 1
 fi
 
 if [ $(getprop ro.build.version.sdk) -ge 34 ]; then
   if [ -w $DEX ]; then
-    echo "On Android 14+, app_process cannot load writable dex."
+    echo "On Android 14+, the write permission of $DEX must be removed."
     echo "Attempting to remove the write permission..."
     chmod 400 $DEX
     if [ -w $DEX ]; then
       echo "Cannot remove the write permission of $DEX."
-      echo "You can copy to file to terminal app's private directory (/data/data/<package>, so that remove write permission is possible"
+      echo "Please move $SCRIPT and $DEX to: /data/data/<terminal.package.name>/files"
+      echo "Then, retry the command from the new directory"
       exit 1
     else
       echo "Write permission was removed successfully."
