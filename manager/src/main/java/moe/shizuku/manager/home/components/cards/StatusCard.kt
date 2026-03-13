@@ -124,7 +124,7 @@ constructor(
     private fun onPairClicked(context: Context) {
         if (EnvironmentUtils.isTelevision()) {
             showAccessibilityDialog(context)
-        } else if (PreferencesRepository.legacyPairing.value) {
+        } else if (PreferencesRepository.legacyPairing.get()) {
             (context as? FragmentActivity)?.supportFragmentManager?.let {
                 AdbPairDialogFragment().show(it)
             }

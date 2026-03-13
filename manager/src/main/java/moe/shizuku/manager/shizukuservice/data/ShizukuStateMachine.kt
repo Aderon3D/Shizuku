@@ -50,7 +50,7 @@ object ShizukuStateMachine {
                 try {
                     val permissionGranted = appContext.hasWriteSecureSettings()
                     val shouldDisableUsbDebugging =
-                        permissionGranted && PreferencesRepository.autoDisableUsbDebugging.value
+                        permissionGranted && PreferencesRepository.autoDisableUsbDebugging.get()
                     if (shouldDisableUsbDebugging) {
                         Settings.Global.putInt(
                             appContext.contentResolver,

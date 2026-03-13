@@ -13,8 +13,6 @@ object ReleaseRepository {
     private lateinit var appContext: Context
     private val remoteDataSource = ReleaseRemoteDataSource
 
-    private val lastPromptedVersion by pref { string("last_prompted_version", null) }
-
     fun init(context: Context) {
         appContext = context.applicationContext
     }
@@ -51,12 +49,6 @@ object ReleaseRepository {
         }
 
         return apkFile
-    }
-
-    fun getLastPromptedVersion(): String? = lastPromptedVersion.value
-
-    fun setLastPromptedVersion(version: String?) {
-        lastPromptedVersion.value = version
     }
 
     private fun File.sha256(): String {

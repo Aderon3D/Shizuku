@@ -24,7 +24,7 @@ import moe.shizuku.manager.shizukuservice.workers.AdbStartWorker
 import moe.shizuku.manager.starter.Starter
 import moe.shizuku.manager.utils.ShizukuStateMachine
 import moe.shizuku.manager.utils.UserHandleCompat
-import moe.shizuku.manager.core.data.preferences.PreferencesRepository as prefs
+import moe.shizuku.manager.core.data.preferences.PreferencesRepository
 
 object ShizukuReceiverStarter {
     const val NOTIFICATION_ID = 1447
@@ -43,13 +43,13 @@ object ShizukuReceiverStarter {
     ) {
         if ((UserHandleCompat.myUserId() > 0 || ShizukuStateMachine.isRunning()) && !forceStart) return
 
-        if (prefs.startMode.value == StartMode.ROOT) {
+        if (PreferencesRepository.startMode.get() == StartMode.ROOT) {
             rootStart()
         } else if ((
                     Build.VERSION.SDK_INT >= Build.VERSION_CODES.R || EnvironmentUtils.isTelevision() ||
                             EnvironmentUtils.getAdbTcpPort() > 0
                     ) &&
-            prefs.startMode.value == StartMode.WADB
+            PreferencesRepository.startMode.get() == StartMode.WADB
         ) {
             if (context.hasWriteSecureSettings()) {
                 AdbStartWorker.enqueue(context)

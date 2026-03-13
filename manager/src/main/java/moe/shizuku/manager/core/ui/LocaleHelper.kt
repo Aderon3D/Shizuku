@@ -118,14 +118,14 @@ object LocaleHelper {
 
     // https://developer.android.com/guide/topics/resources/app-languages#custom-storage
     fun migrate() {
-        if (languageMigrated.value) return
+        if (languageMigrated.get()) return
 
         // Handles switching all users from custom storage to system storage
-        val language = PreferencesRepository.language.value
+        val language = PreferencesRepository.language.get()
         if (language != null) {
             val tag = language.takeUnless { it.lowercase() == "system" } ?: ""
             setLocale(tag)
-            PreferencesRepository.language.value = null
+            PreferencesRepository.language.set(null)
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -136,7 +136,7 @@ object LocaleHelper {
             }
 
             // Migration is finished only for users with Android 13+
-            languageMigrated.value = true
+            languageMigrated.set(true)
         }
     }
 }

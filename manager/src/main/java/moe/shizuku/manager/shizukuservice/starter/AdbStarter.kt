@@ -52,8 +52,8 @@ object AdbStarter {
                         }
 
                 var activePort = port
-                val tcpMode = PreferencesRepository.tcpMode.value
-                val tcpPort = PreferencesRepository.tcpPort.value
+                val tcpMode = PreferencesRepository.tcpMode.get()
+                val tcpPort = PreferencesRepository.tcpPort.get()
                 if (tcpMode && activePort != tcpPort) {
                     log?.invoke("Connecting on port $activePort...")
 

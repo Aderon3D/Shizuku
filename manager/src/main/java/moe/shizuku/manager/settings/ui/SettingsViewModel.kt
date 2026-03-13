@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -33,15 +33,7 @@ class SettingsViewModel : ViewModel() {
 
     private var pendingBatteryOptimization: Preference<*>? = null
 
-    val uiState: StateFlow<SettingsUiState> = combine(
-        PreferencesRepository.startMode.flow,
-        PreferencesRepository.startOnBoot.flow,
-        PreferencesRepository.watchdog.flow,
-        PreferencesRepository.tcpMode.flow,
-        PreferencesRepository.tcpPort.flow,
-        PreferencesRepository.theme.flow,
-        PreferencesRepository.updateChannel.flow
-    ) { _: Array<Any?> ->
+    val uiState: StateFlow<SettingsUiState> = PreferencesRepository.all.map {
         calculateUiState()
     }.stateIn(
         scope = viewModelScope,
@@ -55,24 +47,24 @@ class SettingsViewModel : ViewModel() {
         val isTcpModeVisible = EnvironmentUtils.isTlsSupported()
 
         SettingsUiState(
-            startModeValue = startMode.value,
+            startModeValue = startMode.get(),
             isStartOnBootToggleable = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R || isTelevision || isRooted,
-            startOnBootValue = startOnBoot.value,
-            watchdogValue = watchdog.value,
+            startOnBootValue = startOnBoot.get(),
+            watchdogValue = watchdog.get(),
 
-            isWirelessDebuggingCategoryVisible = startMode.value == StartMode.WADB,
+            isWirelessDebuggingCategoryVisible = startMode.get() == StartMode.WADB,
             isTcpModeVisible = isTcpModeVisible,
-            tcpModeValue = tcpMode.value,
-            isTcpPortVisible = isTcpModeVisible && tcpMode.value,
-            tcpPortValue = tcpPort.value,
+            tcpModeValue = tcpMode.get(),
+            isTcpPortVisible = isTcpModeVisible && tcpMode.get(),
+            tcpPortValue = tcpPort.get(),
             isLegacyPairingVisible = !isTelevision,
 
             languageValue = LocaleHelper.getLocale(),
-            themeValue = theme.value,
-            isAmoledBlackVisible = theme.value != Theme.LIGHT,
+            themeValue = theme.get(),
+            isAmoledBlackVisible = theme.get() != Theme.LIGHT,
             isDynamicColorVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
 
-            updateChannelValue = updateChannel.value
+            updateChannelValue = updateChannel.get()
         )
     }
 
@@ -92,7 +84,7 @@ class SettingsViewModel : ViewModel() {
     }
 
     fun onStartModeChanged(newValue: StartMode) {
-        PreferencesRepository.startMode.value = newValue
+        PreferencesRepository.startMode.set(newValue)
     }
 
     fun onStartOnBootChanged(newValue: Boolean) {
@@ -108,14 +100,14 @@ class SettingsViewModel : ViewModel() {
     }
 
     fun applyStartOnBootChange(newValue: Boolean) {
-        PreferencesRepository.startOnBoot.value = newValue
+        PreferencesRepository.startOnBoot.set(newValue)
     }
 
     fun onWatchdogChanged(newValue: Boolean) {
         if (shouldRequestBatteryOptimization(newValue)) {
             requestBatteryOptimization(PreferencesRepository.watchdog)
         } else {
-            PreferencesRepository.watchdog.value = newValue
+            PreferencesRepository.watchdog.set(newValue)
         }
     }
 
@@ -138,7 +130,7 @@ class SettingsViewModel : ViewModel() {
     }
 
     fun applyTcpModeChange(newValue: Boolean) {
-        PreferencesRepository.tcpMode.value = newValue
+        PreferencesRepository.tcpMode.set(newValue)
     }
 
     fun validatePort(input: String?): Int? {
@@ -161,17 +153,17 @@ class SettingsViewModel : ViewModel() {
     }
 
     fun applyTcpPortChange(newValue: Int) {
-        PreferencesRepository.tcpPort.value = newValue
+        PreferencesRepository.tcpPort.set(newValue)
     }
 
     fun onThemeChanged(value: Theme) {
-        if (PreferencesRepository.theme.value != value) {
-            PreferencesRepository.theme.value = value
+        if (PreferencesRepository.theme.get() != value) {
+            PreferencesRepository.theme.set(value)
         }
     }
 
     fun onUpdateChannelChanged(value: UpdateChannel) {
-        PreferencesRepository.updateChannel.value = value
+        PreferencesRepository.updateChannel.set(value)
     }
 
     // TODO remove context

@@ -7,9 +7,9 @@ object TokenRepository {
     private val authToken by pref { string("auth_token", null) }
 
     fun getAuthToken(): String =
-        authToken.value.takeUnless { it.isNullOrEmpty() }
+        authToken.get().takeUnless { it.isNullOrEmpty() }
             ?: regenerateAuthToken()
 
     fun regenerateAuthToken(): String =
-        generateToken().also { authToken.value = it }
+        generateToken().also { authToken.set(it) }
 }

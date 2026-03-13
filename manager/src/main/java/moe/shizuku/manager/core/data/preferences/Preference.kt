@@ -24,29 +24,12 @@ class Preference<T>(
     private val getter: SharedPreferences.(String, T) -> T,
     private val setter: SharedPreferences.(String, T) -> Unit
 ) {
-    var value: T
-        get() = prefs.getter(key, default)
-        set(v) = prefs.setter(key, v)
+    val flow: Flow<T> = prefs.asFlow(key, ::get)
+        .distinctUntilChanged()
 
-    val flow: Flow<T> = callbackFlow {
-        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, k ->
-            if (k == key) {
-                trySend(value)
-            }
-        }
+    fun get(): T = prefs.getter(key, default)
 
-        trySend(value)
-        prefs.registerOnSharedPreferenceChangeListener(listener)
-        awaitClose {
-            prefs.unregisterOnSharedPreferenceChangeListener(listener)
-        }
-    }.distinctUntilChanged()
-
-    fun get(): T = value
-
-    fun set(v: T) {
-        value = v
-    }
+    fun set(v: T) = prefs.setter(key, v)
 }
 
 // Factory methods for Preference class
@@ -61,7 +44,7 @@ fun SharedPreferences.int(key: String, default: Int = 0) =
     }
 
 fun SharedPreferences.string(key: String, default: String? = null) =
-    Preference(key, default, this, { k, d -> getString(k, d) ?: d }) { k, v ->
+    Preference(key, default, this, SharedPreferences::getString) { k, v ->
         edit { putString(k, v) }
     }
 
@@ -81,3 +64,18 @@ inline fun <reified T> SharedPreferences.enum(
             edit { putInt(k, v.value) }
         }
     )
+
+fun <T> SharedPreferences.asFlow(key: String? = null, valueProvider: () -> T): Flow<T> =
+    callbackFlow {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, k ->
+            if (k == key || key == null) {
+                trySend(valueProvider())
+            }
+        }
+
+        trySend(valueProvider())
+        registerOnSharedPreferenceChangeListener(listener)
+        awaitClose {
+            unregisterOnSharedPreferenceChangeListener(listener)
+        }
+    }

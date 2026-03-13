@@ -4,6 +4,8 @@ import android.util.Log
 import moe.shizuku.manager.R
 import moe.shizuku.manager.ShizukuApplication
 import moe.shizuku.manager.core.data.preferences.PreferencesRepository
+import moe.shizuku.manager.core.data.preferences.PreferencesRepository.pref
+import moe.shizuku.manager.core.data.preferences.string
 import moe.shizuku.manager.core.extensions.toast
 import moe.shizuku.manager.core.utils.changePackageName
 import moe.shizuku.manager.core.utils.getVersionName
@@ -11,6 +13,7 @@ import moe.shizuku.manager.core.utils.installPackage
 import moe.shizuku.manager.updater.data.ReleaseRepository
 import moe.shizuku.manager.updater.models.AppRelease
 import java.io.File
+import kotlin.getValue
 
 object UpdateHelper {
     private val app = ShizukuApplication.application
@@ -18,6 +21,7 @@ object UpdateHelper {
     private val repository = ReleaseRepository
 
     private lateinit var latestRelease: AppRelease
+    private val lastPromptedVersion by pref { string("last_prompted_version", null) }
 
     suspend fun checkAndInstallUpdates() {
         if (isUpdateAvailable()) {
@@ -27,10 +31,10 @@ object UpdateHelper {
         }
     }
 
-    fun isCheckForUpdatesEnabled(): Boolean = PreferencesRepository.checkForUpdates.value
+    fun isCheckForUpdatesEnabled(): Boolean = PreferencesRepository.checkForUpdates.get()
 
     suspend fun isNewUpdateAvailable(): Boolean {
-        val lastPromptedVersionStr = repository.getLastPromptedVersion()
+        val lastPromptedVersionStr = lastPromptedVersion.get()
         val lastPromptedVersion =
             moe.shizuku.manager.updater.models.Version.parse(lastPromptedVersionStr ?: "")
                 ?: moe.shizuku.manager.updater.models.Version.parse(getVersionName())
@@ -41,7 +45,7 @@ object UpdateHelper {
 
     suspend fun isUpdateAvailable(): Boolean {
         return try {
-            val channel = PreferencesRepository.updateChannel.value
+            val channel = PreferencesRepository.updateChannel.get()
             val latest = repository.getLatestRelease(channel)
             latestRelease = latest
             val current =
@@ -56,7 +60,7 @@ object UpdateHelper {
 
     fun updateLastPromptedVersion() {
         if (::latestRelease.isInitialized) {
-            repository.setLastPromptedVersion(latestRelease.version.toString())
+            lastPromptedVersion.set(latestRelease.version.toString())
         }
     }
 

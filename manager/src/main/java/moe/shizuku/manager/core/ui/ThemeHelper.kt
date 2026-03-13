@@ -30,8 +30,8 @@ object ThemeHelper {
     )
 
     fun applyTheme(activity: AppCompatActivity) {
-        val amoledBlack = PreferencesRepository.amoledBlack.value || EnvironmentUtils.isWatch()
-        val dynamicColor = PreferencesRepository.dynamicColor.value
+        val amoledBlack = PreferencesRepository.amoledBlack.get() || EnvironmentUtils.isWatch()
+        val dynamicColor = PreferencesRepository.dynamicColor.get()
 
         activity.setTheme(R.style.AppTheme)
 

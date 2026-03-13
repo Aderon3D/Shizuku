@@ -17,8 +17,8 @@ object PreferencesRepository {
     }
 
     // Global delegate for persisting internal flags, etc. from other features
-    fun <T> pref(block: SharedPreferences.() -> Preference<T>) = lazy {
-        prefs.block()
+    fun <T> pref(type: SharedPreferences.() -> Preference<T>) = lazy {
+        prefs.type()
     }
 
     // -------------------------
@@ -33,7 +33,7 @@ object PreferencesRepository {
     // WIRELESS DEBUGGING
     // -------------------------
 
-    val tcpMode by pref { prefs.boolean("tcp_mode", true) }
+    val tcpMode by pref { boolean("tcp_mode", true) }
     val tcpPort by pref { int("tcp_port", 5555) }
     val autoDisableUsbDebugging by pref { boolean("auto_disable_usb_debugging", false) }
     val legacyPairing by pref { boolean("legacy_pairing", false) }
@@ -53,5 +53,11 @@ object PreferencesRepository {
 
     val checkForUpdates by pref { boolean("check_for_updates", true) }
     val updateChannel by pref { enum("update_channel", UpdateChannel.STABLE) }
+
+    // -------------------------
+    // ALL PREFS
+    // -------------------------
+
+    val all by lazy { prefs.asFlow { this } }
 
 }
