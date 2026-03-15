@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -31,12 +32,14 @@ import moe.shizuku.manager.core.ui.LocaleHelper
 import moe.shizuku.manager.settings.models.SettingsEvent
 import moe.shizuku.manager.settings.models.SettingsUiState
 import moe.shizuku.manager.settings.ui.components.SelectionBottomSheet
-import moe.shizuku.manager.settings.ui.components.SelectionBottomSheet.SelectionItem
+import moe.shizuku.manager.settings.ui.components.SelectionItem
+import moe.shizuku.manager.settings.ui.components.SelectionViewModel
 import moe.shizuku.manager.settings.ui.components.TextInputDialog
 import moe.shizuku.manager.core.data.preferences.Preference as ShizukuPreference
 
 class SettingsFragment : PreferenceFragmentCompat() {
     private val viewModel: SettingsViewModel by viewModels()
+    private val selectionViewModel: SelectionViewModel by viewModels()
 
     private fun <T : Preference> find(pref: ShizukuPreference<*>): T = findPreference(pref.key)!!
 
@@ -65,8 +68,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         initSharedPrefs()
 
         startModePreference.setOnPreferenceClickListener {
-            val currentStartMode = viewModel.uiState.value.startModeValue
-            startModeSelector.show(currentStartMode)
+            showStartModeSelector()
             true
         }
 
@@ -86,26 +88,23 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
 
         tcpPortPreference.setOnPreferenceClickListener {
-            val currentPort = tcpPortPreference.summary.toString().toInt()
+            val currentPort = viewModel.uiState.value.tcpPortValue
             tcpPortInput.show(currentValue = currentPort)
             true
         }
 
         languagePreference.setOnPreferenceClickListener {
-            val currentLanguage = viewModel.uiState.value.languageValue
-            languageSelector.show(currentLanguage)
+            showLanguageSelector()
             true
         }
 
         themePreference.setOnPreferenceClickListener {
-            val currentTheme = viewModel.uiState.value.themeValue
-            themeSelector.show(currentTheme)
+            showThemeSelector()
             true
         }
 
         updateChannelPreference.setOnPreferenceClickListener {
-            val currentUpdateChannel = viewModel.uiState.value.updateChannelValue
-            updateChannelSelector.show(currentUpdateChannel)
+            showUpdateChannelSelector()
             true
         }
 
@@ -118,7 +117,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     viewModel.uiState.collect { state ->
-                        updateUi(state)
+                        handleState(state)
                     }
                 }
                 launch {
@@ -126,11 +125,20 @@ class SettingsFragment : PreferenceFragmentCompat() {
                         handleEvent(event)
                     }
                 }
+                launch {
+                    selectionViewModel.results.collect {
+                        handleSelectionResult(it)
+                    }
+                }
             }
         }
     }
 
-    private fun updateUi(state: SettingsUiState) {
+    // -------------------
+    // HANDLERS
+    // -------------------
+
+    private fun handleState(state: SettingsUiState) {
         startModePreference.summary = getString(state.startModeValue.labelRes)
         startOnBootPreference.apply {
             isEnabled = state.isStartOnBootToggleable
@@ -183,15 +191,23 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
     }
 
+    private fun handleSelectionResult(value: Any) {
+        when (value) {
+            is StartMode -> viewModel.onStartModeChanged(value)
+            is LocaleHelper.LocaleEntry -> viewModel.onLanguageChanged(value)
+            is Theme -> viewModel.onThemeChanged(value)
+            is UpdateChannel -> viewModel.onUpdateChannelChanged(value)
+        }
+    }
+
     // -------------------
-    // SELECTORS
+    // INPUTS
     // -------------------
 
-    private val startModeSelector by lazy {
-        SelectionBottomSheet(
-            context = requireContext(),
-            titleRes = R.string.start_mode,
-            footerRes = R.string.start_mode_footer,
+    private fun showStartModeSelector() =
+        showSelector(
+            title = R.string.start_mode,
+            footer = R.string.start_mode_footer,
             items = StartMode.entries.map {
                 SelectionItem(
                     value = it,
@@ -202,9 +218,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
                     isEnabled = viewModel.getStartModeSelectable(it)
                 )
             },
-            onConfirm = { viewModel.onStartModeChanged(it) }
+            selectedValue = viewModel.uiState.value.startModeValue
         )
-    }
 
     private val tcpPortInput by lazy {
         TextInputDialog(
@@ -218,10 +233,9 @@ class SettingsFragment : PreferenceFragmentCompat() {
         )
     }
 
-    private val languageSelector by lazy {
-        SelectionBottomSheet(
-            context = requireContext(),
-            titleRes = R.string.settings_language,
+    private fun showLanguageSelector() =
+        showSelector(
+            title = R.string.settings_language,
             items = LocaleHelper.getLocaleEntries(requireContext()).map { locale ->
                 SelectionItem(
                     value = locale,
@@ -231,37 +245,32 @@ class SettingsFragment : PreferenceFragmentCompat() {
                     description = locale.nameCurrentLocale.takeUnless { it.isBlank() }
                 )
             },
-            onConfirm = { viewModel.onLanguageChanged(it) }
+            selectedValue = viewModel.uiState.value.languageValue
         )
-    }
 
-    private val themeSelector by lazy {
-        SelectionBottomSheet(
-            context = requireContext(),
-            titleRes = R.string.settings_theme,
+    private fun showThemeSelector() =
+        showSelector(
+            title = R.string.settings_theme,
             items = Theme.entries.map {
                 SelectionItem(
                     value = it,
                     label = getString(it.labelRes)
                 )
             },
-            onConfirm = { viewModel.onThemeChanged(it) }
+            selectedValue = viewModel.uiState.value.themeValue
         )
-    }
 
-    private val updateChannelSelector by lazy {
-        SelectionBottomSheet(
-            context = requireContext(),
-            titleRes = R.string.settings_update_channel,
+    private fun showUpdateChannelSelector() =
+        showSelector(
+            title = R.string.settings_update_channel,
             items = UpdateChannel.entries.map {
                 SelectionItem(
                     value = it,
                     label = getString(it.labelRes)
                 )
             },
-            onConfirm = { viewModel.onUpdateChannelChanged(it) }
+            selectedValue = viewModel.uiState.value.updateChannelValue
         )
-    }
 
     // -------------------
     // HELPER FUNCTIONS
@@ -273,7 +282,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         setPreferencesFromResource(R.xml.settings, null)
 
         // Needed to prevent flickering by overriding default visibility in settings.xml
-        updateUi(viewModel.uiState.value)
+        handleState(viewModel.uiState.value)
     }
 
     private fun showStartOnBootBugDialog() =
@@ -296,6 +305,20 @@ class SettingsFragment : PreferenceFragmentCompat() {
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 viewModel.onStopTcp(requireContext())
             }.setNegativeButton(android.R.string.cancel, null).show()
+
+    private fun <T : Any> showSelector(
+        @StringRes title: Int,
+        @StringRes footer: Int? = null,
+        items: List<SelectionItem<T>>,
+        selectedValue: T?
+    ) = SelectionBottomSheet.show(
+        childFragmentManager,
+        selectionViewModel,
+        title,
+        footer,
+        items,
+        selectedValue
+    )
 
     override fun onCreateRecyclerView(
         inflater: LayoutInflater, parent: ViewGroup, savedInstanceState: Bundle?
