@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.annotation.StringRes
 import androidx.core.view.isVisible
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import moe.shizuku.manager.core.extensions.applySystemBarsPadding
 import moe.shizuku.manager.databinding.StyledBottomSheetBinding
 
 abstract class StyledBottomSheet : BottomSheetDialogFragment() {
@@ -41,6 +42,8 @@ abstract class StyledBottomSheet : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        binding.root.applySystemBarsPadding(bottom = true)
 
         binding.header.isVisible = title != null
         title?.let {

@@ -159,8 +159,6 @@ dependencies {
 
     implementation libs.rikkax.appcompat
     implementation libs.rikkax.compatibility
-    implementation libs.rikkax.material
-    implementation libs.rikkax.material.preference
     implementation libs.rikkax.recyclerview.adapter
     implementation libs.rikkax.recyclerview.ktx
     implementation libs.rikkax.lifecycle.resource.livedata

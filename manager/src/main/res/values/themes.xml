@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="AppTheme" parent="Base.AppTheme" />
+    <!-- THEMES -->
 
-    <style name="Base.AppTheme" parent="Theme.Material3Expressive.DayNight.NoActionBar">
-        <item name="preferenceTheme">@style/AppTheme.PreferenceThemeOverlay</item>
+    <style name="Theme.App" parent="Theme.App.Base" />
+
+    <style name="Theme.App.Base" parent="Theme.Material3Expressive.DayNight.NoActionBar">
+        <item name="preferenceTheme">@style/ThemeOverlay.App.Preference</item>
         <item name="bottomSheetDialogTheme">@style/ThemeOverlay.App.BottomSheetDialog</item>
     </style>
 
-    <style name="ThemeOverlay.Black">
+    <style name="ThemeOverlay.App.AmoledBlack" parent="ThemeOverlay.Material3.Dark">
         <item name="android:colorPrimary">@android:color/black</item>
         <item name="android:colorPrimaryDark">@android:color/black</item>
         <item name="android:colorBackground">@android:color/black</item>
@@ -16,16 +18,38 @@
         <item name="colorSurfaceContainerLow">?colorSurfaceContainerLowest</item>
     </style>
 
-    <style name="AppTheme.PreferenceThemeOverlay" parent="@style/PreferenceThemeOverlay.Rikka.Material3">
-        <item name="switchPreferenceCompatStyle">@style/Preference.Rikka.MateriaSwitchPreference</item>
+    <!-- THEME OVERLAYS -->
+
+    <style name="ThemeOverlay.App.Preference" parent="@style/PreferenceThemeOverlay">
+        <item name="android:scrollbars">none</item>
+        <item name="preferenceStyle">@style/Widget.App.Preference</item>
+        <item name="preferenceCategoryStyle">@style/Widget.App.Preference.Category</item>
+        <item name="switchPreferenceCompatStyle">@style/Widget.App.Preference.Switch</item>
     </style>
 
     <style name="ThemeOverlay.App.BottomSheetDialog" parent="@style/ThemeOverlay.Material3.BottomSheetDialog">
         <item name="android:navigationBarColor">@android:color/transparent</item>
-        <item name="bottomSheetStyle">@style/BottomSheetDialogStyle</item>
+        <item name="bottomSheetStyle">@style/Widget.App.BottomSheet.Modal</item>
     </style>
 
-    <style name="BottomSheetDialogStyle" parent="Widget.Material3.BottomSheet.Modal">
+    <!-- WIDGET STYLES -->
+
+    <style name="Widget.App.Preference" parent="@style/Preference.Material">
+        <item name="iconSpaceReserved">false</item>
+    </style>
+
+    <style name="Widget.App.Preference.Category" parent="@style/Preference.Category.Material">
+        <item name="iconSpaceReserved">false</item>
+        <item name="allowDividerAbove">false</item>
+        <item name="allowDividerBelow">false</item>
+    </style>
+    
+    <style name="Widget.App.Preference.Switch" parent="@style/Preference.SwitchPreferenceCompat.Material">
+        <item name="iconSpaceReserved">false</item>
+        <item name="widgetLayout">@layout/preference_material_switch</item>
+    </style>
+
+    <style name="Widget.App.BottomSheet.Modal" parent="Widget.Material3.BottomSheet.Modal">
         <item name="paddingBottomSystemWindowInsets">false</item>
     </style>
 

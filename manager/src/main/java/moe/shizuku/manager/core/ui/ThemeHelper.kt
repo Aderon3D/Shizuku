@@ -33,7 +33,7 @@ object ThemeHelper {
         val amoledBlack = PreferencesRepository.amoledBlack.get() || EnvironmentUtils.isWatch()
         val dynamicColor = PreferencesRepository.dynamicColor.get()
 
-        activity.setTheme(R.style.AppTheme)
+        activity.setTheme(R.style.Theme_App)
 
         if (dynamicColor) {
             DynamicColors.applyToActivityIfAvailable(activity)
@@ -44,7 +44,7 @@ object ThemeHelper {
             (config.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
 
         if (isNightMode && amoledBlack) {
-            activity.theme.applyStyle(R.style.ThemeOverlay_Black, true)
+            activity.theme.applyStyle(R.style.ThemeOverlay_App_AmoledBlack, true)
         }
     }
 

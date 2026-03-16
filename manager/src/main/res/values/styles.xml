@@ -20,7 +20,7 @@
         <item name="android:importantForAccessibility">no</item>
     </style>
 
-    <style name="GrantPermissions" parent="@style/AppTheme">
+    <style name="GrantPermissions" parent="@style/Theme.App">
         <item name="android:colorBackground">?colorBackgroundFloating</item>
         <item name="android:colorBackgroundCacheHint">@null</item>
 

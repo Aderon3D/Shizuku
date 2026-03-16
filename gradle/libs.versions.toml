@@ -30,7 +30,6 @@ refine = "4.4.0"
 rikkax-appcompat = "1.6.1"
 rikkax-compatibility = "2.0.0"
 rikkax-lifecycle = "1.0.1"
-rikkax-material = "2.7.2"
 rikkax-parcelablelist = "2.0.1"
 rikkax-recyclerview = "1.3.2"
 
@@ -69,8 +68,6 @@ refine-runtime = { group = "dev.rikka.tools.refine", name = "runtime", version.r
 rikkax-appcompat = { group = "dev.rikka.rikkax.appcompat", name = "appcompat", version.ref = "rikkax-appcompat" }
 rikkax-compatibility = { group = "dev.rikka.rikkax.compatibility", name = "compatibility", version.ref = "rikkax-compatibility" }
 rikkax-lifecycle-resource-livedata = { group = "dev.rikka.rikkax.lifecycle", name = "lifecycle-resource-livedata", version.ref = "rikkax-lifecycle" }
-rikkax-material = { group = "dev.rikka.rikkax.material", name = "material", version.ref = "rikkax-material" }
-rikkax-material-preference = { group = "dev.rikka.rikkax.material", name = "material-preference", version = "2.0.0" }
 rikkax-parcelablelist = { group = "dev.rikka.rikkax.parcelablelist", name = "parcelablelist", version.ref = "rikkax-parcelablelist" }
 rikkax-recyclerview-adapter = { group = "dev.rikka.rikkax.recyclerview", name = "recyclerview-adapter", version = "1.3.0" }
 rikkax-recyclerview-ktx = { group = "dev.rikka.rikkax.recyclerview", name = "recyclerview-ktx", version.ref = "rikkax-recyclerview" }
