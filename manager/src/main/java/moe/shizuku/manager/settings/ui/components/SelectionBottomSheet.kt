@@ -10,6 +10,7 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import moe.shizuku.manager.core.extensions.TAG
+import moe.shizuku.manager.core.extensions.applySystemBarsPadding
 import moe.shizuku.manager.core.ui.components.StyledBottomSheet
 import moe.shizuku.manager.databinding.RadioButtonListItemBinding
 
@@ -46,6 +47,8 @@ class SelectionBottomSheet : StyledBottomSheet() {
             layoutManager = LinearLayoutManager(context)
             adapter = RadioButtonAdapter()
             overScrollMode = View.OVER_SCROLL_IF_CONTENT_SCROLLS
+        }.also {
+            it.applySystemBarsPadding(bottom = true)
         }
 
     private inner class RadioButtonAdapter : RecyclerView.Adapter<ViewHolder>() {

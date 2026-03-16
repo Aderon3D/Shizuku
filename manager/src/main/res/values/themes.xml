@@ -5,6 +5,7 @@
 
     <style name="Base.AppTheme" parent="Theme.Material3Expressive.DayNight.NoActionBar">
         <item name="preferenceTheme">@style/AppTheme.PreferenceThemeOverlay</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.App.BottomSheetDialog</item>
     </style>
 
     <style name="ThemeOverlay.Black">
@@ -16,8 +17,16 @@
     </style>
 
     <style name="AppTheme.PreferenceThemeOverlay" parent="@style/PreferenceThemeOverlay.Rikka.Material3">
-        <item name="switchPreferenceCompatStyle">@style/Preference.Rikka.MateriaSwitchPreference
-        </item>
+        <item name="switchPreferenceCompatStyle">@style/Preference.Rikka.MateriaSwitchPreference</item>
+    </style>
+
+    <style name="ThemeOverlay.App.BottomSheetDialog" parent="@style/ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="bottomSheetStyle">@style/BottomSheetDialogStyle</item>
+    </style>
+
+    <style name="BottomSheetDialogStyle" parent="Widget.Material3.BottomSheet.Modal">
+        <item name="paddingBottomSystemWindowInsets">false</item>
     </style>
 
 </resources>
