@@ -3,6 +3,7 @@ package moe.shizuku.manager.core.ui
 import android.app.Activity
 import android.app.Application
 import android.content.res.Configuration
+import android.content.res.Resources
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -24,6 +25,9 @@ object ThemeHelper {
         val dynamic: Boolean
     )
 
+    fun Resources.isNightMode() =
+        (configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+
     fun applyTheme(activity: AppCompatActivity) {
         val amoledBlack = PreferencesRepository.amoledBlack.get() || EnvironmentUtils.isWatch()
         val dynamicColor = PreferencesRepository.dynamicColor.get()
@@ -34,11 +38,8 @@ object ThemeHelper {
             DynamicColors.applyToActivityIfAvailable(activity)
         }
 
-        val config = activity.resources.configuration
-        val isNightMode =
-            (config.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-
-        if (isNightMode && amoledBlack) {
+        val res = activity.resources
+        if (res.isNightMode() && amoledBlack) {
             activity.theme.applyStyle(R.style.ThemeOverlay_App_AmoledBlack, true)
         }
     }
