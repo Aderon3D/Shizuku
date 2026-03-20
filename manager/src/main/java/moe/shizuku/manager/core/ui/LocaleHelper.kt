@@ -11,11 +11,13 @@ import androidx.core.os.LocaleListCompat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import moe.shizuku.manager.R
 import moe.shizuku.manager.core.data.preferences.PreferencesRepository
 import moe.shizuku.manager.core.data.preferences.PreferencesRepository.pref
 import moe.shizuku.manager.core.data.preferences.boolean
 import moe.shizuku.manager.core.extensions.TAG
 import moe.shizuku.manager.core.extensions.capitalize
+import moe.shizuku.manager.core.ui.components.listselection.ListSelectionItem
 import org.xmlpull.v1.XmlPullParser
 import java.util.Locale
 
@@ -26,7 +28,18 @@ object LocaleHelper {
         val nameOwnLocale: String,
         val nameCurrentLocale: String,
         val tag: String
-    )
+    ) : ListSelectionItem {
+        override val label: CharSequence?
+            get() = nameOwnLocale.takeUnless { it.isBlank() }
+
+        override val labelRes: Int
+            get() = if (nameOwnLocale.isBlank()) R.string.settings_system else 0
+
+        override val description: CharSequence?
+            get() = nameCurrentLocale.takeUnless { it.isBlank() }
+
+        override val type: ListSelectionItem.Type = ListSelectionItem.Type.RADIO
+    }
 
     val systemDefaultEntry = LocaleEntry("", "", "")
 

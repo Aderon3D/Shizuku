@@ -10,6 +10,7 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import moe.shizuku.manager.R
 import moe.shizuku.manager.core.extensions.TAG
 import moe.shizuku.manager.core.ui.components.StyledBottomSheet
 import moe.shizuku.manager.databinding.RadioButtonListItemBinding
@@ -17,12 +18,12 @@ import moe.shizuku.manager.databinding.RadioButtonListItemBinding
 class ListSelectionBottomSheet : StyledBottomSheet() {
 
     companion object {
-        fun <T : Any> show(
+        fun show(
             fragmentManager: FragmentManager,
             @StringRes title: Int,
             @StringRes footer: Int? = null,
-            items: List<ListSelectionItem<T>>,
-            selectedItem: T? = null
+            items: List<ListSelectionItem>,
+            selectedItem: Any? = null
         ) {
             ListSelectionBottomSheet().apply {
                 this.titleRes = title
@@ -35,9 +36,7 @@ class ListSelectionBottomSheet : StyledBottomSheet() {
 
     private val viewModel: ListSelectionViewModel by viewModels({ requireParentFragment() })
 
-    // Items and selectedItem will be null on config change
-    // Only update the ViewModel on the initial show() call
-    private var items: List<ListSelectionItem<Any>>? = null
+    private var items: List<ListSelectionItem>? = null
     private var selectedItem: Any? = null
 
     override fun onAttach(context: Context) {
@@ -77,24 +76,35 @@ class ListSelectionBottomSheet : StyledBottomSheet() {
     private inner class ViewHolder(private val binding: RadioButtonListItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: ListSelectionItem<Any>) {
+        fun bind(item: ListSelectionItem) {
             binding.apply {
-                title.text = item.label
-                description.text = item.description
-                description.isVisible = item.description != null
+                val labelText = item.label ?: if (item.labelRes != 0) {
+                    itemView.context.getString(item.labelRes)
+                } else null
+                title.text = labelText
 
-                radioButton.isVisible = item.type == ListSelectionItem.Type.RADIO
-                radioButton.isChecked = item.value == viewModel.selectedItem
+                val descriptionText = item.description ?: item.descriptionRes?.let {
+                    itemView.context.getString(it)
+                }
+                description.text = descriptionText
+                description.isVisible = descriptionText != null
 
-                icon.isVisible = item.type == ListSelectionItem.Type.ICON
+                // Leading icon
+                icon.isVisible = item.iconRes != null
                 item.iconRes?.let { icon.setImageResource(it) }
+
+                // Trailing elements
+                radioButton.isVisible = item.type == ListSelectionItem.Type.RADIO
+                radioButton.isChecked = item == viewModel.selectedItem
+
+                trailingIcon.isVisible = item.type == ListSelectionItem.Type.LINK
 
                 root.apply {
                     isEnabled = item.isEnabled
                     alpha = if (item.isEnabled) 1f else 0.38f
                     setOnClickListener {
                         if (item.isEnabled) {
-                            viewModel.select(item.value)
+                            viewModel.select(item)
                             dismiss()
                         }
                     }

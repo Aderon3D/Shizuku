@@ -7,7 +7,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.StringRes
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -29,11 +28,10 @@ import moe.shizuku.manager.core.extensions.applySystemBarsPadding
 import moe.shizuku.manager.core.extensions.showSnackbar
 import moe.shizuku.manager.core.extensions.snackbar
 import moe.shizuku.manager.core.ui.LocaleHelper
+import moe.shizuku.manager.core.ui.components.listselection.ListSelectionBottomSheet
+import moe.shizuku.manager.core.ui.components.listselection.ListSelectionViewModel
 import moe.shizuku.manager.settings.models.SettingsEvent
 import moe.shizuku.manager.settings.models.SettingsUiState
-import moe.shizuku.manager.core.ui.components.listselection.ListSelectionBottomSheet
-import moe.shizuku.manager.core.ui.components.listselection.ListSelectionItem
-import moe.shizuku.manager.core.ui.components.listselection.ListSelectionViewModel
 import moe.shizuku.manager.settings.ui.components.TextInputDialog
 import moe.shizuku.manager.core.data.preferences.Preference as ShizukuPreference
 
@@ -200,17 +198,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             childFragmentManager,
             title = R.string.start_mode,
             footer = R.string.start_mode_footer,
-            items = StartMode.entries.map {
-                ListSelectionItem(
-                    value = it,
-                    label = getString(it.labelRes),
-                    description = viewModel.getStartModeDescription(it)?.let { description ->
-                        getString(description)
-                    },
-                    isEnabled = viewModel.getStartModeSelectable(it),
-                    type = ListSelectionItem.Type.RADIO
-                )
-            },
+            items = StartMode.entries,
             selectedItem = viewModel.uiState.value.startModeValue
         )
 
@@ -230,16 +218,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         ListSelectionBottomSheet.show(
             childFragmentManager,
             title = R.string.settings_language,
-            items = LocaleHelper.getLocaleEntries(requireContext()).map { locale ->
-                ListSelectionItem(
-                    value = locale,
-                    label = locale.nameOwnLocale.takeUnless { it.isBlank() } ?: getString(
-                        R.string.settings_system
-                    ),
-                    description = locale.nameCurrentLocale.takeUnless { it.isBlank() },
-                    type = ListSelectionItem.Type.RADIO
-                )
-            },
+            items = LocaleHelper.getLocaleEntries(requireContext()),
             selectedItem = viewModel.uiState.value.languageValue
         )
 
@@ -247,13 +226,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         ListSelectionBottomSheet.show(
             childFragmentManager,
             title = R.string.settings_theme,
-            items = Theme.entries.map {
-                ListSelectionItem(
-                    value = it,
-                    label = getString(it.labelRes),
-                    type = ListSelectionItem.Type.RADIO
-                )
-            },
+            items = Theme.entries,
             selectedItem = viewModel.uiState.value.themeValue
         )
 
@@ -261,13 +234,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         ListSelectionBottomSheet.show(
             childFragmentManager,
             title = R.string.settings_update_channel,
-            items = UpdateChannel.entries.map {
-                ListSelectionItem(
-                    value = it,
-                    label = getString(it.labelRes),
-                    type = ListSelectionItem.Type.RADIO
-                )
-            },
+            items = UpdateChannel.entries,
             selectedItem = viewModel.uiState.value.updateChannelValue
         )
 

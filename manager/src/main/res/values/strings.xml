@@ -353,5 +353,6 @@
     <string name="help_feature_request">Request a feature</string>
     <string name="help_translate">Contribute translations</string>
     <string name="help_privacy">Privacy policy</string>
+    <string name="help_email">Email developer</string>
 
 </resources>

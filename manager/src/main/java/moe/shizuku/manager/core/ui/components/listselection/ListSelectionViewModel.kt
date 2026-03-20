@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
 class ListSelectionViewModel : ViewModel() {
-    var items: List<ListSelectionItem<Any>> = emptyList()
+    var items: List<ListSelectionItem> = emptyList()
     var selectedItem: Any? = null
 
     private val _results = MutableSharedFlow<Any>(extraBufferCapacity = 1)

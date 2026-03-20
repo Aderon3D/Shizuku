@@ -1,14 +1,15 @@
 package moe.shizuku.manager.core.ui.components.listselection
 
-data class ListSelectionItem<out T>(
-    val value: T,
-    val label: CharSequence,
-    val description: CharSequence? = null,
-    val isEnabled: Boolean = true,
-    val iconRes: Int? = null,
-    val type: Type = Type.NONE
-) {
+interface ListSelectionItem {
+    val label: CharSequence? get() = null
+    val labelRes: Int get() = 0
+    val description: CharSequence? get() = null
+    val descriptionRes: Int? get() = null
+    val isEnabled: Boolean get() = true
+    val iconRes: Int? get() = null
+    val type: Type get() = Type.NONE
+
     enum class Type {
-        RADIO, ICON, NONE
+        RADIO, LINK, NONE
     }
 }

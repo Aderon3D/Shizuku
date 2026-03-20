@@ -102,6 +102,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private fun onHelpItemSelected(item: HelpItem) {
         val url = when (item) {
             HelpItem.USER_GUIDE -> "https://shizuku.rikka.app/guide/setup/"
+            HelpItem.EMAIL -> "mailto:thedjchidev@gmail.com"
             HelpItem.BUG_REPORT -> "https://github.com/RikkaApps/Shizuku/issues"
             HelpItem.FEATURE_REQUEST -> "https://github.com/RikkaApps/Shizuku/issues"
             HelpItem.TRANSLATE -> "https://crowdin.com/project/shizuku"
