@@ -354,5 +354,6 @@
     <string name="help_translate">Contribute translations</string>
     <string name="help_privacy">Privacy policy</string>
     <string name="help_email">Email developer</string>
+    <string name="help_troubleshooting">Troubleshooting</string>
 
 </resources>

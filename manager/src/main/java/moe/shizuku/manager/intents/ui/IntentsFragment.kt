@@ -2,55 +2,91 @@ package moe.shizuku.manager.intents.ui
 
 import android.os.Bundle
 import android.view.View
+import androidx.core.view.children
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import moe.shizuku.manager.BuildConfig
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import moe.shizuku.manager.R
+import moe.shizuku.manager.core.extensions.viewBinding
 import moe.shizuku.manager.databinding.IntentsFragmentBinding
-import moe.shizuku.manager.intents.data.TokenRepository
+import moe.shizuku.manager.intents.models.IntentsUiState
 
 class IntentsFragment : Fragment(R.layout.intents_fragment) {
+    private val viewModel: IntentsViewModel by viewModels()
+    private val binding by viewBinding(IntentsFragmentBinding::bind)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val binding = IntentsFragmentBinding.bind(view)
 
-        val authToken = TokenRepository.getAuthToken()
+        binding.fieldPackage.text = requireContext().packageName
+        setupListeners()
 
-        binding.apply {
-            fieldAction.text = getIntentAction(buttonGroup.checkedButtonId)
-            fieldPackage.text = requireContext().packageName
-            fieldExtra.text = authToken
+        viewModel.uiState
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+            .onEach { handleState(it) }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+    }
 
-            buttonRegenerateExtra.setOnClickListener {
-                promptRegenerateToken {
-                    val newToken = TokenRepository.regenerateAuthToken()
-                    fieldExtra.text = newToken
-                }
+    private fun setupListeners() = with(binding) {
+        buttonRegenerateExtra.setOnClickListener {
+            promptRegenerateToken()
+        }
+
+        buttonGroup.addOnButtonCheckedListener { _, buttonId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+
+            val action = when (buttonId) {
+                R.id.buttonStart -> IntentsUiState.IntentAction.START
+                R.id.buttonStop -> IntentsUiState.IntentAction.STOP
+                else -> return@addOnButtonCheckedListener
             }
+            viewModel.onIntentActionChanged(action)
+        }
+    }
 
-            buttonGroup.addOnButtonCheckedListener { _, buttonId, isChecked ->
-                if (isChecked) {
-                    fieldAction.text = getIntentAction(buttonId)
-                }
+    private fun handleState(
+        state: IntentsUiState
+    ) = with(binding) {
+        fieldExtra.text = state.authToken
+        fieldAction.text = state.intentAction.string
+
+        setEnabledState(state.enabled)
+        setCheckedButton(state.intentAction)
+    }
+
+    private fun setEnabledState(enabled: Boolean) = with(binding) {
+        val excludedIds = listOf(
+            R.id.description
+        )
+        container.children.forEach { view ->
+            if (!excludedIds.contains(view.id)) {
+                view.isEnabled = enabled
             }
         }
     }
 
-    private fun getIntentAction(buttonId: Int): String =
-        when (buttonId) {
-            R.id.buttonStart -> "${BuildConfig.APPLICATION_ID}.START"
-            R.id.buttonStop -> "${BuildConfig.APPLICATION_ID}.STOP"
-            else -> ""
+    private fun setCheckedButton(action: IntentsUiState.IntentAction) = with(binding) {
+        val buttonToCheck = when (action) {
+            IntentsUiState.IntentAction.START -> R.id.buttonStart
+            IntentsUiState.IntentAction.STOP -> R.id.buttonStop
         }
 
-    private fun promptRegenerateToken(onConfirm: () -> Unit = {}) {
+        if (buttonGroup.checkedButtonId == buttonToCheck) return@with
+        buttonGroup.check(buttonToCheck)
+    }
+
+    private fun promptRegenerateToken() {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.intents_token_regenerate)
             .setMessage(R.string.intents_token_regenerate_message)
             .setNegativeButton(android.R.string.cancel, null)
             .setPositiveButton(android.R.string.ok) { _, _ ->
-                onConfirm()
+                viewModel.onRegenerateToken()
             }
             .show()
     }

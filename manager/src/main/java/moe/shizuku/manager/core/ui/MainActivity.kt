@@ -10,21 +10,19 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import moe.shizuku.manager.R
 import moe.shizuku.manager.core.extensions.applySystemBarsPadding
+import moe.shizuku.manager.core.extensions.viewBinding
 import moe.shizuku.manager.databinding.AppbarFragmentActivityBinding
 
 open class MainActivity : AppCompatActivity() {
-    private lateinit var binding: AppbarFragmentActivityBinding
+    private val binding by viewBinding(AppbarFragmentActivityBinding::inflate)
     private lateinit var navController: NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-
-        binding = AppbarFragmentActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         setupUI()
-
         maybeDeepLinkToSettings(intent)
     }
 

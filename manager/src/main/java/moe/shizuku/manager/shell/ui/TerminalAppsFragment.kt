@@ -17,6 +17,7 @@ import moe.shizuku.manager.R
 import moe.shizuku.manager.core.extensions.TAG
 import moe.shizuku.manager.core.extensions.applySystemBarsPadding
 import moe.shizuku.manager.core.extensions.showSnackbar
+import moe.shizuku.manager.core.extensions.viewBinding
 import moe.shizuku.manager.databinding.TerminalAppsFragmentBinding
 import rikka.compatibility.DeviceCompatibility
 import java.io.IOException
@@ -27,9 +28,7 @@ private const val COPY_CMD = "cp /sdcard/path/to/chosen-folder/$SH_NAME* ~"
 private const val SHELL_CMD = "sh $SH_NAME"
 
 class TerminalAppsFragment : Fragment(R.layout.terminal_apps_fragment) {
-
-    private var _binding: TerminalAppsFragmentBinding? = null
-    private val binding get() = _binding!!
+    private val binding by viewBinding(TerminalAppsFragmentBinding::bind)
 
     private val openFolderPicker =
         registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { dirUri: Uri? ->
@@ -38,7 +37,6 @@ class TerminalAppsFragment : Fragment(R.layout.terminal_apps_fragment) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        _binding = TerminalAppsFragmentBinding.bind(view)
 
         binding.apply {
             root.applySystemBarsPadding(bottom = true, start = true, end = true)
@@ -98,10 +96,4 @@ class TerminalAppsFragment : Fragment(R.layout.terminal_apps_fragment) {
                 }
             }
         }
-
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
 }

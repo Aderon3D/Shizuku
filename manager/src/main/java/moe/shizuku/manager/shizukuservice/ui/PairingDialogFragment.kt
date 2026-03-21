@@ -5,7 +5,6 @@ import android.app.Application
 import android.app.Dialog
 import android.os.Build.VERSION_CODES
 import android.os.Bundle
-import android.view.LayoutInflater
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
@@ -30,21 +29,18 @@ import moe.shizuku.manager.core.adb.PreferenceAdbKeyStore
 import moe.shizuku.manager.core.android.settings.SystemSettingsHelper
 import moe.shizuku.manager.core.data.preferences.PreferencesRepository
 import moe.shizuku.manager.core.extensions.toast
+import moe.shizuku.manager.core.extensions.viewBinding
 import moe.shizuku.manager.databinding.AdbPairDialogBinding
 import java.net.ConnectException
 
 @RequiresApi(VERSION_CODES.R)
 class AdbPairDialogFragment : DialogFragment() {
-    private lateinit var binding: AdbPairDialogBinding
-
     private val viewModel: ViewModel by activityViewModels()
+    private val binding by viewBinding(AdbPairDialogBinding::inflate)
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val context = requireContext()
-        binding = AdbPairDialogBinding.inflate(LayoutInflater.from(context))
-
         val builder =
-            MaterialAlertDialogBuilder(context).apply {
+            MaterialAlertDialogBuilder(requireContext()).apply {
                 setTitle(R.string.pairing_searching)
                 setView(binding.root)
                 setNegativeButton(android.R.string.cancel, null)

@@ -2,20 +2,18 @@ package moe.shizuku.manager.core.ui.components.listselection
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
 class ListSelectionViewModel : ViewModel() {
     var items: List<ListSelectionItem> = emptyList()
     var selectedItem: Any? = null
 
-    private val _results = MutableSharedFlow<Any>(extraBufferCapacity = 1)
-    val results = _results.asSharedFlow()
+    private val _results = Channel<Any>(capacity = Channel.BUFFERED)
+    val results = _results.receiveAsFlow()
 
-    fun select(value: Any) {
-        viewModelScope.launch {
-            _results.emit(value)
-        }
+    fun select(value: Any) = viewModelScope.launch {
+        _results.send(value)
     }
 }

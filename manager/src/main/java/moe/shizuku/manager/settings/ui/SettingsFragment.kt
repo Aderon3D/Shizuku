@@ -27,9 +27,9 @@ import moe.shizuku.manager.core.data.preferences.UpdateChannel
 import moe.shizuku.manager.core.extensions.applySystemBarsPadding
 import moe.shizuku.manager.core.extensions.showSnackbar
 import moe.shizuku.manager.core.extensions.snackbar
-import moe.shizuku.manager.core.ui.LocaleHelper
 import moe.shizuku.manager.core.ui.components.listselection.ListSelectionBottomSheet
 import moe.shizuku.manager.core.ui.components.listselection.ListSelectionViewModel
+import moe.shizuku.manager.core.ui.helpers.LocaleHelper
 import moe.shizuku.manager.settings.models.SettingsEvent
 import moe.shizuku.manager.settings.models.SettingsUiState
 import moe.shizuku.manager.settings.ui.components.TextInputDialog
@@ -38,6 +38,10 @@ import moe.shizuku.manager.core.data.preferences.Preference as ShizukuPreference
 class SettingsFragment : PreferenceFragmentCompat() {
     private val viewModel: SettingsViewModel by viewModels()
     private val listSelectionViewModel: ListSelectionViewModel by viewModels()
+
+    // -------------------
+    // PREFERENCES
+    // -------------------
 
     private fun <T : Preference> find(pref: ShizukuPreference<*>): T = findPreference(pref.key)!!
 
@@ -54,17 +58,24 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private val legacyPairingPreference: TwoStatePreference by lazy { find(PreferencesRepository.legacyPairing) }
     private val wirelessDebuggingCategory: PreferenceCategory by lazy { findPreference("category_wireless_debugging")!! }
 
-    private val batteryOptimizationLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            viewModel.onBatteryOptimizationResult()
-        }
-
     override fun onCreatePreferences(
         savedInstanceState: Bundle?,
         rootKey: String?,
     ) {
         initSharedPrefs()
+        setupListeners()
+    }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setupCollectors()
+    }
+
+    // -------------------
+    // LISTENERS
+    // -------------------
+
+    private fun setupListeners() {
         startModePreference.setOnPreferenceClickListener {
             showStartModeSelector()
             true
@@ -105,12 +116,9 @@ class SettingsFragment : PreferenceFragmentCompat() {
             showUpdateChannelSelector()
             true
         }
-
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
+    private fun setupCollectors() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
@@ -262,6 +270,10 @@ class SettingsFragment : PreferenceFragmentCompat() {
         snackbar(R.string.settings_battery_optimization)
             .setAction(R.string.fix) {
                 val intent = PowerManagerHelper.getBatteryOptimizationIntent()
+                val batteryOptimizationLauncher =
+                    registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+                        viewModel.onBatteryOptimizationResult()
+                    }
                 batteryOptimizationLauncher.launch(intent)
             }
 

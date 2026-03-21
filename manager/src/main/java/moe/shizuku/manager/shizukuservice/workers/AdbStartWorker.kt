@@ -3,7 +3,6 @@ package moe.shizuku.manager.shizukuservice.workers
 import android.app.KeyguardManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -34,7 +33,6 @@ import moe.shizuku.manager.core.adb.AdbMdns
 import moe.shizuku.manager.core.data.preferences.PreferencesRepository
 import moe.shizuku.manager.core.utils.EnvironmentUtils
 import moe.shizuku.manager.receiver.ShizukuReceiverStarter
-import moe.shizuku.manager.settings.BugReportDialogActivity
 import moe.shizuku.manager.starter.Starter
 import moe.shizuku.manager.utils.ShizukuStateMachine
 import java.io.EOFException
@@ -213,28 +211,13 @@ class AdbStartWorker(
 
         val nb = NotificationCompat.Builder(context, CHANNEL_ID)
 
-        val msgNotif = "$e. ${context.getString(R.string.start_background_error_notify_dev)}"
-
-        val intent =
-            Intent(context, BugReportDialogActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            }
-        val pendingIntent =
-            PendingIntent.getActivity(
-                context,
-                0,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-            )
-
         val notification =
             nb
                 .setSmallIcon(R.drawable.ic_system_icon)
                 .setContentTitle(context.getString(R.string.start_background_error))
-                .setContentText(msgNotif)
-                .setContentIntent(pendingIntent)
+                .setContentText(e.message)
                 .setSilent(true)
-                .setStyle(NotificationCompat.BigTextStyle().bigText(msgNotif))
+                .setStyle(NotificationCompat.BigTextStyle().bigText(e.message))
                 .build()
 
         nm.notify(NOTIFICATION_ID, notification)

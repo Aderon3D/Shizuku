@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import moe.shizuku.manager.authorization.AuthorizationManager
 import rikka.lifecycle.Resource
 
-class AppsViewModel(application: Application) : AndroidViewModel(application) {
+class AuthorizedAppsViewModel(application: Application) : AndroidViewModel(application) {
 
     private val appContext = getApplication<Application>().applicationContext
 

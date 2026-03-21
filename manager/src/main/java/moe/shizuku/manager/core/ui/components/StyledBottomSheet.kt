@@ -12,6 +12,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import moe.shizuku.manager.R
 import moe.shizuku.manager.core.extensions.applySystemBarsPadding
 import moe.shizuku.manager.core.extensions.setNavBarScrim
+import moe.shizuku.manager.core.extensions.viewBinding
 import moe.shizuku.manager.databinding.StyledBottomSheetBinding
 
 abstract class StyledBottomSheet : BottomSheetDialogFragment(R.layout.styled_bottom_sheet) {
@@ -32,12 +33,10 @@ abstract class StyledBottomSheet : BottomSheetDialogFragment(R.layout.styled_bot
 
     abstract fun onCreateContentView(inflater: LayoutInflater, container: ViewGroup?): View
 
-    private var _binding: StyledBottomSheetBinding? = null
-    protected val binding get() = _binding!!
+    private val binding by viewBinding(StyledBottomSheetBinding::bind)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        _binding = StyledBottomSheetBinding.bind(view)
 
         with(binding) {
             val contentView = onCreateContentView(layoutInflater, contentContainer)
@@ -59,11 +58,6 @@ abstract class StyledBottomSheet : BottomSheetDialogFragment(R.layout.styled_bot
         }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-
     // We must handle edge-to-edge manually
     // The default implementation doesn't work properly
     private fun Window.enableEdgeToEdge() {
@@ -75,7 +69,7 @@ abstract class StyledBottomSheet : BottomSheetDialogFragment(R.layout.styled_bot
             setNavBarScrim(false)
         } else {
             val contentView = binding.contentContainer.getChildAt(0)
-            with (contentView) {
+            with(contentView) {
                 // Apply insets to the content so that it fully scrolls above the nav bar
                 applySystemBarsPadding(bottom = true)
 

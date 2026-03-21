@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import moe.shizuku.manager.R
+import moe.shizuku.manager.core.extensions.viewBinding
 import moe.shizuku.manager.databinding.ConfirmationDialogBinding
 import moe.shizuku.manager.utils.ShizukuStateMachine
 import rikka.shizuku.Shizuku
@@ -24,6 +25,7 @@ import rikka.shizuku.ShizukuApiConstants.REQUEST_PERMISSION_REPLY_IS_ONETIME
 
 class RequestPermissionActivity : AppCompatActivity() {
     private lateinit var dialog: Dialog
+    private val binding by viewBinding(ConfirmationDialogBinding::inflate)
 
     private fun setResult(
         requestUid: Int,
@@ -51,15 +53,11 @@ class RequestPermissionActivity : AppCompatActivity() {
         icon?.setTint(MaterialColors.getColor(this, android.R.attr.colorPrimary, 0))
 
 
-        val dialog =
-            MaterialAlertDialogBuilder(this)
-                .setIcon(icon)
-                .setTitle("Shizuku: ${getString(R.string.status_adb_restricted)}")
-                .setMessage(
-                    getString(R.string.status_adb_restricted_message, "PLACEHOLDER"),
-                ).setPositiveButton(android.R.string.ok, null)
-                .setOnDismissListener { finish() }
-                .create()
+        val dialog = MaterialAlertDialogBuilder(this).setIcon(icon)
+            .setTitle("Shizuku: ${getString(R.string.status_adb_restricted)}").setMessage(
+                getString(R.string.status_adb_restricted_message, "PLACEHOLDER"),
+            ).setPositiveButton(android.R.string.ok, null).setOnDismissListener { finish() }
+            .create()
         dialog.setOnShowListener {
             (it as AlertDialog).findViewById<TextView>(android.R.id.message)?.movementMethod =
                 LinkMovementMethod.getInstance()
@@ -71,18 +69,17 @@ class RequestPermissionActivity : AppCompatActivity() {
         return false
     }
 
-    private fun waitForBinder(): Boolean =
-        runBlocking {
-            try {
-                withTimeout(5000) {
-                    ShizukuStateMachine.asFlow().first { it == ShizukuStateMachine.State.RUNNING }
-                }
-                true
-            } catch (e: TimeoutCancellationException) {
-                Log.e("RequestPermissionActivity", "Binder not received in 5s", e)
-                false
+    private fun waitForBinder(): Boolean = runBlocking {
+        try {
+            withTimeout(5000) {
+                ShizukuStateMachine.asFlow().first { it == ShizukuStateMachine.State.RUNNING }
             }
+            true
+        } catch (e: TimeoutCancellationException) {
+            Log.e("RequestPermissionActivity", "Binder not received in 5s", e)
+            false
         }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -105,37 +102,33 @@ class RequestPermissionActivity : AppCompatActivity() {
             return
         }
 
-        val label =
-            try {
-                ai.loadLabel(packageManager)
-            } catch (_: Exception) {
-                ai.packageName
-            }
+        val label = try {
+            ai.loadLabel(packageManager)
+        } catch (_: Exception) {
+            ai.packageName
+        }
 
-        val binding =
-            ConfirmationDialogBinding.inflate(layoutInflater).apply {
-                button1.setOnClickListener {
-                    setResult(uid, pid, requestCode, allowed = true, onetime = false)
-                    dialog.dismiss()
-                }
-                button3.setOnClickListener {
-                    setResult(uid, pid, requestCode, allowed = false, onetime = true)
-                    dialog.dismiss()
-                }
-                title.text =
-                    getString(
-                        R.string.permission_warning_template,
-                        label,
-                        getString(R.string.permission_group_description),
-                    )
+        binding.apply {
+            button1.setOnClickListener {
+                setResult(uid, pid, requestCode, allowed = true, onetime = false)
+                dialog.dismiss()
             }
+            button3.setOnClickListener {
+                setResult(uid, pid, requestCode, allowed = false, onetime = true)
+                dialog.dismiss()
+            }
+            title.text = getString(
+                R.string.permission_warning_template,
+                label,
+                getString(R.string.permission_group_description),
+            )
+        }
 
-        dialog =
-            MaterialAlertDialogBuilder(this)
-                .setView(binding.root)
-                .setCancelable(false)
-                .setOnDismissListener { finish() }
-                .create()
+        dialog = MaterialAlertDialogBuilder(this)
+            .setView(binding.root)
+            .setCancelable(false)
+            .setOnDismissListener { finish() }
+            .create()
         dialog.setCanceledOnTouchOutside(false)
         dialog.show()
     }

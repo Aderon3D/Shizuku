@@ -101,12 +101,13 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun onHelpItemSelected(item: HelpItem) {
         val url = when (item) {
-            HelpItem.USER_GUIDE -> "https://shizuku.rikka.app/guide/setup/"
-            HelpItem.EMAIL -> "mailto:thedjchidev@gmail.com"
-            HelpItem.BUG_REPORT -> "https://github.com/RikkaApps/Shizuku/issues"
-            HelpItem.FEATURE_REQUEST -> "https://github.com/RikkaApps/Shizuku/issues"
+            HelpItem.USER_GUIDE -> "https://github.com/thedjchi/Shizuku/wiki"
+            HelpItem.TROUBLESHOOTING -> "https://github.com/thedjchi/Shizuku/wiki/troubleshooting"
+            HelpItem.BUG_REPORT -> "https://github.com/thedjchi/Shizuku/issues/new?template=bug_report.yml"
+            HelpItem.FEATURE_REQUEST -> "https://github.com/thedjchi/Shizuku/issues/new?template=feature_request.yml"
             HelpItem.TRANSLATE -> "https://crowdin.com/project/shizuku"
-            HelpItem.PRIVACY -> "https://shizuku.rikka.app/privacy.html"
+            HelpItem.EMAIL -> "mailto:thedjchidev@gmail.com"
+            HelpItem.PRIVACY -> "https://github.com/thedjchi/Shizuku?tab=readme-ov-file#-privacy"
         }
         _events.trySend(HomeEvent.OpenUrl(url))
     }

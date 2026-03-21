@@ -91,13 +91,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".settings.BugReportDialogActivity"
-            android:excludeFromRecents="true"
-            android:exported="false"
-            android:launchMode="singleTask"
-            android:taskAffinity=""
-            android:theme="@style/Theme.App.DialogHost" />
-        <activity
             android:name=".authorization.RequestPermissionActivity"
             android:excludeFromRecents="true"
             android:exported="true"

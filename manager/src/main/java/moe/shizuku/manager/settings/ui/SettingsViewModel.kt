@@ -20,7 +20,7 @@ import moe.shizuku.manager.core.data.preferences.StartMode
 import moe.shizuku.manager.core.data.preferences.Theme
 import moe.shizuku.manager.core.data.preferences.UpdateChannel
 import moe.shizuku.manager.core.extensions.toast
-import moe.shizuku.manager.core.ui.LocaleHelper
+import moe.shizuku.manager.core.ui.helpers.LocaleHelper
 import moe.shizuku.manager.core.utils.EnvironmentUtils
 import moe.shizuku.manager.settings.models.SettingsEvent
 import moe.shizuku.manager.settings.models.SettingsUiState
@@ -78,21 +78,6 @@ class SettingsViewModel : ViewModel() {
             is Theme -> onThemeChanged(value)
             is UpdateChannel -> onUpdateChannelChanged(value)
         }
-    }
-
-    fun getStartModeDescription(startMode: StartMode): Int? = when (startMode) {
-        StartMode.WADB -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            R.string.wireless_debugging_requirement
-        } else {
-            R.string.wireless_debugging_requirement_pre_11
-        }
-
-        StartMode.ROOT -> null
-    }
-
-    fun getStartModeSelectable(startMode: StartMode): Boolean = when (startMode) {
-        StartMode.WADB -> true
-        StartMode.ROOT -> EnvironmentUtils.isRooted()
     }
 
     private fun onStartModeChanged(newValue: StartMode) {

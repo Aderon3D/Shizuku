@@ -3,9 +3,7 @@ package moe.shizuku.manager.home
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -20,17 +18,18 @@ import moe.shizuku.manager.core.android.settings.PowerManagerHelper
 import moe.shizuku.manager.core.extensions.applySystemBarsPadding
 import moe.shizuku.manager.core.extensions.openUrl
 import moe.shizuku.manager.core.extensions.snackbar
+import moe.shizuku.manager.core.extensions.viewBinding
 import moe.shizuku.manager.core.ui.components.listselection.ListSelectionViewModel
 import moe.shizuku.manager.databinding.HomeFragmentBinding
 import moe.shizuku.manager.home.models.HomeEvent
-import moe.shizuku.manager.permission.ui.authorizedapps.AppsViewModel
+import moe.shizuku.manager.permission.ui.authorizedapps.AuthorizedAppsViewModel
 import moe.shizuku.manager.shizukuservice.services.AdbPairingService
 import moe.shizuku.manager.shizukuservice.ui.showAccessibilityDialog
 import moe.shizuku.manager.updater.UpdateHelper
 import moe.shizuku.manager.utils.ShizukuStateMachine
 import rikka.lifecycle.Status
 
-class HomeFragment : Fragment() {
+class HomeFragment : Fragment(R.layout.home_fragment) {
     companion object {
         const val ARG_SHOW_PAIRING_DIALOG = "show_pairing_dialog"
         const val ARG_START_SERVICE = "start_service"
@@ -38,9 +37,9 @@ class HomeFragment : Fragment() {
 
     private val homeModel: HomeViewModel by viewModels()
     private val listSelectionModel: ListSelectionViewModel by viewModels()
-    private val appsModel: AppsViewModel by viewModels()
+    private val appsModel: AuthorizedAppsViewModel by viewModels()
 
-    private lateinit var binding: HomeFragmentBinding
+    private val binding by viewBinding(HomeFragmentBinding::bind)
 
     private val stateListener: (ShizukuStateMachine.State) -> Unit = {
         if (ShizukuStateMachine.isRunning()) {
@@ -49,15 +48,6 @@ class HomeFragment : Fragment() {
         } else if (ShizukuStateMachine.isDead()) {
             homeModel.reload()
         }
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = HomeFragmentBinding.inflate(inflater, container, false)
-        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

@@ -3,7 +3,7 @@ package moe.shizuku.manager.settings.models
 import moe.shizuku.manager.core.data.preferences.StartMode
 import moe.shizuku.manager.core.data.preferences.Theme
 import moe.shizuku.manager.core.data.preferences.UpdateChannel
-import moe.shizuku.manager.core.ui.LocaleHelper
+import moe.shizuku.manager.core.ui.helpers.LocaleHelper
 
 data class SettingsUiState(
     val startModeValue: StartMode,

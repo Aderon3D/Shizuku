@@ -11,8 +11,8 @@ import kotlinx.coroutines.SupervisorJob
 import moe.shizuku.manager.core.android.settings.PowerManagerHelper
 import moe.shizuku.manager.core.data.preferences.PreferenceSync
 import moe.shizuku.manager.core.data.preferences.PreferencesRepository
-import moe.shizuku.manager.core.ui.LocaleHelper
-import moe.shizuku.manager.core.ui.ThemeHelper
+import moe.shizuku.manager.core.ui.helpers.LocaleHelper
+import moe.shizuku.manager.core.ui.helpers.ThemeHelper
 import moe.shizuku.manager.updater.data.ReleaseRepository
 import moe.shizuku.manager.watchdog.WatchdogManager
 import org.lsposed.hiddenapibypass.HiddenApiBypass

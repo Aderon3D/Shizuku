@@ -1,4 +1,4 @@
-package moe.shizuku.manager.core.ui
+package moe.shizuku.manager.core.ui.helpers
 
 import android.app.Activity
 import android.app.Application

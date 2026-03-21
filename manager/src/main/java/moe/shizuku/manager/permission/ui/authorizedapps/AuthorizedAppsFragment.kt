@@ -1,23 +1,23 @@
 package moe.shizuku.manager.permission.ui.authorizedapps
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView.AdapterDataObserver
+import moe.shizuku.manager.R
 import moe.shizuku.manager.core.extensions.applySystemBarsPadding
 import moe.shizuku.manager.core.extensions.toast
+import moe.shizuku.manager.core.extensions.viewBinding
 import moe.shizuku.manager.databinding.AuthorizedAppsFragmentBinding
 import moe.shizuku.manager.utils.ShizukuStateMachine
 import rikka.lifecycle.Status
 import java.util.Objects
 
-class AuthorizedAppsFragment : Fragment() {
+class AuthorizedAppsFragment : Fragment(R.layout.authorized_apps_fragment) {
 
-    private val viewModel: AppsViewModel by viewModels()
+    private val viewModel: AuthorizedAppsViewModel by viewModels()
     private val adapter = AppsAdapter()
 
     private val stateListener: (ShizukuStateMachine.State) -> Unit = {
@@ -26,17 +26,7 @@ class AuthorizedAppsFragment : Fragment() {
         }
     }
 
-    private var _binding: AuthorizedAppsFragmentBinding? = null
-    private val binding get() = _binding!!
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = AuthorizedAppsFragmentBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+    private val binding by viewBinding(AuthorizedAppsFragmentBinding::bind)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -84,7 +74,6 @@ class AuthorizedAppsFragment : Fragment() {
 
     override fun onDestroyView() {
         ShizukuStateMachine.removeListener(stateListener)
-        _binding = null
         super.onDestroyView()
     }
 

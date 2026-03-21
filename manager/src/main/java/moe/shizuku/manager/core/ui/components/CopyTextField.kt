@@ -3,9 +3,9 @@ package moe.shizuku.manager.core.ui.components
 import android.content.Context
 import android.text.method.ScrollingMovementMethod
 import android.util.AttributeSet
-import android.view.LayoutInflater
 import androidx.constraintlayout.widget.ConstraintLayout
 import moe.shizuku.manager.core.extensions.copyToClipboard
+import moe.shizuku.manager.core.extensions.viewBinding
 import moe.shizuku.manager.databinding.CopyTextFieldBinding
 
 class CopyTextField @JvmOverloads constructor(
@@ -14,7 +14,7 @@ class CopyTextField @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
 
-    private val binding = CopyTextFieldBinding.inflate(LayoutInflater.from(context), this)
+    private val binding by viewBinding(CopyTextFieldBinding::inflate)
 
     var text: CharSequence?
         get() = binding.text.text
