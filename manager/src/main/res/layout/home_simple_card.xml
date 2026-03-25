@@ -2,15 +2,11 @@
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    style="?materialCardViewFilledStyle"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.App.Card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:clickable="true"
-    android:focusable="true"
-    android:descendantFocusability="afterDescendants"
-    app:cardBackgroundColor="?colorSurfaceContainerLow"
-    app:cardCornerRadius="28dp"
-    app:contentPadding="24dp">
+    tools:showIn="@layout/home_fragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -18,12 +14,13 @@
         android:orientation="horizontal">
 
         <ImageView
-            style="@style/CardIcon"
             android:id="@android:id/icon"
-            android:src="@drawable/ic_settings_outline_24dp"
+            style="@style/CardIcon"
+            android:importantForAccessibility="no"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            tools:src="@drawable/ic_settings_outline_24dp" />
 
         <TextView
             android:id="@android:id/title"
@@ -32,11 +29,12 @@
             android:layout_marginHorizontal="16dp"
             android:textAppearance="?textAppearanceTitleMedium"
             android:textColor="?android:textColorPrimary"
-            app:layout_constraintVertical_chainStyle="packed"
-            app:layout_constraintStart_toEndOf="@android:id/icon"
+            app:layout_constraintBottom_toTopOf="@android:id/summary"
             app:layout_constraintEnd_toStartOf="@id/chevron"
+            app:layout_constraintStart_toEndOf="@android:id/icon"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toTopOf="@android:id/summary" />
+            app:layout_constraintVertical_chainStyle="packed"
+            tools:text="Title" />
 
         <TextView
             android:id="@android:id/summary"
@@ -45,21 +43,22 @@
             android:textAppearance="?textAppearanceBodyMedium"
             android:textColor="?android:textColorSecondary"
             android:visibility="gone"
-            app:layout_constraintStart_toEndOf="@android:id/title"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="@android:id/title"
+            app:layout_constraintStart_toStartOf="@android:id/title"
             app:layout_constraintTop_toBottomOf="@android:id/title"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            tools:text="Summary"
+            tools:visibility="visible" />
 
         <ImageView
+            android:id="@+id/chevron"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/chevron"
-            android:src="@drawable/ic_chevron_forward"
             android:importantForAccessibility="no"
+            android:src="@drawable/ic_chevron_forward"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 </com.google.android.material.card.MaterialCardView>

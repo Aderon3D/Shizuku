@@ -8,6 +8,7 @@
     <style name="Theme.App.Base" parent="Theme.Material3Expressive.DayNight.NoActionBar">
         <item name="preferenceTheme">@style/ThemeOverlay.App.Preference</item>
         <item name="bottomSheetDialogTheme">@style/ThemeOverlay.App.BottomSheetDialog</item>
+        <item name="materialCardViewStyle">@style/Widget.App.Card</item>
     </style>
 
     <style name="ThemeOverlay.App.AmoledBlack" parent="ThemeOverlay.Material3.Dark">

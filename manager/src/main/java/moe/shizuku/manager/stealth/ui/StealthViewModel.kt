@@ -2,6 +2,7 @@ package moe.shizuku.manager.stealth.ui
 
 import android.app.Application
 import android.util.Log
+import androidx.annotation.StringRes
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -111,29 +112,26 @@ class StealthViewModel(
     }
 }
 
+@StringRes
 fun String.validatePackageName(): Int? =
     when {
-        this.isBlank() -> {
-            null
-        }
+        isBlank() -> null
 
-        !this.matches(Regex("^[a-zA-Z0-9.]+$")) -> {
+        !matches(Regex("^[a-zA-Z0-9.]+$")) -> {
             R.string.package_name_error_invalid_characters
         }
 
-        this.split('.').any { it.firstOrNull()?.isDigit() == true } -> {
+        split('.').any { it.firstOrNull()?.isDigit() == true } -> {
             R.string.package_name_error_segment_starts_with_number
         }
 
-        this.split('.').size < 2 -> {
+        split('.').size < 2 -> {
             R.string.package_name_error_needs_two_segments
         }
 
-        this.endsWith('.') -> {
+        endsWith('.') -> {
             R.string.package_name_error_ends_with_period
         }
 
-        else -> {
-            null
-        }
+        else -> null
     }

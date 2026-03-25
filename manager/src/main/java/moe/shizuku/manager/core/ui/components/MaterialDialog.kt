@@ -1,35 +1,48 @@
 package moe.shizuku.manager.core.ui.components
 
 import android.app.Dialog
+import android.content.Context
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.View
-import androidx.activity.ComponentActivity
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.findFragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 class MaterialResultDialogBuilder(
-    context: android.content.Context,
-    private val onResult: (success: Boolean) -> Unit
+    context: Context, private val onResult: (success: Boolean) -> Unit
 ) : MaterialAlertDialogBuilder(context) {
 
-    override fun setPositiveButton(textId: Int, listener: android.content.DialogInterface.OnClickListener?): MaterialResultDialogBuilder {
+    override fun setPositiveButton(
+        textId: Int,
+        listener: DialogInterface.OnClickListener?
+    ): MaterialResultDialogBuilder {
         return super.setPositiveButton(textId) { _, _ -> onResult(true) } as MaterialResultDialogBuilder
     }
 
-    override fun setPositiveButton(text: CharSequence?, listener: android.content.DialogInterface.OnClickListener?): MaterialResultDialogBuilder {
+    override fun setPositiveButton(
+        text: CharSequence?,
+        listener: DialogInterface.OnClickListener?
+    ): MaterialResultDialogBuilder {
         return super.setPositiveButton(text) { _, _ -> onResult(true) } as MaterialResultDialogBuilder
     }
 
-    override fun setNegativeButton(textId: Int, listener: android.content.DialogInterface.OnClickListener?): MaterialResultDialogBuilder {
+    override fun setNegativeButton(
+        textId: Int,
+        listener: DialogInterface.OnClickListener?
+    ): MaterialResultDialogBuilder {
         return super.setNegativeButton(textId) { _, _ -> onResult(false) } as MaterialResultDialogBuilder
     }
 
-    override fun setNegativeButton(text: CharSequence?, listener: android.content.DialogInterface.OnClickListener?): MaterialResultDialogBuilder {
+    override fun setNegativeButton(
+        text: CharSequence?,
+        listener: DialogInterface.OnClickListener?
+    ): MaterialResultDialogBuilder {
         return super.setNegativeButton(text) { _, _ -> onResult(false) } as MaterialResultDialogBuilder
     }
 }
@@ -67,17 +80,16 @@ class MaterialResultDialogFragment : DialogFragment() {
         private const val EXTRA_SUCCESS = "success"
         const val KEY_SUCCESS = "success"
 
-        fun <T : Enum<T>> show(
+        fun show(
             fragmentManager: FragmentManager,
-            key: T,
+            key: String,
             builderBlock: MaterialResultDialogBuilder.() -> Unit
         ) {
-            val requestKey = key.name
             val fragment = MaterialResultDialogFragment().apply {
-                arguments = Bundle().apply { putString(ARG_REQUEST_KEY, requestKey) }
+                arguments = Bundle().apply { putString(ARG_REQUEST_KEY, key) }
             }
 
-            fragment.show(fragmentManager, requestKey)
+            fragment.show(fragmentManager, key)
             fragmentManager.executePendingTransactions()
 
             val vm = ViewModelProvider(fragment)[DialogViewModel::class.java]
@@ -92,43 +104,31 @@ class MaterialResultDialogFragment : DialogFragment() {
 
 // Fragment
 
-fun <T : Enum<T>> Fragment.showMaterialDialog(key: T, builderBlock: MaterialResultDialogBuilder.() -> Unit) {
-    MaterialResultDialogFragment.show(childFragmentManager, key, builderBlock)
-}
+fun <T : Enum<T>> Fragment.showMaterialDialog(
+    key: T, builderBlock: MaterialResultDialogBuilder.() -> Unit
+) = MaterialResultDialogFragment.show(childFragmentManager, key.name, builderBlock)
 
 inline fun <reified T : Enum<T>> Fragment.handleMaterialDialogResults(
     crossinline onResult: (key: T, success: Boolean) -> Unit
-) {
-    enumValues<T>().forEach { enumValue ->
-        childFragmentManager.setFragmentResultListener(enumValue.name, viewLifecycleOwner) { _, bundle ->
-            onResult(enumValue, bundle.getBoolean(MaterialResultDialogFragment.KEY_SUCCESS, false))
-        }
+) = enumValues<T>().forEach { enumValue ->
+    childFragmentManager.setFragmentResultListener(
+        enumValue.name,
+        viewLifecycleOwner
+    ) { _, bundle ->
+        onResult(enumValue, bundle.getBoolean(MaterialResultDialogFragment.KEY_SUCCESS, false))
     }
 }
 
 // Activity
 
-fun <T : Enum<T>> ComponentActivity.showMaterialDialog(key: T, builderBlock: MaterialResultDialogBuilder.() -> Unit) {
-    val fm = (this as? FragmentActivity)?.supportFragmentManager
-        ?: throw IllegalStateException("Activity must be a FragmentActivity")
-    MaterialResultDialogFragment.show(fm, key, builderBlock)
-}
+fun <T : Enum<T>> FragmentActivity.showMaterialDialog(
+    key: T, builderBlock: MaterialResultDialogBuilder.() -> Unit
+) = MaterialResultDialogFragment.show(supportFragmentManager, key.name, builderBlock)
 
-inline fun <reified T : Enum<T>> ComponentActivity.handleMaterialDialogResults(
+inline fun <reified T : Enum<T>> FragmentActivity.handleMaterialDialogResults(
     crossinline onResult: (key: T, success: Boolean) -> Unit
-) {
-    val fm = (this as? FragmentActivity)?.supportFragmentManager ?: return
-    enumValues<T>().forEach { enumValue ->
-        fm.setFragmentResultListener(enumValue.name, this) { _, bundle ->
-            onResult(enumValue, bundle.getBoolean(MaterialResultDialogFragment.KEY_SUCCESS, false))
-        }
+) = enumValues<T>().forEach { enumValue ->
+    supportFragmentManager.setFragmentResultListener(enumValue.name, this) { _, bundle ->
+        onResult(enumValue, bundle.getBoolean(MaterialResultDialogFragment.KEY_SUCCESS, false))
     }
-}
-
-// View
-
-fun <T : Enum<T>> View.showMaterialDialog(key: T, builderBlock: MaterialResultDialogBuilder.() -> Unit) {
-    val activity = context as? FragmentActivity
-        ?: throw IllegalStateException("View context must be a FragmentActivity")
-    MaterialResultDialogFragment.show(activity.supportFragmentManager, key, builderBlock)
 }

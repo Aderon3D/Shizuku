@@ -2,9 +2,13 @@ package moe.shizuku.manager.home
 
 import android.app.NotificationManager
 import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.view.View.GONE
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -15,19 +19,27 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import moe.shizuku.manager.R
 import moe.shizuku.manager.core.android.settings.PowerManagerHelper
+import moe.shizuku.manager.core.data.preferences.PreferencesRepository
 import moe.shizuku.manager.core.extensions.applySystemBarsPadding
 import moe.shizuku.manager.core.extensions.openUrl
 import moe.shizuku.manager.core.extensions.snackbar
 import moe.shizuku.manager.core.extensions.viewBinding
 import moe.shizuku.manager.core.ui.components.listselection.ListSelectionViewModel
+import moe.shizuku.manager.core.utils.EnvironmentUtils
 import moe.shizuku.manager.databinding.HomeFragmentBinding
+import moe.shizuku.manager.databinding.HomeSimpleCardBinding
+import moe.shizuku.manager.databinding.HomeStatusCardBinding
 import moe.shizuku.manager.home.models.HomeEvent
 import moe.shizuku.manager.permission.ui.authorizedapps.AuthorizedAppsViewModel
+import moe.shizuku.manager.shizukuservice.models.ServiceStatus
 import moe.shizuku.manager.shizukuservice.services.AdbPairingService
+import moe.shizuku.manager.shizukuservice.ui.AdbPairDialogFragment
 import moe.shizuku.manager.shizukuservice.ui.showAccessibilityDialog
 import moe.shizuku.manager.updater.UpdateHelper
 import moe.shizuku.manager.utils.ShizukuStateMachine
 import rikka.lifecycle.Status
+import rikka.shizuku.Shizuku
+import rikka.shizuku.ShizukuApiConstants
 
 class HomeFragment : Fragment(R.layout.home_fragment) {
     companion object {
@@ -104,7 +116,7 @@ class HomeFragment : Fragment(R.layout.home_fragment) {
         appsModel.grantedCount.observe(viewLifecycleOwner) {
             if (it.status == Status.SUCCESS) {
                 val grantedCount = it.data ?: 0
-                binding.authorizedAppsCard.title = resources.getQuantityString(
+                binding.authorizedAppsCard.title.text = resources.getQuantityString(
                     R.plurals.authorized_apps_count,
                     grantedCount,
                     grantedCount,
@@ -159,40 +171,106 @@ class HomeFragment : Fragment(R.layout.home_fragment) {
         }
     }
 
-    private fun setupCards() {
-        binding.apply {
-            stealthCard.apply {
-                title = getString(R.string.stealth_mode)
-                icon = R.drawable.ic_visibility_off_outline_24
-                onClickListener = {
-                    findNavController().navigate(R.id.navigate_to_stealth)
-                }
+    private fun setupCards() = with(binding) {
+        statusCard.apply {
+            buttonStart.setOnClickListener {
+
             }
 
-            authorizedAppsCard.apply {
-                title = getString(R.string.authorized_apps)
-                icon = R.drawable.ic_settings_outline_24dp
-                onClickListener = {
-                    findNavController().navigate(R.id.navigate_to_authorized_apps)
+            if (EnvironmentUtils.isTlsSupported() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                buttonPair.setOnClickListener {
+                    onPairClicked(requireContext())
                 }
-            }
-
-            terminalCard.apply {
-                title = getString(R.string.terminal_apps)
-                icon = R.drawable.ic_terminal_24
-                onClickListener = {
-                    findNavController().navigate(R.id.navigate_to_terminal_apps)
-                }
-            }
-
-            intentsCard.apply {
-                title = getString(R.string.intents)
-                icon = R.drawable.ic_integration_instructions_24
-                onClickListener = {
-                    findNavController().navigate(R.id.navigate_to_intents)
-                }
+            } else {
+                buttonPair.visibility = GONE
             }
         }
+
+        stealthCard.setup(
+            title = getString(R.string.stealth_mode),
+            icon = R.drawable.ic_visibility_off_outline_24,
+            onClick = {
+                findNavController().navigate(R.id.navigate_to_stealth)
+            }
+        )
+
+        authorizedAppsCard.setup(
+            title = getString(R.string.authorized_apps),
+            icon = R.drawable.ic_settings_outline_24dp,
+            onClick = {
+                findNavController().navigate(R.id.navigate_to_authorized_apps)
+            }
+        )
+
+        terminalCard.setup(
+            title = getString(R.string.terminal_apps),
+            icon = R.drawable.ic_terminal_24,
+            onClick = {
+                findNavController().navigate(R.id.navigate_to_terminal_apps)
+            }
+        )
+
+        intentsCard.setup(
+            title = getString(R.string.intents),
+            icon = R.drawable.ic_integration_instructions_24,
+            onClick = {
+                findNavController().navigate(R.id.navigate_to_intents)
+            }
+        )
+    }
+
+    private fun HomeStatusCardBinding.update(status: ServiceStatus) {
+            val ok = status.isRunning
+            val isRoot = status.uid == 0
+            val apiVersion = status.apiVersion
+            val patchVersion = status.patchVersion
+            if (ok) {
+                icon.setImageResource(R.drawable.ic_server_ok_24dp)
+            } else {
+                icon.setImageResource(R.drawable.ic_server_error_24dp)
+            }
+            val user = if (isRoot) "root" else "adb"
+            val title =
+                if (ok) {
+                    getString(R.string.status_running)
+                } else {
+                    getString(R.string.status_stopped)
+                }
+            val versionStr =
+                getString(
+                    R.string.status_version,
+                    "$apiVersion.$patchVersion",
+                    user,
+                )
+            val updateStr =
+                getString(
+                    R.string.status_version_update,
+                    "${Shizuku.getLatestServiceVersion()}.${ShizukuApiConstants.SERVER_PATCH_VERSION}",
+                )
+            val summary =
+                if (ok) {
+                    if (apiVersion != Shizuku.getLatestServiceVersion() ||
+                        status.patchVersion != ShizukuApiConstants.SERVER_PATCH_VERSION
+                    ) {
+                        "$versionStr. $updateStr"
+                    } else {
+                        versionStr
+                    }
+                } else {
+                    ""
+                }
+            this.title.text = title
+            this.summary.text = summary
+    }
+
+    private fun HomeSimpleCardBinding.setup(
+        title: CharSequence?,
+        icon: Int,
+        onClick: () -> Unit
+    ) {
+        this.title.text = title
+        this.icon.setImageResource(icon)
+        root.setOnClickListener { onClick() }
     }
 
     private fun showExitDialog(
@@ -211,6 +289,31 @@ class HomeFragment : Fragment(R.layout.home_fragment) {
         dialog.setCanceledOnTouchOutside(false)
         dialog.show()
     }
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    private fun onPairClicked(context: Context) {
+        if (EnvironmentUtils.isTelevision()) {
+            showAccessibilityDialog(context)
+        } else if (PreferencesRepository.legacyPairing.get()) {
+            (context as? FragmentActivity)?.supportFragmentManager?.let {
+                AdbPairDialogFragment().show(it)
+            }
+        } else {
+            findNavController().navigate(R.id.navigate_to_pairing)
+        }
+    }
+    private fun stopButton() {
+        if (ShizukuStateMachine.isRunning()) {
+            MaterialAlertDialogBuilder(requireContext())
+                .setMessage(R.string.stop_dialog_message)
+                .setPositiveButton(android.R.string.ok) { _, _ ->
+                    ShizukuStateMachine.set(ShizukuStateMachine.State.STOPPING)
+                    runCatching { Shizuku.exit() }
+                }.setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
+    }
+
 
     override fun onResume() {
         super.onResume()

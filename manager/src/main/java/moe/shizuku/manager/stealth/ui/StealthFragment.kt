@@ -27,6 +27,7 @@ import moe.shizuku.manager.core.extensions.applySystemBarsMargin
 import moe.shizuku.manager.core.extensions.applySystemBarsPadding
 import moe.shizuku.manager.core.extensions.dp
 import moe.shizuku.manager.core.extensions.toast
+import moe.shizuku.manager.core.extensions.viewBinding
 import moe.shizuku.manager.databinding.StealthFragmentBinding
 import moe.shizuku.manager.core.utils.ORIGINAL_PACKAGE_NAME
 import moe.shizuku.manager.core.utils.buildApkFilename
@@ -35,20 +36,10 @@ import moe.shizuku.manager.core.utils.installerReceiver
 import moe.shizuku.manager.core.utils.uninstallPackage
 import java.io.File
 
-class StealthFragment : Fragment() {
+class StealthFragment : Fragment(R.layout.stealth_fragment) {
     private val viewModel: StealthViewModel by viewModels()
-    private lateinit var binding: StealthFragmentBinding
-
+    private val binding by viewBinding(StealthFragmentBinding::bind)
     private lateinit var outDir: Uri
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = StealthFragmentBinding.inflate(inflater, container, false)
-        return binding.root
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

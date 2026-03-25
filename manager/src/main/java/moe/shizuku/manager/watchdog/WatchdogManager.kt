@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import moe.shizuku.manager.core.data.preferences.PreferencesRepository
+import moe.shizuku.manager.core.extensions.TAG
 import moe.shizuku.manager.watchdog.models.WatchdogState
 import moe.shizuku.manager.watchdog.services.WatchdogService
 
@@ -92,7 +93,7 @@ object WatchdogManager {
             val intent = Intent(this, WatchdogService::class.java)
             ContextCompat.startForegroundService(this, intent)
         } catch (e: Exception) {
-            Log.e("WatchdogManager", "Failed to start service: ${e.message}")
+            Log.e(TAG, "Failed to start service: ${e.message}")
             hasFailed.value = true
         }
     }
@@ -102,7 +103,7 @@ object WatchdogManager {
             val intent = Intent(this, WatchdogService::class.java)
             stopService(intent)
         } catch (e: Exception) {
-            Log.e("WatchdogManager", "Failed to stop service: ${e.message}")
+            Log.e(TAG, "Failed to stop service: ${e.message}")
             hasFailed.value = true
         }
     }

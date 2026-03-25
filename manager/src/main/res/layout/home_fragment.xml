@@ -20,35 +20,30 @@
             style="@style/SectionHeader"
             android:text="@string/home_status" />
 
-        <moe.shizuku.manager.home.components.cards.StatusCard
+        <include
             android:id="@+id/statusCard"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            layout="@layout/home_status_card" />
 
-        <moe.shizuku.manager.home.components.cards.SimpleHomeCard
+        <include
             android:id="@+id/stealthCard"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            layout="@layout/home_simple_card" />
 
         <TextView
             style="@style/SectionHeader"
             android:layout_marginTop="8dp"
             android:text="@string/home_integrations" />
 
-        <moe.shizuku.manager.home.components.cards.SimpleHomeCard
+        <include
             android:id="@+id/authorizedAppsCard"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            layout="@layout/home_simple_card" />
 
-        <moe.shizuku.manager.home.components.cards.SimpleHomeCard
+        <include
             android:id="@+id/terminalCard"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            layout="@layout/home_simple_card" />
 
-        <moe.shizuku.manager.home.components.cards.SimpleHomeCard
+        <include
             android:id="@+id/intentsCard"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            layout="@layout/home_simple_card" />
 
     </LinearLayout>
 

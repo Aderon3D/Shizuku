@@ -60,8 +60,6 @@ class ShizukuApplication : Application() {
         ReleaseRepository.init(context)
 
         LocaleHelper.migrate()
-
-        AppCompatDelegate.setDefaultNightMode(PreferencesRepository.theme.get().value)
     }
 
 }

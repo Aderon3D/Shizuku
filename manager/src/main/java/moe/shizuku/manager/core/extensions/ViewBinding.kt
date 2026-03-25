@@ -59,3 +59,9 @@ inline fun <T : ViewBinding> ViewGroup.viewBinding(
 ) = lazy(LazyThreadSafetyMode.NONE) {
     factory(LayoutInflater.from(context), this)
 }
+
+inline fun <T : ViewBinding> ViewGroup.viewBinding(
+    crossinline factory: (LayoutInflater, ViewGroup, Boolean) -> T,
+) = lazy(LazyThreadSafetyMode.NONE) {
+    factory(LayoutInflater.from(context), this, true)
+}
