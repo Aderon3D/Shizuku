@@ -10,8 +10,8 @@ sealed class StartStep(
     @param:DrawableRes val icon: Int,
     action: suspend () -> Unit
 ) : Runnable(action) {
-    data class RequestRoot(private val action: suspend () -> Unit) : StartStep(
-        R.string.start_step_requesting_root, R.drawable.ic_system_icon, action
+    data class GetRootShell(private val action: suspend () -> Unit) : StartStep(
+        R.string.start_step_get_root_shell, R.drawable.ic_system_icon, action
     )
 
     data class EnableUsbDebugging(private val action: suspend () -> Unit) : StartStep(

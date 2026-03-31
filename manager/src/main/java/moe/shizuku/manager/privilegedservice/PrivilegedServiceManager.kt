@@ -3,7 +3,6 @@ package moe.shizuku.manager.privilegedservice
 import android.content.Context
 import android.util.Log
 import androidx.annotation.StringRes
-import com.topjohnwu.superuser.CallbackList
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -160,7 +159,7 @@ class PrivilegedServiceManager(
 
         when (preferencesRepository.startMode.get()) {
             StartMode.ROOT -> {
-                steps.add(StartStep.RequestRoot(::requestRoot))
+                steps.add(StartStep.GetRootShell(::getRootShell))
             }
 
             StartMode.WADB -> {
@@ -201,11 +200,8 @@ class PrivilegedServiceManager(
         when (preferencesRepository.startMode.get()) {
             StartMode.ROOT -> {
                 suspendCancellableCoroutine { cont ->
-                    Shell.cmd(internalCommand).to(object : CallbackList<String?>() {
-                        override fun onAddElement(s: String?) {
-                            s?.let { } // TODO
-                        }
-                    }).submit {
+                    Shell.cmd(internalCommand).submit {
+                        // TODO show log output
                         if (it.isSuccess) cont.resume(Unit)
                         else cont.resumeWithException(Exception("Failed to start with root"))
                     }
@@ -214,16 +210,15 @@ class PrivilegedServiceManager(
 
             StartMode.WADB -> {
                 activeSession!!.withClient { client ->
-                    client.command("shell:$internalCommand") { } // TODO
+                    client.command("shell:$internalCommand") { } // TODO log output
                 }
             }
         }
     }
 
-    private suspend fun requestRoot() = withContext(Dispatchers.IO) {
-        if (!EnvironmentUtils.isRooted()) {
-            Shell.getCachedShell()?.close()
-            throw NotRootedException()
+    private suspend fun getRootShell() = withContext(Dispatchers.IO) {
+        Shell.getShell() {
+            if (!it.isRoot) throw NotRootedException()
         }
     }
 

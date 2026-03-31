@@ -23,8 +23,8 @@ class EnvironmentUtils(
     }.isSuccess
 
     companion object {
-        fun isRooted(): Boolean {
-            return Shell.getShell().isRoot
-        }
+        fun isRooted(): Boolean =
+            Shell.isAppGrantedRoot() ?:
+            Shell.getShell().isRoot
     }
 }

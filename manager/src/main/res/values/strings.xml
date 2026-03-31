@@ -53,7 +53,7 @@
     <string name="start_error_authorization_required">Please authorize wireless debugging on this network to continue.</string>
 
     <!-- Start Steps -->
-    <string name="start_step_requesting_root">Requesting root</string>
+    <string name="start_step_get_root_shell">Getting root shell</string>
     <string name="start_step_enabling_debugging">Enabling USB debugging</string>
     <string name="start_step_enabling_wireless_debugging">Enabling wireless debugging</string>
     <string name="start_step_closing_tcp_port">Closing TCP port</string>
