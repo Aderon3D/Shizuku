@@ -88,7 +88,7 @@ class WatchdogNotifications(private val context: Context) {
         )
 
         val disableIntent =
-            SystemSettingsPage.Notifications.NotificationChannel.buildIntent(context)
+            SystemSettingsPage.Notifications.NotificationChannel(CHANNEL_ID_CRASH).buildIntent(context)
         val disablePendingIntent = PendingIntent.getActivity(
             context, 0, disableIntent,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,

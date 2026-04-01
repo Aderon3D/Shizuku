@@ -1,7 +1,8 @@
-package moe.shizuku.manager.core.utils
+package moe.shizuku.manager.permission
 
 import android.content.pm.PackageManager
 import android.os.RemoteException
+import moe.shizuku.manager.core.utils.UserHandleCompat
 import moe.shizuku.manager.utils.ShizukuStateMachine
 import rikka.hidden.compat.PermissionManagerApis
 import rikka.hidden.compat.UserManagerApis

@@ -4,22 +4,14 @@ import android.content.pm.PackageInfo
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import moe.shizuku.manager.core.utils.AppIconCache
-import moe.shizuku.manager.permission.PermissionManager
-import moe.shizuku.manager.core.utils.ShizukuSystemApis
-import moe.shizuku.manager.core.utils.UserHandleCompat
 import moe.shizuku.manager.databinding.AppListEmptyBinding
-import moe.shizuku.manager.databinding.AppListItemBinding
-import moe.shizuku.manager.databinding.AppListToggleAllBinding
 import moe.shizuku.manager.permission.ui.authorizedapps.components.AppViewHolder
 import moe.shizuku.manager.permission.ui.authorizedapps.components.EmptyViewHolder
 import moe.shizuku.manager.permission.ui.authorizedapps.components.ToggleAllViewHolder
 
 class AppsAdapter(
-    private val permissionManager: PermissionManager,
-    private val shizukuSystemApis: ShizukuSystemApis,
-    private val userHandleCompat: UserHandleCompat,
-    private val appIconCache: AppIconCache
+    private val appViewHolderFactory: AppViewHolder.Factory,
+    private val toggleAllViewHolderFactory: ToggleAllViewHolder.Factory
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private val items = mutableListOf<Any>()
@@ -50,20 +42,13 @@ class AppsAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
-            TYPE_HEADER -> ToggleAllViewHolder(
-                AppListToggleAllBinding.inflate(inflater, parent, false),
-                permissionManager,
-                { items },
-                { notifyItemRangeChanged(0, itemCount) }
-            )
+            TYPE_HEADER -> toggleAllViewHolderFactory.create(parent, { items }) {
+                notifyItemRangeChanged(0, itemCount)
+            }
 
-            TYPE_APP -> AppViewHolder(
-                AppListItemBinding.inflate(inflater, parent, false),
-                permissionManager,
-                shizukuSystemApis,
-                userHandleCompat,
-                appIconCache
-            ) { notifyItemRangeChanged(0, itemCount) }
+            TYPE_APP -> appViewHolderFactory.create(parent) {
+                notifyItemRangeChanged(0, itemCount)
+            }
 
             else -> EmptyViewHolder(
                 AppListEmptyBinding.inflate(inflater, parent, false)
@@ -86,12 +71,6 @@ class AppsAdapter(
             item.packageName.hashCode().toLong()
         } else {
             item.hashCode().toLong()
-        }
-    }
-
-    override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
-        if (holder is AppViewHolder) {
-            holder.recycle()
         }
     }
 

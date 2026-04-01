@@ -45,7 +45,7 @@ class AdbPairingAccessibilityService : AccessibilityService() {
             return
         }
 
-        navigateHome(showPairingDialog = true)
+        navigateToPairing()
 
         handler.postDelayed({
             toast(R.string.pairing_timed_out)
@@ -117,7 +117,7 @@ class AdbPairingAccessibilityService : AccessibilityService() {
                                     )
                                 }. ${getString(R.string.pairing_successful_message)}"
 
-                            navigateHome()
+                            navigateToHome()
                         }
                     }
                 withContext(Dispatchers.Main) {
@@ -135,11 +135,18 @@ class AdbPairingAccessibilityService : AccessibilityService() {
         return super.onUnbind(intent)
     }
 
-    private fun navigateHome(showPairingDialog: Boolean = false) {
+    private fun navigateToPairing() {
+        NavDeepLinkBuilder(this)
+            .setGraph(R.navigation.nav_graph)
+            .setDestination(R.id.pairing_fragment)
+            .createPendingIntent()
+            .send()
+    }
+
+    private fun navigateToHome() {
         NavDeepLinkBuilder(this)
             .setGraph(R.navigation.nav_graph)
             .setDestination(R.id.home_fragment)
-            .setArguments(bundleOf(HomeFragment.ARG_SHOW_PAIRING_DIALOG to showPairingDialog))
             .createPendingIntent()
             .send()
     }

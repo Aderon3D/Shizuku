@@ -7,15 +7,11 @@ import androidx.core.view.MenuProvider
 import androidx.navigation.fragment.findNavController
 import moe.shizuku.manager.R
 import moe.shizuku.manager.core.ui.components.listselection.ListSelectionBottomSheet
-import moe.shizuku.manager.core.utils.AppIconCache
 import moe.shizuku.manager.home.components.AboutDialog
 import moe.shizuku.manager.home.models.HelpItem
-import moe.shizuku.manager.updater.UpdateHelper
 
 class HomeMenuProvider(
-    private val fragment: HomeFragment,
-    private val updateHelper: UpdateHelper,
-    private val appIconCache: AppIconCache
+    private val fragment: HomeFragment
 ) : MenuProvider {
     override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
         menuInflater.inflate(R.menu.main, menu)
@@ -24,11 +20,7 @@ class HomeMenuProvider(
     override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
         return when (menuItem.itemId) {
             R.id.action_about -> {
-                AboutDialog(
-                    fragment.requireActivity(),
-                    updateHelper,
-                    appIconCache
-                ).show()
+                AboutDialog().show(fragment.childFragmentManager, "about")
                 true
             }
 

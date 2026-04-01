@@ -1,8 +1,10 @@
 package moe.shizuku.manager.home.components
 
+import android.app.Dialog
+import android.os.Bundle
 import android.os.Process
-import android.view.LayoutInflater
-import androidx.activity.ComponentActivity
+import androidx.fragment.app.DialogFragment
+import moe.shizuku.manager.core.extensions.viewBinding
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
@@ -11,71 +13,61 @@ import moe.shizuku.manager.core.extensions.openUrl
 import moe.shizuku.manager.core.utils.AppIconCache
 import moe.shizuku.manager.databinding.AboutDialogBinding
 import moe.shizuku.manager.updater.UpdateHelper
+import org.koin.android.ext.android.inject
 
-class AboutDialog(
-    private val activity: ComponentActivity,
-    private val updateHelper: UpdateHelper,
-    private val appIconCache: AppIconCache
-) {
+class AboutDialog : DialogFragment() {
+    private val updateHelper: UpdateHelper by inject()
+    private val appIconCache: AppIconCache by inject()
+    private val binding by viewBinding(AboutDialogBinding::inflate)
 
-    fun show() {
-        val binding = AboutDialogBinding.inflate(
-            LayoutInflater.from(activity), null, false
-        )
+
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val context = requireContext()
 
         binding.apply {
-            icon.setImageBitmap(
-                appIconCache.getOrLoadBitmap(
-                    activity,
-                    activity.applicationInfo,
+            lifecycleScope.launch {
+                val bitmap = appIconCache.loadIcon(
+                    context.applicationInfo,
                     Process.myUid() / 100000,
-                    activity.resources.getDimensionPixelOffset(R.dimen.default_app_icon_size),
+                    context.resources.getDimensionPixelOffset(R.dimen.default_app_icon_size),
                 )
-            )
+                icon.setImageBitmap(bitmap)
+            }
 
-            val versionStr = "v${
-                activity.packageManager.getPackageInfo(
-                    activity.packageName, 0
-                ).versionName
-            }"
-
-            versionName.text = versionStr
+            val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+            versionName.text = "v${packageInfo.versionName}"
 
             btnUpdate.setOnClickListener {
-                activity.lifecycleScope.launch {
+                lifecycleScope.launch {
                     updateHelper.checkAndInstallUpdates()
                 }
             }
 
             btnGitHub.setOnClickListener {
-                activity.openUrl(
-                    "https://www.github.com/thedjchi/Shizuku"
-                )
+                context.openUrl("https://www.github.com/thedjchi/Shizuku")
             }
 
             btnDonate.setOnClickListener {
-                activity.openUrl(
-                    "https://www.buymeacoffee.com/thedjchi"
-                )
+                context.openUrl("https://www.buymeacoffee.com/thedjchi")
             }
 
-            developer.text = activity.getString(
+            developer.text = getString(
                 R.string.about_developer,
-                activity.getString(R.string.about_developer_name)
+                getString(R.string.about_developer_name)
             )
 
-            fork.text = activity.getString(
+            fork.text = getString(
                 R.string.about_fork,
-                activity.getString(R.string.about_fork_developer_name)
+                getString(R.string.about_fork_developer_name)
             )
         }
 
-        val dialog = MaterialAlertDialogBuilder(activity)
+        val dialog = MaterialAlertDialogBuilder(context)
             .setView(binding.root)
             .create()
 
         binding.btnClose.setOnClickListener { dialog.dismiss() }
 
-        dialog.show()
+        return dialog
     }
 }

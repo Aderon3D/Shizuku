@@ -4,13 +4,12 @@ import android.graphics.Color
 import android.os.Build
 import android.view.Window
 import androidx.core.view.WindowInsetsControllerCompat
-import moe.shizuku.manager.core.ui.helpers.ThemeHelper.Companion.isNightMode
 
 private val darkScrim = Color.argb(0x80, 0x1B, 0x1B, 0x1B)
 private val lightScrim = Color.argb(0xE6, 0xFF, 0xFF, 0xFF)
 
 fun Window.setNavBarScrim(scrimEnabled: Boolean) {
-    val isNightMode = context.resources.isNightMode()
+    val isNightMode = context.resources.isNightMode
 
     // Light nav bar icons are not supported below API 26, so we must always show a dark scrim
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {

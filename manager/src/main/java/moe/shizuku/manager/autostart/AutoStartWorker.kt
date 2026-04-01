@@ -1,4 +1,4 @@
-package moe.shizuku.manager.privilegedservice.workers
+package moe.shizuku.manager.autostart
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -21,24 +21,23 @@ import kotlinx.coroutines.launch
 import moe.shizuku.manager.R
 import moe.shizuku.manager.core.utils.runnable.RunnableStatus
 import moe.shizuku.manager.privilegedservice.PrivilegedServiceManager
-import moe.shizuku.manager.privilegedservice.ShizukuReceiverStarter
 import moe.shizuku.manager.privilegedservice.models.StartStep
 import moe.shizuku.manager.utils.ShizukuStateMachine
 import java.io.EOFException
 import java.util.concurrent.TimeoutException
 
-class BackgroundStartWorker(
+class AutoStartWorker(
     context: Context,
     params: WorkerParameters,
-    private val shizukuReceiverStarter: ShizukuReceiverStarter,
+    private val autoStartManager: AutoStartManager,
     private val shizukuStateMachine: ShizukuStateMachine,
     private val privilegedServiceManager: PrivilegedServiceManager
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
         try {
-            shizukuReceiverStarter.updateNotification(
-                ShizukuReceiverStarter.WorkerState.RUNNING,
+            autoStartManager.updateNotification(
+                AutoStartManager.WorkerState.RUNNING,
             )
 
             val session = privilegedServiceManager.createStartSession()
@@ -50,8 +49,8 @@ class BackgroundStartWorker(
                             steps.find { it is StartStep.AwaitingAuthorization }
                         if (authStep?.status == RunnableStatus.Running) {
                             val foregroundInfo = ForegroundInfo(
-                                ShizukuReceiverStarter.NOTIFICATION_ID,
-                                shizukuReceiverStarter.buildNotification(null)
+                                AutoStartManager.Companion.NOTIFICATION_ID,
+                                autoStartManager.buildNotification(null)
                             )
                             setForeground(foregroundInfo)
                         }
@@ -63,20 +62,20 @@ class BackgroundStartWorker(
 
             val nm =
                 applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            nm.cancel(ShizukuReceiverStarter.NOTIFICATION_ID)
+            nm.cancel(AutoStartManager.Companion.NOTIFICATION_ID)
 
             return Result.success()
         } catch (e: CancellationException) {
             val state = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-                ShizukuReceiverStarter.WorkerState.AWAITING_RETRY
+                AutoStartManager.WorkerState.AWAITING_RETRY
             } else {
                 when (stopReason) {
-                    WorkInfo.STOP_REASON_CONSTRAINT_CONNECTIVITY -> ShizukuReceiverStarter.WorkerState.AWAITING_WIFI
-                    WorkInfo.STOP_REASON_CANCELLED_BY_APP -> ShizukuReceiverStarter.WorkerState.STOPPED
-                    else -> ShizukuReceiverStarter.WorkerState.AWAITING_RETRY
+                    WorkInfo.Companion.STOP_REASON_CONSTRAINT_CONNECTIVITY -> AutoStartManager.WorkerState.AWAITING_WIFI
+                    WorkInfo.Companion.STOP_REASON_CANCELLED_BY_APP -> AutoStartManager.WorkerState.STOPPED
+                    else -> AutoStartManager.WorkerState.AWAITING_RETRY
                 }
             }
-            shizukuReceiverStarter.updateNotification(state)
+            autoStartManager.updateNotification(state)
 
             throw e
         } catch (e: Exception) {
@@ -90,8 +89,8 @@ class BackgroundStartWorker(
             if (shizukuStateMachine.update() == ShizukuStateMachine.State.RUNNING) {
                 return Result.success()
             } else {
-                shizukuReceiverStarter.updateNotification(
-                    ShizukuReceiverStarter.WorkerState.AWAITING_RETRY,
+                autoStartManager.updateNotification(
+                    AutoStartManager.WorkerState.AWAITING_RETRY,
                 )
                 return Result.retry()
             }
@@ -129,10 +128,10 @@ class BackgroundStartWorker(
             val constraints = cb.build()
 
             val request =
-                OneTimeWorkRequestBuilder<BackgroundStartWorker>().setConstraints(constraints)
+                OneTimeWorkRequestBuilder<AutoStartWorker>().setConstraints(constraints)
                     .build()
 
-            WorkManager.getInstance(context).enqueueUniqueWork(
+            WorkManager.Companion.getInstance(context).enqueueUniqueWork(
                 "adb_start_worker",
                 ExistingWorkPolicy.REPLACE,
                 request,

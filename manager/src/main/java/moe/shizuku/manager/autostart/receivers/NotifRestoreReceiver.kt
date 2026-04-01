@@ -1,17 +1,17 @@
-package moe.shizuku.manager.core.android.receivers
+package moe.shizuku.manager.autostart.receivers
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import moe.shizuku.manager.privilegedservice.ShizukuReceiverStarter
+import moe.shizuku.manager.autostart.AutoStartManager
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 
 class NotifRestoreReceiver : BroadcastReceiver(), KoinComponent {
     override fun onReceive(context: Context, intent: Intent) {
-        val shizukuReceiverStarter: ShizukuReceiverStarter = get()
-        shizukuReceiverStarter.updateNotification(
-            ShizukuReceiverStarter.WorkerState.RUNNING
+        val autoStartManager: AutoStartManager = get()
+        autoStartManager.updateNotification(
+            AutoStartManager.WorkerState.RUNNING
         )
     }
 }

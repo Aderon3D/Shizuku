@@ -1,7 +1,6 @@
 package moe.shizuku.manager.home
 
 import android.content.pm.PackageManager
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -14,7 +13,7 @@ import kotlinx.coroutines.launch
 import moe.shizuku.manager.core.android.settings.PowerManagerHelper
 import moe.shizuku.manager.core.data.preferences.PreferencesRepository
 import moe.shizuku.manager.core.utils.EnvironmentUtils
-import moe.shizuku.manager.core.utils.ShizukuSystemApis
+import moe.shizuku.manager.permission.ShizukuSystemApis
 import moe.shizuku.manager.home.models.HelpItem
 import moe.shizuku.manager.home.models.HomeEvent
 import moe.shizuku.manager.privilegedservice.models.ServiceStatus
@@ -23,7 +22,6 @@ import rikka.lifecycle.Resource
 import rikka.shizuku.Shizuku
 
 class HomeViewModel(
-    private val shizukuSystemApis: ShizukuSystemApis,
     private val shizukuStateMachine: ShizukuStateMachine,
     private val preferencesRepository: PreferencesRepository,
     private val powerManagerHelper: PowerManagerHelper,
@@ -53,31 +51,20 @@ class HomeViewModel(
                 }
             }
 
-        if (Shizuku.isPreV11() || (Shizuku.getVersion() == 11 && Shizuku.getServerPatchVersion() < 3)) {
-            // TODO disable authorized apps
-        }
-
         if (!stateMachine.isRunning()) {
             return ServiceStatus()
         }
 
+        // TODO disable authorized apps when running unsupported version
+        val unsupportedVersion = Shizuku.isPreV11() || (Shizuku.getVersion() == 11 && Shizuku.getServerPatchVersion() < 3)
         val uid = Shizuku.getUid()
         val apiVersion = Shizuku.getVersion()
         val patchVersion = Shizuku.getServerPatchVersion().let { if (it < 0) 0 else it }
-        val seContext = if (apiVersion >= 6) {
-            try {
-                Shizuku.getSELinuxContext()
-            } catch (tr: Throwable) {
-                Log.e("HomeViewModel", "getSELinuxContext", tr)
-                null
-            }
-        } else null
         val permissionTest =
             Shizuku.checkRemotePermission("android.permission.GRANT_RUNTIME_PERMISSIONS") == PackageManager.PERMISSION_GRANTED
 
         val isRunning = uid != -1 && shizukuStateMachine.isRunning()
-        shizukuSystemApis.checkPermission(shizukuPermission, environmentUtils.packageName, 0)
-        return ServiceStatus(uid, apiVersion, patchVersion, seContext, permissionTest, isRunning)
+        return ServiceStatus(uid, apiVersion, patchVersion, permissionTest, isRunning)
     }
 
     fun reload() {

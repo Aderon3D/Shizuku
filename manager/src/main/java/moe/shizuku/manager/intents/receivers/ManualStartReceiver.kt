@@ -3,7 +3,7 @@ package moe.shizuku.manager.intents.receivers
 import android.content.Context
 import android.content.Intent
 import moe.shizuku.manager.BuildConfig
-import moe.shizuku.manager.privilegedservice.ShizukuReceiverStarter
+import moe.shizuku.manager.autostart.AutoStartManager
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 
@@ -12,7 +12,7 @@ class ManualStartReceiver : AuthenticatedReceiver(), KoinComponent {
         val applicationId = BuildConfig.APPLICATION_ID
         if (intent.action != "${applicationId}.START") return
 
-        val shizukuReceiverStarter: ShizukuReceiverStarter = get()
-        shizukuReceiverStarter.start()
+        val autoStartManager: AutoStartManager = get()
+        autoStartManager.start()
     }
 }

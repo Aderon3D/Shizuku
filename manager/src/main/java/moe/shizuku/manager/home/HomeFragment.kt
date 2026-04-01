@@ -1,6 +1,5 @@
 package moe.shizuku.manager.home
 
-import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
@@ -30,7 +29,6 @@ import moe.shizuku.manager.core.extensions.openUrl
 import moe.shizuku.manager.core.extensions.snackbar
 import moe.shizuku.manager.core.extensions.viewBinding
 import moe.shizuku.manager.core.ui.components.listselection.ListSelectionViewModel
-import moe.shizuku.manager.core.utils.AppIconCache
 import moe.shizuku.manager.databinding.HomeFragmentBinding
 import moe.shizuku.manager.databinding.HomeSimpleCardBinding
 import moe.shizuku.manager.databinding.HomeStatusCardBinding
@@ -40,7 +38,6 @@ import moe.shizuku.manager.privilegedservice.PrivilegedServiceManager
 import moe.shizuku.manager.privilegedservice.models.PreStartCheck.Failure
 import moe.shizuku.manager.privilegedservice.models.PreStartCheck.Success
 import moe.shizuku.manager.privilegedservice.models.ServiceStatus
-import moe.shizuku.manager.privilegedservice.services.AdbPairingService
 import moe.shizuku.manager.privilegedservice.ui.pairing.showAccessibilityDialog
 import moe.shizuku.manager.updater.UpdateHelper
 import moe.shizuku.manager.utils.ShizukuStateMachine
@@ -51,15 +48,9 @@ import rikka.shizuku.Shizuku
 import rikka.shizuku.ShizukuApiConstants
 
 class HomeFragment : Fragment(R.layout.home_fragment) {
-    companion object {
-        const val ARG_SHOW_PAIRING_DIALOG = "show_pairing_dialog"
-        const val ARG_START_SERVICE = "start_service"
-    }
-
     private val homeModel: HomeViewModel by viewModel()
     private val listSelectionModel: ListSelectionViewModel by viewModel()
     private val appsModel: AuthorizedAppsViewModel by viewModel()
-    private val appIconCache: AppIconCache by inject()
     private val preferencesRepository: PreferencesRepository by inject()
     private val powerManagerHelper: PowerManagerHelper by inject()
     private val updateHelper: UpdateHelper by inject()
@@ -87,24 +78,10 @@ class HomeFragment : Fragment(R.layout.home_fragment) {
         setupCards()
 
         requireActivity().addMenuProvider(
-            HomeMenuProvider(this, updateHelper, appIconCache),
+            HomeMenuProvider(this),
             viewLifecycleOwner,
             Lifecycle.State.RESUMED
         )
-
-        val shouldShowAccessibilityPairingDialog =
-            arguments?.getBoolean(ARG_SHOW_PAIRING_DIALOG, false) ?: false
-        if (shouldShowAccessibilityPairingDialog) {
-            showAccessibilityDialog(requireContext())
-            arguments?.putBoolean(ARG_SHOW_PAIRING_DIALOG, false)
-        }
-
-        val shouldStartService = arguments?.getBoolean(ARG_START_SERVICE, false) ?: false
-        if (shouldStartService) {
-            val nm =
-                requireContext().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            nm.cancel(AdbPairingService.NOTIFICATION_ID)
-        }
 
         homeModel.serviceStatus.observe(viewLifecycleOwner) {
             if (it.status == Status.SUCCESS) {

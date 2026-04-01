@@ -20,7 +20,7 @@ import moe.shizuku.manager.core.data.preferences.StartMode
 import moe.shizuku.manager.core.data.preferences.Theme
 import moe.shizuku.manager.core.data.preferences.UpdateChannel
 import moe.shizuku.manager.core.ui.helpers.LocaleHelper
-import moe.shizuku.manager.privilegedservice.StartOnBootManager
+import moe.shizuku.manager.autostart.StartOnBootManager
 import moe.shizuku.manager.settings.models.SettingsEvent
 import moe.shizuku.manager.settings.models.SettingsUiState
 import moe.shizuku.manager.tcpmode.TcpManager

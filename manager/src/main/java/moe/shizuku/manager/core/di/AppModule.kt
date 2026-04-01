@@ -13,7 +13,7 @@ import moe.shizuku.manager.core.utils.ApkSigner
 import moe.shizuku.manager.core.utils.ApkUtils
 import moe.shizuku.manager.core.utils.AppIconCache
 import moe.shizuku.manager.core.utils.EnvironmentUtils
-import moe.shizuku.manager.core.utils.ShizukuSystemApis
+import moe.shizuku.manager.permission.ShizukuSystemApis
 import moe.shizuku.manager.core.utils.UserHandleCompat
 import moe.shizuku.manager.home.HomeViewModel
 import moe.shizuku.manager.intents.data.TokenRepository
@@ -21,8 +21,8 @@ import moe.shizuku.manager.intents.ui.IntentsViewModel
 import moe.shizuku.manager.permission.PermissionManager
 import moe.shizuku.manager.permission.ui.authorizedapps.AuthorizedAppsViewModel
 import moe.shizuku.manager.privilegedservice.PrivilegedServiceManager
-import moe.shizuku.manager.privilegedservice.ShizukuReceiverStarter
-import moe.shizuku.manager.privilegedservice.StartOnBootManager
+import moe.shizuku.manager.autostart.AutoStartManager
+import moe.shizuku.manager.autostart.StartOnBootManager
 import moe.shizuku.manager.privilegedservice.ui.pairing.AdbPairingViewModel
 import moe.shizuku.manager.privilegedservice.ui.start.StartViewModel
 import moe.shizuku.manager.settings.ui.SettingsViewModel
@@ -35,6 +35,9 @@ import moe.shizuku.manager.updater.data.ReleaseRepository
 import moe.shizuku.manager.utils.ShizukuStateMachine
 import moe.shizuku.manager.watchdog.WatchdogManager
 import moe.shizuku.manager.watchdog.utils.WatchdogNotifications
+import moe.shizuku.manager.permission.ui.authorizedapps.components.AppViewHolder
+import moe.shizuku.manager.permission.ui.authorizedapps.components.ToggleAllViewHolder
+import moe.shizuku.manager.permission.ui.authorizedapps.AppsAdapter
 import org.koin.dsl.module
 import org.koin.plugin.module.dsl.factory
 import org.koin.plugin.module.dsl.single
@@ -55,7 +58,7 @@ val appModule = module {
     single<ShizukuStateMachine>()
     single<ShizukuSystemApis>()
     single<PermissionManager>()
-    single<ShizukuReceiverStarter>()
+    single<AutoStartManager>()
     single<PrivilegedServiceManager>()
     single<AppIconCache>()
     single<ApkSigner>()
@@ -68,6 +71,8 @@ val appModule = module {
     single<UserHandleCompat>()
     single<TcpManager>()
 
+    factory<AppViewHolder.Factory>()
+    factory<ToggleAllViewHolder.Factory>()
     factory<AdbSession.Factory>()
 
     viewModel<SettingsViewModel>()

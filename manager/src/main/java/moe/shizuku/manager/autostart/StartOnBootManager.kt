@@ -1,4 +1,4 @@
-package moe.shizuku.manager.privilegedservice
+package moe.shizuku.manager.autostart
 
 import android.content.ComponentName
 import android.content.Context
@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import moe.shizuku.manager.core.android.receivers.BootCompleteReceiver
+import moe.shizuku.manager.autostart.receivers.BootCompleteReceiver
 import moe.shizuku.manager.core.data.preferences.PreferencesRepository
 import moe.shizuku.manager.core.extensions.isTelevision
 import moe.shizuku.manager.core.utils.EnvironmentUtils
@@ -36,7 +36,7 @@ class StartOnBootManager(
         get() {
             return Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ||
                     context.isTelevision ||
-                    EnvironmentUtils.isRooted()
+                    EnvironmentUtils.Companion.isRooted()
         }
 
     val adbAuthNeverSaved: Boolean

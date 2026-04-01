@@ -1,4 +1,4 @@
-package moe.shizuku.manager.privilegedservice
+package moe.shizuku.manager.autostart
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -10,16 +10,16 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import moe.shizuku.manager.R
-import moe.shizuku.manager.core.android.receivers.NotifAttemptReceiver
-import moe.shizuku.manager.core.android.receivers.NotifCancelReceiver
-import moe.shizuku.manager.core.android.receivers.NotifRestoreReceiver
+import moe.shizuku.manager.autostart.receivers.NotifAttemptReceiver
+import moe.shizuku.manager.autostart.receivers.NotifCancelReceiver
+import moe.shizuku.manager.autostart.receivers.NotifRestoreReceiver
 import moe.shizuku.manager.core.extensions.TAG
 import moe.shizuku.manager.core.utils.UserHandleCompat
+import moe.shizuku.manager.privilegedservice.PrivilegedServiceManager
 import moe.shizuku.manager.privilegedservice.models.PreStartCheck
-import moe.shizuku.manager.privilegedservice.workers.BackgroundStartWorker
 import moe.shizuku.manager.utils.ShizukuStateMachine
 
-class ShizukuReceiverStarter(
+class AutoStartManager(
     private val context: Context,
     private val shizukuStateMachine: ShizukuStateMachine,
     private val privilegedServiceManager: PrivilegedServiceManager,
@@ -42,7 +42,7 @@ class ShizukuReceiverStarter(
 
         when (privilegedServiceManager.canStart(inBackground = true)) {
             PreStartCheck.Success -> {
-                BackgroundStartWorker.enqueue(context, privilegedServiceManager.isWifiRequired)
+                AutoStartWorker.enqueue(context, privilegedServiceManager.isWifiRequired)
                 updateNotification(WorkerState.AWAITING_WIFI)
             }
 

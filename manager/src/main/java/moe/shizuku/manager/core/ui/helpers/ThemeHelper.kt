@@ -2,8 +2,6 @@ package moe.shizuku.manager.core.ui.helpers
 
 import android.app.Activity
 import android.app.Application
-import android.content.res.Configuration
-import android.content.res.Resources
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -16,18 +14,13 @@ import kotlinx.coroutines.launch
 import moe.shizuku.manager.R
 import moe.shizuku.manager.core.data.preferences.PreferencesRepository
 import moe.shizuku.manager.core.data.preferences.Theme
+import moe.shizuku.manager.core.extensions.isNightMode
 import moe.shizuku.manager.core.extensions.isWatch
 
 class ThemeHelper(
     private val application: Application,
     private val preferencesRepository: PreferencesRepository
 ) {
-
-    companion object {
-        fun Resources.isNightMode() =
-            (configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-    }
-
     private data class ThemeState(
         val theme: Theme,
         val amoled: Boolean,
@@ -45,8 +38,7 @@ class ThemeHelper(
             DynamicColors.applyToActivityIfAvailable(activity)
         }
 
-        val res = activity.resources
-        if (res.isNightMode() && amoledBlack) {
+        if (activity.resources.isNightMode && amoledBlack) {
             activity.theme.applyStyle(R.style.ThemeOverlay_App_AmoledBlack, true)
         }
     }

@@ -9,7 +9,7 @@ import androidx.core.app.ServiceCompat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import moe.shizuku.manager.privilegedservice.ShizukuReceiverStarter
+import moe.shizuku.manager.autostart.AutoStartManager
 import moe.shizuku.manager.utils.ShizukuStateMachine
 import moe.shizuku.manager.watchdog.utils.WatchdogNotifications
 import org.koin.android.ext.android.inject
@@ -17,13 +17,13 @@ import org.koin.android.ext.android.inject
 class WatchdogService : Service() {
 
     private val watchdogNotifications: WatchdogNotifications by inject()
-    private val shizukuReceiverStarter: ShizukuReceiverStarter by inject()
+    private val autoStartManager: AutoStartManager by inject()
     private val shizukuStateMachine: ShizukuStateMachine by inject()
 
     private val crashListener: (ShizukuStateMachine.State) -> Unit = {
         if (it == ShizukuStateMachine.State.CRASHED) {
             watchdogNotifications.showCrashNotification()
-            shizukuReceiverStarter.start()
+            autoStartManager.start()
         }
     }
 

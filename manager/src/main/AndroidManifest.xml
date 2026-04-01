@@ -167,7 +167,7 @@
         </receiver>
 
         <receiver
-            android:name=".core.android.receivers.BootCompleteReceiver"
+            android:name=".autostart.receivers.BootCompleteReceiver"
             android:enabled="false"
             android:exported="true">
             <intent-filter>
@@ -195,9 +195,9 @@
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".core.android.receivers.NotifAttemptReceiver" />
-        <receiver android:name=".core.android.receivers.NotifCancelReceiver" />
-        <receiver android:name=".core.android.receivers.NotifRestoreReceiver" />
+        <receiver android:name=".autostart.receivers.NotifAttemptReceiver" />
+        <receiver android:name=".autostart.receivers.NotifCancelReceiver" />
+        <receiver android:name=".autostart.receivers.NotifRestoreReceiver" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

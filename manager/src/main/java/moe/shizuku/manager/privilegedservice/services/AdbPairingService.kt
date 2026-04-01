@@ -264,7 +264,7 @@ class AdbPairingService : Service() {
                     if (!success) {
                         addAction(retryNotificationAction)
                     } else {
-                        setContentIntent(launchIntent.createPendingIntent())
+                        setContentIntent(homePendingIntent)
                         addAction(startNotificationAction)
                         setAutoCancel(true)
                     }
@@ -273,16 +273,18 @@ class AdbPairingService : Service() {
         stopSelf()
     }
 
-    private val launchIntent by lazy {
+    private val homePendingIntent by lazy {
         NavDeepLinkBuilder(this)
             .setGraph(R.navigation.nav_graph)
             .setDestination(R.id.home_fragment)
+            .createPendingIntent()
     }
 
     private val startNotificationAction by lazy {
         val pendingIntent =
-            launchIntent
-                .setArguments(bundleOf(HomeFragment.ARG_START_SERVICE to true))
+            NavDeepLinkBuilder(this)
+                .setGraph(R.navigation.nav_graph)
+                .setDestination(R.id.start_fragment)
                 .createPendingIntent()
 
         Notification.Action
