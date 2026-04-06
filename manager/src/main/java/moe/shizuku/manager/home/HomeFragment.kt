@@ -50,7 +50,6 @@ import rikka.shizuku.ShizukuApiConstants
 class HomeFragment : Fragment(R.layout.home_fragment) {
     private val homeModel: HomeViewModel by viewModel()
     private val listSelectionModel: ListSelectionViewModel by viewModel()
-    private val appsModel: AuthorizedAppsViewModel by viewModel()
     private val preferencesRepository: PreferencesRepository by inject()
     private val powerManagerHelper: PowerManagerHelper by inject()
     private val updateHelper: UpdateHelper by inject()
@@ -102,14 +101,14 @@ class HomeFragment : Fragment(R.layout.home_fragment) {
                     }
                 }
                 launch {
-                    appsModel.uiState.collect { state ->
-                        val grantedCount = state.apps.count { it.isGranted }
-                        binding.authorizedAppsCard.title.text = resources.getQuantityString(
-                            R.plurals.authorized_apps_count,
-                            grantedCount,
-                            grantedCount,
-                        )
-                    }
+//                    appsModel.uiState.collect { state ->
+//                        val grantedCount = state.apps.count { it.isGranted }
+//                        binding.authorizedAppsCard.title.text = resources.getQuantityString(
+//                            R.plurals.authorized_apps_count,
+//                            grantedCount,
+//                            grantedCount,
+//                        )
+//                    }
                 }
             }
         }

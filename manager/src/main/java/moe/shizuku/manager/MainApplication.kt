@@ -11,7 +11,7 @@ import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 
-class ShizukuApplication : Application() {
+class MainApplication : Application() {
     private val localeHelper: LocaleHelper by inject()
 
     override fun onCreate() {
@@ -19,7 +19,7 @@ class ShizukuApplication : Application() {
 
         startKoin {
             androidLogger()
-            androidContext(this@ShizukuApplication)
+            androidContext(this@MainApplication)
             modules(appModule)
         }
 

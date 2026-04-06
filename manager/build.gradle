@@ -141,36 +141,42 @@ dependencies {
     implementation libs.androidx.preference.ktx
     implementation libs.androidx.work.runtime.ktx
 
+    // Material
+    implementation libs.material
+
     // Koin
     implementation platform(libs.koin.bom)
     implementation libs.koin.android
     implementation libs.koin.annotations
     implementation libs.koin.core
 
-    // Material
-    implementation libs.material
-
     // Standard Libraries
     implementation libs.okhttp
     implementation libs.coil
     implementation libs.bouncycastle.bcpkix
+
+    // APK
+    implementation libs.apksig
+    implementation libs.arsclib
+
+    // Hidden API
+    implementation libs.hiddenapibypass
 
     // ADB
     implementation(libs.libadb) {
         exclude group: "org.bouncycastle", module: "bcprov-jdk15to18"
     }
 
-    // APK
-    implementation libs.apksig
-    implementation libs.arsclib
-
-    // Root/Native/Hidden
+    // Root
     implementation libs.libsu
+
+    // Native
     implementation libs.libcxx
-    implementation libs.hiddenapibypass
+
+    // SSL
     implementation libs.boringssl
 
-    // Rikka (to remove)
+    // Rikka TODO remove
     implementation libs.rikkax.appcompat
     implementation libs.rikkax.compatibility
     implementation libs.rikkax.lifecycle.resource.livedata

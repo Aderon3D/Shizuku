@@ -7,5 +7,5 @@ interface IUserService {
 
     List<UserInfo> getUsers() = 2;
 
-    List<PackageInfo> getInstalledPackagesAsUser(int userId) = 3;
+    List<ApplicationInfo> getInstalledApplicationsAsUser(int userId) = 3;
 }

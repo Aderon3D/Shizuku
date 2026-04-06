@@ -1,13 +1,17 @@
 package moe.shizuku.manager.privilegedservice.api
 
 import android.content.Context
-import android.content.pm.IPackageManager
-import android.content.pm.PackageInfo
+import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
+import android.content.pm.PackageManagerHidden
 import android.content.pm.UserInfo
 import android.os.Build
 import android.os.IUserManager
 import android.os.ServiceManager
+import android.util.Log
 import androidx.annotation.Keep
+import moe.shizuku.manager.core.extensions.TAG
+import moe.shizuku.manager.core.extensions.unsafeCast
 import kotlin.system.exitProcess
 
 class UserService : IUserService.Stub {
@@ -42,11 +46,10 @@ class UserService : IUserService.Stub {
             userManager.getUsers(true)
         }
 
-    private val packageManager by lazy {
-        IPackageManager.Stub.asInterface(ServiceManager.getService("package"))
-    }
-
-    override fun getInstalledPackagesAsUser(userId: Int): List<PackageInfo> =
-        packageManager.getInstalledPackagesAsUser(0, userId)
-            ?: emptyList()
+    override fun getInstalledApplicationsAsUser(userId: Int): List<ApplicationInfo> = runCatching {
+        val pm = unsafeCast<PackageManagerHidden>(context!!.packageManager)
+        return pm.getInstalledApplicationsAsUser(0, userId)
+    }.onFailure {
+        Log.e(TAG, "getInstalledApplicationsAsUser", it)
+    }.getOrDefault(emptyList())
 }

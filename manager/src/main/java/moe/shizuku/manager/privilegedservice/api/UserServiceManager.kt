@@ -4,16 +4,22 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.ServiceConnection
 import android.os.IBinder
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import moe.shizuku.manager.BuildConfig
+import moe.shizuku.manager.core.extensions.TAG
 import rikka.shizuku.Shizuku
-import kotlin.coroutines.resume
 
 class UserServiceManager(context: Context) {
-    private var userService: IUserService? = null
+    private val userService = MutableStateFlow<IUserService?>(null)
+    private val mutex = Mutex()
 
     private val args =
         Shizuku.UserServiceArgs(ComponentName(context, UserService::class.java))
@@ -23,23 +29,34 @@ class UserServiceManager(context: Context) {
             .tag("UserService")
             .version(BuildConfig.VERSION_CODE)
 
+    private val connection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName, binder: IBinder?) {
+            if (binder == null || !binder.isBinderAlive) return
+
+            val service = IUserService.Stub.asInterface(binder)
+
+            userService.value = service
+        }
+
+        override fun onServiceDisconnected(name: ComponentName) {
+            userService.value = null
+        }
+    }
+
     suspend fun getService(): IUserService = withContext(Dispatchers.IO) {
-        userService ?: withTimeout(5_000) {
-            suspendCancellableCoroutine { cont ->
-                val connection = object : ServiceConnection {
-                    override fun onServiceConnected(name: ComponentName, binder: IBinder?) {
-                        if (binder == null || !binder.pingBinder()) return
-                        val service = IUserService.Stub.asInterface(binder)
-                        userService = service
-                        if (cont.isActive) cont.resume(service)
-                    }
+        mutex.withLock {
+            val current = userService.value
+            if (current != null && current.asBinder().isBinderAlive) {
+                return@withLock current
+            }
 
-                    override fun onServiceDisconnected(name: ComponentName) {
-                        userService = null
-                    }
-                }
+            Log.d(TAG, "bindUserService")
+            Shizuku.bindUserService(args, connection)
 
-                Shizuku.bindUserService(args, connection)
+            withTimeout(5_000) {
+                userService.filterNotNull().first()
+            }.also {
+                Log.d(TAG, "Bound to UserService")
             }
         }
     }
