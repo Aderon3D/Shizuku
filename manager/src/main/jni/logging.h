@@ -1,8 +1,9 @@
-#ifndef _LOGGING_H
-#define _LOGGING_H
+#ifndef LOGGING_H
+#define LOGGING_H
 
-#include <errno.h>
-#include "android/log.h"
+#include <cerrno>
+#include <cstring>
+#include <android/log.h>
 
 #ifndef LOG_TAG
 #define LOG_TAG    "Shizuku"
@@ -27,4 +28,4 @@
 #define LOGE(...)
 #define PLOGE(fmt, args...)
 #endif
-#endif // _LOGGING_H
+#endif // LOGGING_H

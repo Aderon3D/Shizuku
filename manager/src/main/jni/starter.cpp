@@ -11,7 +11,7 @@
 #include <cerrno>
 #include <string>
 #include <termios.h>
-#include "android.h"
+#include <android/api-level.h>
 #include "misc.h"
 #include "selinux.h"
 #include "cgroup.h"
@@ -55,13 +55,13 @@ static void run_server(const char *dex_path, const char *main_class, const char 
     size_t v_size = 0; \
     uintptr_t v_current = 0;
 #define ARG_PUSH(v, arg) v_size += sizeof(char *); \
-if (v == nullptr) { \
-    v = (char **) malloc(v_size); \
+if ((v) == nullptr) { \
+    (v) = (char **) malloc(v_size); \
 } else { \
-    v = (char **) realloc(v, v_size);\
+    (v) = (char **) realloc(v, v_size);\
 } \
-v_current = (uintptr_t) v + v_size - sizeof(char *); \
-*((char **) v_current) = arg ? strdup(arg) : nullptr;
+v_current = (uintptr_t) (v) + v_size - sizeof(char *); \
+*((char **) v_current) = (arg) ? strdup(arg) : nullptr;
 
 #define ARG_END(v) ARG_PUSH(v, nullptr)
 
@@ -158,7 +158,7 @@ static void start_server(const char *path, const char *main_class, const char *p
 }
 
 static int check_selinux(const char *s, const char *t, const char *c, const char *p) {
-    int res = se::selinux_check_access(s, t, c, p, nullptr);
+    int res = se::get_selinux_check_access()(s, t, c, p, nullptr);
 #ifndef DEBUG
     if (res != 0) {
 #endif
@@ -224,7 +224,7 @@ int main(int argc, char *argv[]) {
 
     if (uid == 0) {
         char *context = nullptr;
-        if (se::getcon(&context) == 0) {
+        if (se::get_getcon()(&context) == 0) {
             int res = 0;
 
             res |= check_selinux("u:r:untrusted_app:s0", context, "binder", "call");
@@ -235,7 +235,7 @@ int main(int argc, char *argv[]) {
                         context);
                 exit(EXIT_FATAL_BINDER_BLOCKED_BY_SELINUX);
             }
-            se::freecon(context);
+            se::get_freecon()(context);
         }
     }
 

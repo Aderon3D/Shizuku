@@ -87,8 +87,9 @@ PairingContext_Constructor(JNIEnv *env, jclass clazz, jboolean isClient, jbyteAr
 
 static jbyteArray PairingContext_Msg(JNIEnv *env, jobject obj, jlong ptr) {
     auto ctx = (PairingContextNative *) ptr;
-    jbyteArray our_msg = env->NewByteArray(ctx->key_size);
-    env->SetByteArrayRegion(our_msg, 0, ctx->key_size, (jbyte *) ctx->key);
+    auto key_jsize = static_cast<jsize>(ctx->key_size);
+    jbyteArray our_msg = env->NewByteArray(key_jsize);
+    env->SetByteArrayRegion(our_msg, 0, key_jsize, (jbyte *) ctx->key);
     return our_msg;
 }
 
@@ -170,8 +171,9 @@ static jbyteArray PairingContext_Encrypt(JNIEnv *env, jobject obj, jlong ptr, jb
     }
     ++ctx->enc_sequence;
 
-    jbyteArray jOut = env->NewByteArray(written_sz);
-    env->SetByteArrayRegion(jOut, 0, written_sz, (jbyte *) out);
+    auto written_jsize = static_cast<jsize>(written_sz);
+    jbyteArray jOut = env->NewByteArray(written_jsize);
+    env->SetByteArrayRegion(jOut, 0, written_jsize, (jbyte *) out);
     return jOut;
 }
 
@@ -203,8 +205,9 @@ static jbyteArray PairingContext_Decrypt(JNIEnv *env, jobject obj, jlong ptr, jb
     }
     ++ctx->dec_sequence;
 
-    jbyteArray jOut = env->NewByteArray(written_sz);
-    env->SetByteArrayRegion(jOut, 0, written_sz, (jbyte *) out);
+    auto written_jsize = static_cast<jsize>(written_sz);
+    jbyteArray jOut = env->NewByteArray(written_jsize);
+    env->SetByteArrayRegion(jOut, 0, written_jsize, (jbyte *) out);
     return jOut;
 }
 
