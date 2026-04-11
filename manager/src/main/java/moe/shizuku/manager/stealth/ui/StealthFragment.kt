@@ -27,6 +27,7 @@ import moe.shizuku.manager.core.extensions.dp
 import moe.shizuku.manager.core.extensions.toast
 import moe.shizuku.manager.core.ui.helpers.viewBinding
 import moe.shizuku.manager.databinding.StealthFragmentBinding
+import moe.shizuku.manager.core.platform.services.pkg.PackageInstallerHelper
 import moe.shizuku.manager.core.utils.ApkUtils
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -35,6 +36,7 @@ import java.io.File
 class StealthFragment : Fragment(R.layout.stealth_fragment) {
     private val viewModel: StealthViewModel by viewModel()
     private val apkUtils: ApkUtils by inject()
+    private val packageInstallerHelper: PackageInstallerHelper by inject()
     private val binding by viewBinding(StealthFragmentBinding::bind)
     private lateinit var outDir: Uri
 
@@ -73,7 +75,7 @@ class StealthFragment : Fragment(R.layout.stealth_fragment) {
                                 }
 
                                 ApkType.STUB -> {
-                                    apkUtils.installPackage(apk) { isSuccess, msg ->
+                                    packageInstallerHelper.install(apk) { isSuccess, msg ->
                                         handleInstallerResult(
                                             isSuccess,
                                             msg
@@ -150,7 +152,7 @@ class StealthFragment : Fragment(R.layout.stealth_fragment) {
             }
 
             Action.REHIDE -> {
-                apkUtils.uninstallPackage(ApkUtils.ORIGINAL_PACKAGE_NAME) { isSuccess, msg ->
+                packageInstallerHelper.uninstall(ApkUtils.ORIGINAL_PACKAGE_NAME) { isSuccess, msg ->
                     handleInstallerResult(
                         isSuccess,
                         msg
@@ -207,7 +209,7 @@ class StealthFragment : Fragment(R.layout.stealth_fragment) {
             .setTitle(R.string.stealth_uninstall_required)
             .setMessage(R.string.stealth_uninstall_message)
             .setPositiveButton(R.string.uninstall) { _, _ ->
-                apkUtils.uninstallPackage(requireContext().packageName)
+                packageInstallerHelper.uninstall(requireContext().packageName)
             }.setNegativeButton(android.R.string.cancel, null)
             .show()
     }

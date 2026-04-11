@@ -16,7 +16,7 @@ import moe.shizuku.manager.core.platform.adb.AdbSession
 import moe.shizuku.manager.core.platform.adb.AdbSettingsManager
 import moe.shizuku.manager.core.preferences.data.PreferencesRepository
 import moe.shizuku.manager.core.preferences.models.StartMode
-import moe.shizuku.manager.core.utils.EnvironmentUtils
+import moe.shizuku.manager.core.utils.RootUtils
 import moe.shizuku.manager.core.utils.runnable.RunnableSequence
 import moe.shizuku.manager.privilegedservice.models.PreStartCheck
 import moe.shizuku.manager.privilegedservice.models.StartStep
@@ -54,7 +54,7 @@ class PrivilegedServiceManager(
     fun canStart(inBackground: Boolean = false): PreStartCheck =
         when (preferencesRepository.startMode.get()) {
             StartMode.ROOT -> {
-                if (EnvironmentUtils.isRooted()) PreStartCheck.Success
+                if (RootUtils.isRooted()) PreStartCheck.Success
                 else PreStartCheck.Failure.NotRooted
             }
 

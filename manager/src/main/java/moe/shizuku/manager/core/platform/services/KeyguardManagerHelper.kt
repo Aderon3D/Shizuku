@@ -1,4 +1,4 @@
-package moe.shizuku.manager.core.platform
+package moe.shizuku.manager.core.platform.services
 
 import android.app.KeyguardManager
 import android.content.BroadcastReceiver
@@ -8,12 +8,11 @@ import android.content.IntentFilter
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
-class KeyguardHelper(private val context: Context) {
+class KeyguardManagerHelper(private val context: Context) {
+    private val keyguardManager: KeyguardManager by systemService(context)
+
     val isKeyguardLocked: Boolean
-        get() {
-            val km = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
-            return km.isKeyguardLocked
-        }
+        get() = keyguardManager.isKeyguardLocked
 
     suspend fun waitForUnlock(): Unit = suspendCancellableCoroutine { cont ->
         val receiver = object : BroadcastReceiver() {

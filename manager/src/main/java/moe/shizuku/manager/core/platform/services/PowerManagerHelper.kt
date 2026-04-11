@@ -1,4 +1,4 @@
-package moe.shizuku.manager.core.platform.settings
+package moe.shizuku.manager.core.platform.services
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -9,10 +9,7 @@ import androidx.core.net.toUri
 import moe.shizuku.manager.core.extensions.isTelevision
 
 class PowerManagerHelper(private val context: Context) {
-
-    private val powerManager by lazy {
-        context.getSystemService(Context.POWER_SERVICE) as PowerManager
-    }
+    private val powerManager: PowerManager by systemService(context)
 
     fun isIgnoringBatteryOptimizations(): Boolean {
         return context.isTelevision || powerManager.isIgnoringBatteryOptimizations(context.packageName)

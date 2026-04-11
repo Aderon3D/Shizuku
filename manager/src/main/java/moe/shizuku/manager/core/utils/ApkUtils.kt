@@ -1,13 +1,6 @@
 package moe.shizuku.manager.core.utils
 
-import android.annotation.SuppressLint
-import android.app.PendingIntent
-import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
-import android.content.pm.PackageInstaller
-import android.os.Build
 import android.util.Log
 import com.reandroid.apk.ApkModule
 import com.reandroid.archive.ByteInputSource
@@ -131,80 +124,5 @@ class ApkUtils(
             .replace("[^a-z0-9._-]".toRegex(), "-")
 
         return "$safeLabel-${getVersionName()}"
-    }
-
-    @SuppressLint("RequestInstallPackagesPolicy")
-    fun installPackage(apk: File, cb: ((Boolean, String?) -> Unit)? = null) {
-        val installer = context.packageManager.packageInstaller
-
-        val sessionParams = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL)
-        val sessionId = installer.createSession(sessionParams)
-        val session = installer.openSession(sessionId)
-
-        apk.inputStream().use { input ->
-            session.openWrite("base.apk", 0, apk.length()).use { output ->
-                input.copyTo(output)
-                session.fsync(output)
-            }
-        }
-
-        val pendingIntent = createInstallerPendingIntent(sessionId, cb)
-
-        session.commit(pendingIntent.intentSender)
-        session.close()
-    }
-
-    fun uninstallPackage(pkgName: String, cb: ((Boolean, String?) -> Unit)? = null) {
-        val installer = context.packageManager.packageInstaller
-        val pendingIntent = createInstallerPendingIntent(0, cb)
-        installer.uninstall(pkgName, pendingIntent.intentSender)
-    }
-
-    private var callback: ((Boolean, String?) -> Unit)? = null
-
-    private val installerReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val status = intent.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE)
-            val msg = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE)
-
-            when (status) {
-                PackageInstaller.STATUS_PENDING_USER_ACTION -> {
-                    val confirmationIntent = intent.getParcelableExtra<Intent>(Intent.EXTRA_INTENT)
-                    if (confirmationIntent != null) {
-                        context.startActivity(confirmationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                    }
-                }
-                else -> {
-                    val isSuccess = (status == PackageInstaller.STATUS_SUCCESS)
-                    callback?.invoke(isSuccess, msg)
-                    context.unregisterReceiver(this)
-                }
-            }
-        }
-    }
-
-    private fun createInstallerPendingIntent(
-        sessionId: Int,
-        cb: ((Boolean, String?) -> Unit)? = null
-    ): PendingIntent {
-        callback = cb
-
-        val installerAction = "${context.packageName}.INSTALLER_RESULT"
-        val filter = IntentFilter().apply {
-            addAction(installerAction)
-        }
-        context.registerReceiver(installerReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
-
-        val callbackIntent = Intent(installerAction).apply {
-            setPackage(context.packageName)
-        }
-
-        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        } else {
-            PendingIntent.FLAG_UPDATE_CURRENT
-        }
-
-        return PendingIntent.getBroadcast(context, sessionId, callbackIntent, flags)
     }
 }

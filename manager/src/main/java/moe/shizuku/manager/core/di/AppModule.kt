@@ -5,19 +5,22 @@ import moe.shizuku.manager.autostart.StartOnBootManager
 import moe.shizuku.manager.core.locale.data.LocaleMigrator
 import moe.shizuku.manager.core.locale.data.LocaleRepository
 import moe.shizuku.manager.core.locale.data.LocaleXmlDataSource
-import moe.shizuku.manager.core.platform.KeyguardHelper
+import moe.shizuku.manager.core.platform.services.KeyguardManagerHelper
 import moe.shizuku.manager.core.platform.adb.AdbPortHelper
 import moe.shizuku.manager.core.platform.adb.AdbSession
 import moe.shizuku.manager.core.platform.adb.AdbSettingsManager
-import moe.shizuku.manager.core.platform.device.user.DeviceUserRepository
-import moe.shizuku.manager.core.platform.settings.PowerManagerHelper
-import moe.shizuku.manager.core.platform.userservice.UserServiceRepository
+import moe.shizuku.manager.core.platform.services.NotificationManagerHelper
+import moe.shizuku.manager.core.platform.services.pkg.PackageInstallerHelper
+import moe.shizuku.manager.core.platform.services.pkg.PackageInfoRepository
+import moe.shizuku.manager.core.platform.services.user.DeviceUserRepository
+import moe.shizuku.manager.core.platform.services.PowerManagerHelper
+import moe.shizuku.manager.core.platform.services.pkg.PackageManagerHelper
 import moe.shizuku.manager.core.preferences.data.PreferencesRepository
 import moe.shizuku.manager.core.ui.components.listselection.ListSelectionViewModel
 import moe.shizuku.manager.core.ui.helpers.ThemeHelper
 import moe.shizuku.manager.core.utils.ApkSigner
 import moe.shizuku.manager.core.utils.ApkUtils
-import moe.shizuku.manager.core.utils.EnvironmentUtils
+import moe.shizuku.manager.core.utils.RootUtils
 import moe.shizuku.manager.home.HomeViewModel
 import moe.shizuku.manager.intents.data.TokenRepository
 import moe.shizuku.manager.intents.ui.IntentsViewModel
@@ -53,11 +56,15 @@ val appModule: Module = module {
     single<AuthorizedAppsRepository>()
     single<AutoStartManager>()
     single<DeviceUserRepository>()
-    single<EnvironmentUtils>()
-    single<KeyguardHelper>()
+    single<RootUtils>()
+    single<KeyguardManagerHelper>()
     single<LocaleMigrator>()
     single<LocaleRepository>()
     single<LocaleXmlDataSource>()
+    single<NotificationManagerHelper>()
+    single<PackageInfoRepository>()
+    single<PackageInstallerHelper>()
+    single<PackageManagerHelper>()
     single<PermissionManager>()
     single<PowerManagerHelper>()
     single<PreferencesRepository>()
@@ -73,7 +80,6 @@ val appModule: Module = module {
     }
     single<TokenRepository>()
     single<UpdateHelper>()
-    single<UserServiceRepository>()
     single<WatchdogManager>()
     single<WatchdogNotifications>()
 

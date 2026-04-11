@@ -23,7 +23,7 @@ import moe.shizuku.manager.core.extensions.collectAsEvents
 import moe.shizuku.manager.core.extensions.showSnackbar
 import moe.shizuku.manager.core.extensions.snackbar
 import moe.shizuku.manager.core.locale.data.LocaleRepository
-import moe.shizuku.manager.core.platform.settings.PowerManagerHelper
+import moe.shizuku.manager.core.platform.services.PowerManagerHelper
 import moe.shizuku.manager.core.preferences.data.PreferencesRepository
 import moe.shizuku.manager.core.preferences.models.StartMode
 import moe.shizuku.manager.core.preferences.models.Theme

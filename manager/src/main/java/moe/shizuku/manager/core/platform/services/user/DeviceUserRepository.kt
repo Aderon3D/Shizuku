@@ -1,19 +1,21 @@
-package moe.shizuku.manager.core.platform.device.user
+package moe.shizuku.manager.core.platform.services.user
 
 import android.content.pm.UserInfo
+import android.os.IUserManager
 import android.system.Os
 import android.util.Log
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import moe.shizuku.manager.core.extensions.TAG
 import moe.shizuku.manager.core.extensions.toUserId
-import moe.shizuku.manager.core.platform.userservice.UserServiceRepository
+import moe.shizuku.manager.core.platform.device.AndroidVersion
+import moe.shizuku.manager.core.platform.services.systemService
 
-class DeviceUserRepository(
-    private val userServiceRepository: UserServiceRepository
-) {
+class DeviceUserRepository {
     private var userCache: Map<Int, DeviceUser> = emptyMap()
     private val mutex = Mutex()
+
+    private val userManager by systemService("user", IUserManager.Stub::asInterface)
 
     private val currentUserId = Os.getuid().toUserId
 
@@ -30,7 +32,7 @@ class DeviceUserRepository(
     suspend fun getUsers(): Set<DeviceUser> = mutex.withLock {
         if (userCache.isEmpty()) {
             runCatching {
-                userCache = userServiceRepository.getService().getUsers().associate {
+                userCache = getUsersCompat().associate {
                     it.id to it.toDeviceUser()
                 }
             }.onFailure {
@@ -40,6 +42,18 @@ class DeviceUserRepository(
 
         return@withLock userCache.values.toSet()
     }
+
+    private fun getUsersCompat() : List<UserInfo> = runCatching {
+        if (AndroidVersion.isAtLeast11) {
+            userManager.getUsers(true, true, true)
+        } else {
+            userManager.getUsers(true)
+        }
+    }.recoverCatching {
+        userManager.getUsers(true)
+    }.onFailure {
+        Log.e(TAG, "getUsers", it)
+    }.getOrDefault(emptyList())
 
     private fun createPlaceholder(userId: Int) = DeviceUser(
         id = userId,

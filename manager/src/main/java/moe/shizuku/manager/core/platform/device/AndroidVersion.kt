@@ -7,30 +7,33 @@ import androidx.annotation.ChecksSdkIntAtLeast
 object AndroidVersion {
     private val sdkVersion = Build.VERSION.SDK_INT
 
-    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.BAKLAVA)
-    val isAtLeast16: Boolean = sdkVersion >= Build.VERSION_CODES.BAKLAVA
+    @ChecksSdkIntAtLeast(api = 37)
+    val isAtLeast17: Boolean = sdkVersion >= 37
 
-    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.VANILLA_ICE_CREAM)
-    val isAtLeast15: Boolean = sdkVersion >= Build.VERSION_CODES.VANILLA_ICE_CREAM
+    @ChecksSdkIntAtLeast(api = 36)
+    val isAtLeast16: Boolean = sdkVersion >= 36
 
-    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-    val isAtLeast14: Boolean = sdkVersion >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
+    @ChecksSdkIntAtLeast(api = 35)
+    val isAtLeast15: Boolean = sdkVersion >= 35
 
-    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.TIRAMISU)
-    val isAtLeast13: Boolean = sdkVersion >= Build.VERSION_CODES.TIRAMISU
+    @ChecksSdkIntAtLeast(api = 34)
+    val isAtLeast14: Boolean = sdkVersion >= 34
 
-    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.S)
-    val isAtLeast12: Boolean = sdkVersion >= Build.VERSION_CODES.S
+    @ChecksSdkIntAtLeast(api = 33)
+    val isAtLeast13: Boolean = sdkVersion >= 33
 
-    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.R)
-    val isAtLeast11: Boolean = sdkVersion >= Build.VERSION_CODES.R
+    @ChecksSdkIntAtLeast(api = 31)
+    val isAtLeast12: Boolean = sdkVersion >= 31
 
-    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.Q)
-    val isAtLeast10: Boolean = sdkVersion >= Build.VERSION_CODES.Q
+    @ChecksSdkIntAtLeast(api = 30)
+    val isAtLeast11: Boolean = sdkVersion >= 30
 
-    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.P)
-    val isAtLeast9: Boolean = sdkVersion >= Build.VERSION_CODES.P
+    @ChecksSdkIntAtLeast(api = 29)
+    val isAtLeast10: Boolean = sdkVersion >= 29
 
-    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.O)
-    val isAtLeast8: Boolean = sdkVersion >= Build.VERSION_CODES.O
+    @ChecksSdkIntAtLeast(api = 28)
+    val isAtLeast9: Boolean = sdkVersion >= 28
+
+    @ChecksSdkIntAtLeast(api = 26)
+    val isAtLeast8: Boolean = sdkVersion >= 26
 }

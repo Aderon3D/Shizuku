@@ -17,7 +17,7 @@ import moe.shizuku.manager.core.locale.data.LocaleRepository
 import moe.shizuku.manager.core.locale.models.LocaleEntry
 import moe.shizuku.manager.core.platform.adb.AdbPortHelper
 import moe.shizuku.manager.core.platform.adb.AdbSettingsManager
-import moe.shizuku.manager.core.platform.settings.PowerManagerHelper
+import moe.shizuku.manager.core.platform.services.PowerManagerHelper
 import moe.shizuku.manager.core.preferences.data.Preference
 import moe.shizuku.manager.core.preferences.data.PreferencesRepository
 import moe.shizuku.manager.core.preferences.models.StartMode

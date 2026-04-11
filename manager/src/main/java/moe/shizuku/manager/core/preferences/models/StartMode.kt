@@ -5,7 +5,7 @@ import androidx.annotation.StringRes
 import moe.shizuku.manager.R
 import moe.shizuku.manager.core.preferences.data.IntEnum
 import moe.shizuku.manager.core.ui.components.listselection.ListSelectionItem
-import moe.shizuku.manager.core.utils.EnvironmentUtils
+import moe.shizuku.manager.core.utils.RootUtils
 
 enum class StartMode(
     override val value: Int, @param:StringRes override val labelRes: Int
@@ -28,7 +28,7 @@ enum class StartMode(
 
     override val isEnabled: Boolean
         get() = when (this) {
-            ROOT -> EnvironmentUtils.isRooted()
+            ROOT -> RootUtils.isRooted()
             else -> true
         }
 }

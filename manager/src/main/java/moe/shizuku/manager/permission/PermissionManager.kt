@@ -1,6 +1,7 @@
 package moe.shizuku.manager.permission
 
 import android.content.Context
+import android.content.pm.PackageInfo
 import rikka.shizuku.Shizuku
 
 class PermissionManager(
@@ -23,6 +24,9 @@ class PermissionManager(
         val info = context.packageManager.getPermissionInfo(PERMISSION, 0)
         info.packageName == context.packageName
     }
+
+    fun isPermissionDeclared(pkg: PackageInfo): Boolean =
+        pkg.requestedPermissions?.contains(PERMISSION) ?: false
 
     companion object {
         private const val PERMISSION_GROUP = "moe.shizuku.manager.permission-group.API"

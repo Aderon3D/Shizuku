@@ -14,7 +14,7 @@ import moe.shizuku.manager.autostart.receivers.NotifAttemptReceiver
 import moe.shizuku.manager.autostart.receivers.NotifCancelReceiver
 import moe.shizuku.manager.autostart.receivers.NotifRestoreReceiver
 import moe.shizuku.manager.core.extensions.TAG
-import moe.shizuku.manager.core.platform.device.user.DeviceUserRepository
+import moe.shizuku.manager.core.platform.services.user.DeviceUserRepository
 import moe.shizuku.manager.privilegedservice.PrivilegedServiceManager
 import moe.shizuku.manager.privilegedservice.models.PreStartCheck
 import moe.shizuku.manager.privilegedservice.data.ShizukuStateMachine

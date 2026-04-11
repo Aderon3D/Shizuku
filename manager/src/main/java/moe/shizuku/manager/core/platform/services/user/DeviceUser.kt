@@ -1,4 +1,4 @@
-package moe.shizuku.manager.core.platform.device.user
+package moe.shizuku.manager.core.platform.services.user
 
 data class DeviceUser(
     val id: Int,

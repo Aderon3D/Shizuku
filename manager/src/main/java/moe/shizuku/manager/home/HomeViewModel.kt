@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import moe.shizuku.manager.core.preferences.data.PreferencesRepository
-import moe.shizuku.manager.core.platform.settings.PowerManagerHelper
+import moe.shizuku.manager.core.platform.services.PowerManagerHelper
 import moe.shizuku.manager.home.models.HelpItem
 import moe.shizuku.manager.home.models.HomeEvent
 import moe.shizuku.manager.permission.PermissionManager

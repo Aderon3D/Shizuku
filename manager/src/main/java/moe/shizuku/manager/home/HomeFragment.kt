@@ -24,7 +24,7 @@ import moe.shizuku.manager.core.extensions.snackbar
 import moe.shizuku.manager.core.ui.helpers.viewBinding
 import moe.shizuku.manager.core.platform.adb.AdbPortHelper
 import moe.shizuku.manager.core.platform.adb.AdbSettingsManager
-import moe.shizuku.manager.core.platform.settings.PowerManagerHelper
+import moe.shizuku.manager.core.platform.services.PowerManagerHelper
 import moe.shizuku.manager.core.platform.settings.SystemSettingsPage
 import moe.shizuku.manager.core.preferences.data.PreferencesRepository
 import moe.shizuku.manager.core.preferences.models.StartMode

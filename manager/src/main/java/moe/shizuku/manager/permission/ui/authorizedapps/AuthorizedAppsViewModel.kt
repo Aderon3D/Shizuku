@@ -47,7 +47,7 @@ class AuthorizedAppsViewModel(
     fun refresh() {
         viewModelScope.launch {
             _isRefreshing.value = true
-            authorizedAppsRepository.refresh()
+            authorizedAppsRepository.getAuthorizedApps()
             _isRefreshing.value = false
         }
     }

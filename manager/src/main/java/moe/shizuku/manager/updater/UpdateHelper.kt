@@ -6,6 +6,7 @@ import moe.shizuku.manager.R
 import moe.shizuku.manager.core.preferences.data.PreferencesRepository
 import moe.shizuku.manager.core.preferences.data.string
 import moe.shizuku.manager.core.extensions.toast
+import moe.shizuku.manager.core.platform.services.pkg.PackageInstallerHelper
 import moe.shizuku.manager.core.utils.ApkUtils
 import moe.shizuku.manager.updater.data.ReleaseRepository
 import moe.shizuku.manager.updater.models.AppRelease
@@ -16,7 +17,8 @@ class UpdateHelper(
     private val context: Context,
     private val preferencesRepository: PreferencesRepository,
     private val repository: ReleaseRepository,
-    private val apkUtils: ApkUtils
+    private val apkUtils: ApkUtils,
+    private val packageInstallerHelper: PackageInstallerHelper
 ) {
     private lateinit var latestRelease: AppRelease
     private val lastPromptedVersion by preferencesRepository.pref {
@@ -78,7 +80,7 @@ class UpdateHelper(
                 return
             }
 
-            apkUtils.installPackage(apk) { isSuccess, _ ->
+            packageInstallerHelper.install(apk) { isSuccess, _ ->
                 val toastMsg = if (isSuccess) context.getString(R.string.update_success)
                 else context.getString(R.string.update_failed)
                 context.toast(toastMsg)

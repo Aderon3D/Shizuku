@@ -10,8 +10,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import moe.shizuku.manager.R
 import moe.shizuku.manager.core.extensions.appendRandomSuffix
+import moe.shizuku.manager.core.platform.services.pkg.PackageManagerHelper
 import moe.shizuku.manager.core.utils.ApkUtils
-import moe.shizuku.manager.core.utils.EnvironmentUtils
 import java.io.File
 
 sealed class UiState {
@@ -43,7 +43,7 @@ enum class ApkType {
 }
 
 class StealthViewModel(
-    private val environmentUtils: EnvironmentUtils,
+    private val packageManagerHelper: PackageManagerHelper,
     private val apkUtils: ApkUtils
 ) : ViewModel() {
 
@@ -53,7 +53,7 @@ class StealthViewModel(
     private var _packageName: String? = null
 
     private fun isShizukuHidden() =
-        !environmentUtils.isPackageInstalled(ApkUtils.ORIGINAL_PACKAGE_NAME)
+        !packageManagerHelper.isPackageInstalled(ApkUtils.ORIGINAL_PACKAGE_NAME)
 
     init {
         refresh()
@@ -63,7 +63,7 @@ class StealthViewModel(
         val action =
             if (isShizukuHidden()) {
                 Action.UNHIDE
-            } else if (environmentUtils.packageName == ApkUtils.ORIGINAL_PACKAGE_NAME) {
+            } else if (packageManagerHelper.packageName == ApkUtils.ORIGINAL_PACKAGE_NAME) {
                 Action.HIDE
             } else {
                 Action.REHIDE
@@ -72,7 +72,7 @@ class StealthViewModel(
     }
 
     fun setPackageName(packageName: String? = null) {
-        _packageName = packageName ?: environmentUtils.packageName.appendRandomSuffix()
+        _packageName = packageName ?: packageManagerHelper.packageName.appendRandomSuffix()
     }
 
     fun createApk(apkType: ApkType) {

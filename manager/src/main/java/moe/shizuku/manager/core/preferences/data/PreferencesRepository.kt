@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import moe.shizuku.manager.core.preferences.models.StartMode
 import moe.shizuku.manager.core.preferences.models.Theme
 import moe.shizuku.manager.core.preferences.models.UpdateChannel
-import moe.shizuku.manager.core.utils.EnvironmentUtils
+import moe.shizuku.manager.core.utils.RootUtils
 
 class PreferencesRepository(context: Context) {
 
@@ -28,7 +28,7 @@ class PreferencesRepository(context: Context) {
     val startMode: Preference<StartMode> by pref {
         enum(
             "start_mode",
-            if (EnvironmentUtils.isRooted()) StartMode.ROOT else StartMode.WADB
+            if (RootUtils.isRooted()) StartMode.ROOT else StartMode.WADB
         )
     }
     val startOnBoot: Preference<Boolean> by pref { boolean("start_on_boot") }
