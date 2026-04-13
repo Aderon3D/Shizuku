@@ -2,7 +2,6 @@ import com.android.build.api.artifact.SingleArtifact
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.rikka.refine)
 }
 
 android {

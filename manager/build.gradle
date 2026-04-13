@@ -1,5 +1,4 @@
 import com.android.build.api.artifact.SingleArtifact
-import com.android.build.gradle.internal.tasks.CompileArtProfileTask
 
 plugins {
     alias(libs.plugins.android.application)
@@ -106,78 +105,38 @@ androidComponents {
     }
 }
 
-tasks.withType(CompileArtProfileTask.class).configureEach {
-    enabled = false
-}
-configurations.configureEach {
-    exclude group: "androidx.profileinstaller", module: "profileinstaller"
-}
-
 dependencies {
-    // Modules
     implementation project(":server")
     implementation project(":starter")
     compileOnly project(":hidden-api")
 
-    // API Submodule
     implementation(libs.api)
     implementation(libs.api.provider)
     implementation(libs.api.rish)
 
-    // Kotlin
-    implementation libs.kotlinx.coroutines.core
     implementation libs.kotlinx.coroutines.android
     implementation libs.kotlinx.serialization.json
 
-    // AndroidX
-    implementation libs.androidx.browser
-    implementation libs.androidx.core.ktx
-    implementation libs.androidx.documentfile
-    implementation libs.androidx.fragment.ktx
-    implementation libs.androidx.recyclerview
-    implementation libs.androidx.lifecycle.viewmodel.ktx
-    implementation libs.androidx.lifecycle.livedata.ktx
-    implementation libs.androidx.navigation.fragment.ktx
-    implementation libs.androidx.navigation.ui.ktx
-    implementation libs.androidx.preference.ktx
-    implementation libs.androidx.work.runtime.ktx
-
-    // Material
+    implementation libs.bundles.androidx
     implementation libs.material
 
-    // Koin
     implementation platform(libs.koin.bom)
-    implementation libs.koin.android
-    implementation libs.koin.annotations
-    implementation libs.koin.core
+    implementation libs.bundles.koin
 
-    // Standard Libraries
     implementation libs.okhttp
     implementation libs.coil
     implementation libs.bouncycastle.bcpkix
-
-    // APK
     implementation libs.apksig
     implementation libs.arsclib
-
-    // Hidden API
     implementation libs.hiddenapibypass
-
-    // ADB
     implementation(libs.libadb) {
         exclude group: "org.bouncycastle", module: "bcprov-jdk15to18"
     }
-
-    // Root
     implementation libs.libsu
-
-    // SSL
     implementation libs.boringssl
 
-    // Rikka TODO remove
     implementation libs.rikkax.lifecycle.resource.livedata
 
-    // Debug
     debugImplementation libs.leakcanary.android
 }
 

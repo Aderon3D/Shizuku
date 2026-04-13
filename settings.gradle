@@ -7,10 +7,13 @@ pluginManagement {
             url = "https://plugins.gradle.org/m2/"
         }
     }
+    plugins {
+        id "com.android.settings" version "9.1.1" apply false
+    }
 }
 
 plugins {
-    id "com.android.settings" version "9.1.0"
+    id "com.android.settings"
 }
 
 android {
@@ -18,7 +21,6 @@ android {
     minSdk = 24
     targetSdk = 36
     ndkVersion = "29.0.14206865"
-    buildToolsVersion = "36.0.0"
 }
 
 dependencyResolutionManagement {

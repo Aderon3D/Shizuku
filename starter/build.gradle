@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.rikka.refine)
 }
 
 android {
@@ -19,8 +18,6 @@ dependencies {
     compileOnly(libs.api.provider)
 
     implementation libs.androidx.annotation
-
-    implementation libs.refine.runtime
 
     implementation libs.hidden.compat
     compileOnly libs.hidden.stub
