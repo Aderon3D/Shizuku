@@ -13,7 +13,7 @@ import moe.shizuku.manager.core.extensions.applySystemBarsPadding
 import moe.shizuku.manager.core.ui.helpers.viewBinding
 import moe.shizuku.manager.databinding.AppbarFragmentActivityBinding
 
-open class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity() {
     private val binding by viewBinding(AppbarFragmentActivityBinding::inflate)
     private lateinit var navController: NavController
 
