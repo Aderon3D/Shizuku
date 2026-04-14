@@ -15,8 +15,11 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import moe.shizuku.manager.R
+import moe.shizuku.manager.autostart.AutoStartManager
 import moe.shizuku.manager.core.extensions.applySystemBarsPadding
 import moe.shizuku.manager.core.extensions.isTelevision
 import moe.shizuku.manager.core.extensions.openUrl
@@ -56,6 +59,7 @@ class HomeFragment : Fragment(R.layout.home_fragment) {
     private val privilegedServiceManager: PrivilegedServiceManager by inject()
     private val adbSettingsManager: AdbSettingsManager by inject()
     private val adbPortHelper: AdbPortHelper by inject()
+    private val autoStartManager: AutoStartManager by inject()
 
     private val binding by viewBinding(HomeFragmentBinding::bind)
 
@@ -168,7 +172,10 @@ class HomeFragment : Fragment(R.layout.home_fragment) {
                         adbSettingsManager.hasWirelessDebugging ||
                         preferencesRepository.startMode.get() == StartMode.ROOT
                 setOnClickListener {
-                    start()
+                    lifecycleScope.launch {
+                        // start()
+                        autoStartManager.start()
+                    }
                 }
             }
 
@@ -289,22 +296,28 @@ class HomeFragment : Fragment(R.layout.home_fragment) {
         dialog.show()
     }
 
-    fun start(): Unit = when (val canStart = privilegedServiceManager.canStart()) {
-        is Success -> findNavController().navigate(R.id.navigate_to_start)
-        is Failure -> {
-            snackbar(canStart.msgRes).run {
-                if (canStart == Failure.WirelessDebuggingDisabled) {
-                    setAction(R.string.enable) {
-                        SystemSettingsPage.Developer.HighlightWirelessDebugging.launch(
-                            requireContext()
-                        )
+    suspend fun start() {
+        val canStart = withContext(Dispatchers.IO) {
+            privilegedServiceManager.canStart()
+        }
+
+        when (canStart) {
+            is Success -> findNavController().navigate(R.id.navigate_to_start)
+            is Failure -> {
+                snackbar(canStart.msgRes).run {
+                    if (canStart == Failure.WirelessDebuggingDisabled) {
+                        setAction(R.string.enable) {
+                            SystemSettingsPage.Developer.HighlightWirelessDebugging.launch(
+                                requireContext()
+                            )
+                        }
+                    } else if (canStart == Failure.UsbDebuggingDisabled) {
+                        setAction(R.string.enable) {
+                            SystemSettingsPage.Developer.HighlightUsbDebugging.launch(requireContext())
+                        }
                     }
-                } else if (canStart == Failure.UsbDebuggingDisabled) {
-                    setAction(R.string.enable) {
-                        SystemSettingsPage.Developer.HighlightUsbDebugging.launch(requireContext())
-                    }
+                    show()
                 }
-                show()
             }
         }
     }

@@ -2,6 +2,7 @@ package moe.shizuku.manager.privilegedservice
 
 import android.content.Context
 import android.util.Log
+import androidx.annotation.RequiresApi
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -18,10 +19,10 @@ import moe.shizuku.manager.core.preferences.data.PreferencesRepository
 import moe.shizuku.manager.core.preferences.models.StartMode
 import moe.shizuku.manager.core.utils.RootUtils
 import moe.shizuku.manager.core.utils.runnable.RunnableSequence
+import moe.shizuku.manager.privilegedservice.data.ShizukuStateMachine
 import moe.shizuku.manager.privilegedservice.models.PreStartCheck
 import moe.shizuku.manager.privilegedservice.models.StartStep
 import moe.shizuku.manager.tcpmode.TcpManager
-import moe.shizuku.manager.privilegedservice.data.ShizukuStateMachine
 import rikka.shizuku.Shizuku
 import java.io.File
 import kotlin.coroutines.resume
@@ -51,7 +52,35 @@ class PrivilegedServiceManager(
         get() = preferencesRepository.startMode.get() == StartMode.WADB &&
                 (adbPortHelper.tcpPort <= 0 || !preferencesRepository.tcpMode.get())
 
-    fun canStart(inBackground: Boolean = false): PreStartCheck =
+    fun canStartInBackground(): PreStartCheck =
+        canStartCommon() ?: run {
+            if (context.hasWriteSecureSettings()) PreStartCheck.Success
+            else PreStartCheck.Failure.WriteSecureSettingsNotGranted
+        }.also { Log.i(TAG, "canStartInBackground: ${it::class.simpleName}") }
+
+    suspend fun canStart(): PreStartCheck =
+        canStartCommon() ?: run {
+            runCatching { adbSettingsManager.enableUsbDebugging() }
+                .onFailure { return@run PreStartCheck.Failure.UsbDebuggingDisabled }
+
+            // Repeated to satisfy NewApi lint check, canStartCommon already checks this
+            if (!adbSettingsManager.hasWirelessDebugging)
+                return PreStartCheck.Failure.TlsNotSupported
+
+            runCatching { adbSettingsManager.enableWirelessDebugging() }
+                .fold(
+                    onSuccess = { enabled ->
+                        if (enabled) PreStartCheck.Success
+                        else PreStartCheck.Failure.AuthorizationRequired
+                    },
+                    onFailure = {
+                        if (it is IllegalStateException) PreStartCheck.Failure.WifiRequired
+                        else PreStartCheck.Failure.WirelessDebuggingDisabled
+                    }
+                )
+        }.also { Log.i(TAG, "canStart: ${it::class.simpleName}") }
+
+    private fun canStartCommon(): PreStartCheck? =
         when (preferencesRepository.startMode.get()) {
             StartMode.ROOT -> {
                 if (RootUtils.isRooted()) PreStartCheck.Success
@@ -59,31 +88,11 @@ class PrivilegedServiceManager(
             }
 
             StartMode.WADB -> {
-                if (adbPortHelper.tcpPort > 0) return PreStartCheck.Success
-
-                if (!adbSettingsManager.hasWirelessDebugging) return PreStartCheck.Failure.TlsNotSupported
-
-                if (inBackground) {
-                    return if (context.hasWriteSecureSettings()) PreStartCheck.Success
-                    else PreStartCheck.Failure.WriteSecureSettingsNotGranted
-                }
-
-                runCatching { adbSettingsManager.enableUsbDebugging() }
-                    .getOrElse { PreStartCheck.Failure.UsbDebuggingDisabled }
-
-                runCatching { adbSettingsManager.enableWirelessDebugging() }
-                    .fold(
-                        onSuccess = { enabled ->
-                            if (enabled) PreStartCheck.Success
-                            else PreStartCheck.Failure.AuthorizationRequired
-                        },
-                        onFailure = {
-                            if (it is IllegalStateException) PreStartCheck.Failure.WifiRequired
-                            else PreStartCheck.Failure.WirelessDebuggingDisabled
-                        }
-                    )
+                if (adbPortHelper.tcpPort > 0) PreStartCheck.Success
+                else if (!adbSettingsManager.hasWirelessDebugging) PreStartCheck.Failure.TlsNotSupported
+                else null
             }
-        }.also { Log.i(TAG, "canStart: ${it::class.simpleName}") }
+        }
 
     fun createStartSession(): RunnableSequence<StartStep> {
         val steps = mutableListOf<StartStep>()
@@ -109,7 +118,7 @@ class PrivilegedServiceManager(
                     isWifiRequired &&
                     adbSettingsManager.hasWirelessDebugging
                 ) {
-                    steps.add(StartStep.EnableWirelessDebugging(adbSettingsManager::enableWirelessDebuggingAwaitingAuth))
+                    steps.add(StartStep.EnableWirelessDebugging(::enableWirelessDebugging))
                 }
 
                 steps.add(StartStep.SearchForPort(::searchForPort))
@@ -136,6 +145,9 @@ class PrivilegedServiceManager(
 
         try {
             sequence.run()
+        } catch (e: Exception) {
+            Log.e(TAG, "startService: Failed to start service", e)
+            throw e
         } finally {
             shizukuStateMachine.update()
             adbSession?.close()
@@ -172,9 +184,20 @@ class PrivilegedServiceManager(
         }
     }
 
-    private suspend fun getRootShell() = withContext(Dispatchers.IO) {
-        Shell.getShell {
-            if (!it.isRoot) throw Exception("Device is not rooted")
+    private suspend fun getRootShell() {
+        withContext(Dispatchers.IO) {
+            Shell.getShell {
+                if (!it.isRoot) throw Exception("Device is not rooted")
+            }
+        }
+    }
+
+    @RequiresApi(30)
+    private suspend fun enableWirelessDebugging(step: StartStep.EnableWirelessDebugging) {
+        withContext(Dispatchers.IO) {
+            adbSettingsManager.enableWirelessDebuggingAwaitingAuth { isAwaitingAuth ->
+                step.updateAwaitingAuth(isAwaitingAuth)
+            }
         }
     }
 

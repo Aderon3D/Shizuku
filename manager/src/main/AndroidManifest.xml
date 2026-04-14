@@ -115,6 +115,25 @@
         </activity>
 
         <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:foregroundServiceType="specialUse"
+            tools:node="merge">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="
+                    The user can configure the app to (re)start the API server in the background.
+                    User interaction may be required to authorize starting the server.
+                    This requires the user to unlock their device if locked.
+                    If the user does not unlock their device for several hours while connected to Wi-Fi,
+                    WorkManager's retry backoff policy may result in a significant delay between retries.
+                    Many users of this feature expect to start the server as soon as possible.
+                    Because of this, the worker must be promoted to a FGS, so that the user receives
+                    the authorization prompt immediately after an unlock.
+                    The foreground service only registers a dynamic broadcast receiver to detect the
+                    device unlock. It uses minimal battery and device resources." />
+        </service>
+
+        <service
             android:name=".privilegedservice.services.AdbPairingService"
             android:enabled="true"
             android:exported="false"

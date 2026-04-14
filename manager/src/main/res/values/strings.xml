@@ -354,5 +354,6 @@
     <string name="tcp_error_opening">Couldn\'t open TCP port</string>
     <string name="authorized_apps_error_toggle_all">Failed to toggle some apps.</string>
     <string name="authorized_apps_error_toggle">Couldn\'t toggle permission</string>
+    <string name="start_background_awaiting_auth">Awaiting wireless debugging authorization</string>
 
 </resources>

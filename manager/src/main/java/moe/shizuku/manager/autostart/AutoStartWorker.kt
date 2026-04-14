@@ -3,7 +3,9 @@ package moe.shizuku.manager.autostart
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
@@ -19,6 +21,8 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import moe.shizuku.manager.R
+import moe.shizuku.manager.core.extensions.TAG
+import moe.shizuku.manager.core.platform.device.AndroidVersion
 import moe.shizuku.manager.core.utils.runnable.RunnableStatus
 import moe.shizuku.manager.privilegedservice.PrivilegedServiceManager
 import moe.shizuku.manager.privilegedservice.data.ShizukuStateMachine
@@ -44,15 +48,35 @@ class AutoStartWorker(
 
             coroutineScope {
                 val job = launch {
-                    session.steps.collectLatest { steps ->
-                        val authStep =
-                            steps.find { it is StartStep.AwaitingAuthorization }
-                        if (authStep?.status == RunnableStatus.Running) {
-                            val foregroundInfo = ForegroundInfo(
-                                AutoStartManager.NOTIFICATION_ID,
-                                autoStartManager.buildNotification()
+                    session.steps.collect { steps ->
+                        val wadbStep = steps.find { it is StartStep.EnableWirelessDebugging }
+                            as? StartStep.EnableWirelessDebugging
+                        if (wadbStep?.isAwaitingAuth == true) {
+                            Log.i("AutoStartWorker", "Awaiting authorization, promoting to FGS")
+
+                            autoStartManager.updateNotification(
+                                AutoStartManager.WorkerState.AWAITING_AUTHORIZATION
                             )
-                            setForeground(foregroundInfo)
+
+                            val fgsType = if (AndroidVersion.isAtLeast14) {
+                                FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+                            } else 0
+
+                            runCatching {
+                                val foregroundInfo = ForegroundInfo(
+                                    10,
+                                    autoStartManager.fgsNotif(),
+                                    fgsType
+                                )
+
+                                setForeground(foregroundInfo)
+                            }.onFailure {
+                                Log.e(TAG, "Failed to promote to FGS", it)
+                            }
+                        } else if (wadbStep?.status == RunnableStatus.Completed) {
+                            autoStartManager.updateNotification(
+                                AutoStartManager.WorkerState.RUNNING
+                            )
                         }
                     }
                 }
@@ -91,7 +115,7 @@ class AutoStartWorker(
                 return Result.success()
             } else {
                 autoStartManager.updateNotification(
-                    AutoStartManager.WorkerState.AWAITING_RETRY,
+                    AutoStartManager.WorkerState.AWAITING_RETRY
                 )
                 return Result.retry()
             }

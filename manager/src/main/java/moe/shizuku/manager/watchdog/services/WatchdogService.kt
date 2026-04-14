@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import moe.shizuku.manager.autostart.AutoStartManager
+import moe.shizuku.manager.core.platform.device.AndroidVersion
 import moe.shizuku.manager.privilegedservice.data.ShizukuStateMachine
 import moe.shizuku.manager.watchdog.utils.WatchdogNotifications
 import org.koin.android.ext.android.inject
@@ -43,7 +44,7 @@ class WatchdogService : Service() {
             return START_NOT_STICKY
         }
 
-        val fgsType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        val fgsType = if (AndroidVersion.isAtLeast14) {
             FOREGROUND_SERVICE_TYPE_SPECIAL_USE
         } else 0
 
@@ -51,7 +52,7 @@ class WatchdogService : Service() {
             this,
             WatchdogNotifications.ID_WATCHDOG,
             watchdogNotifications.createWatchdogNotification(),
-            fgsType,
+            fgsType
         )
         return START_STICKY
     }

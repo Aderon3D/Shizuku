@@ -7,52 +7,69 @@ import moe.shizuku.manager.core.utils.runnable.Runnable
 
 sealed class StartStep(
     @param:StringRes val label: Int,
-    @param:DrawableRes val icon: Int,
-    action: suspend () -> Unit
-) : Runnable(action) {
+    @param:DrawableRes val icon: Int
+) : Runnable() {
     data class GetRootShell(private val action: suspend () -> Unit) : StartStep(
-        R.string.start_step_get_root_shell, R.drawable.ic_system_icon, action
-    )
+        R.string.start_step_get_root_shell, R.drawable.ic_system_icon
+    ) {
+        override suspend fun onRun() = action()
+    }
 
     data class EnableUsbDebugging(private val action: suspend () -> Unit) : StartStep(
         R.string.start_step_enabling_debugging,
         R.drawable.ic_outline_notifications_active_24,
-        action
-    )
+    ) {
+        override suspend fun onRun() = action()
+    }
 
-    data class EnableWirelessDebugging(private val action: suspend () -> Unit) : StartStep(
+    data class EnableWirelessDebugging(
+        private val action: suspend (EnableWirelessDebugging) -> Unit,
+        var isAwaitingAuth: Boolean = false
+    ) : StartStep(
         R.string.start_step_enabling_wireless_debugging,
-        R.drawable.ic_outline_notifications_active_24,
-        action
-    )
+        R.drawable.ic_outline_notifications_active_24
+    ) {
+        override suspend fun onRun() = action(this)
+
+        fun updateAwaitingAuth(isAwaitingAuth: Boolean) {
+            this.isAwaitingAuth = isAwaitingAuth
+            refresh()
+        }
+    }
 
     data class CloseTcpPort(private val action: suspend () -> Unit) : StartStep(
-        R.string.start_step_closing_tcp_port, R.drawable.ic_close_24, action
-    )
+        R.string.start_step_closing_tcp_port, R.drawable.ic_close_24
+    ) {
+        override suspend fun onRun() = action()
+    }
 
     data class SearchForPort(private val action: suspend () -> Unit) : StartStep(
-        R.string.start_step_searching_for_port, R.drawable.ic_code_24dp, action
-    )
-
-    data class AwaitingAuthorization(private val action: suspend () -> Unit) : StartStep(
-        R.string.start_step_awaiting_authorization,
-        R.drawable.ic_outline_notifications_active_24,
-        action
-    )
+        R.string.start_step_searching_for_port, R.drawable.ic_code_24dp
+    ) {
+        override suspend fun onRun() = action()
+    }
 
     data class ConnectToPort(private val action: suspend () -> Unit) : StartStep(
-        R.string.start_step_connecting_to_port, R.drawable.ic_baseline_link_24, action
-    )
+        R.string.start_step_connecting_to_port, R.drawable.ic_baseline_link_24
+    ) {
+        override suspend fun onRun() = action()
+    }
 
     data class OpenTcpPort(private val action: suspend () -> Unit) : StartStep(
-        R.string.start_step_opening_tcp_port, R.drawable.ic_outline_play_arrow_24, action
-    )
+        R.string.start_step_opening_tcp_port, R.drawable.ic_outline_play_arrow_24
+    ) {
+        override suspend fun onRun() = action()
+    }
 
     data class ExecuteCommand(private val action: suspend () -> Unit) : StartStep(
-        R.string.start_step_executing_command, R.drawable.ic_terminal_24, action
-    )
+        R.string.start_step_executing_command, R.drawable.ic_terminal_24
+    ) {
+        override suspend fun onRun() = action()
+    }
 
     data class WaitForService(private val action: suspend () -> Unit) : StartStep(
-        R.string.start_step_waiting_for_service, R.drawable.ic_server_start_24dp, action
-    )
+        R.string.start_step_waiting_for_service, R.drawable.ic_server_start_24dp
+    ) {
+        override suspend fun onRun() = action()
+    }
 }

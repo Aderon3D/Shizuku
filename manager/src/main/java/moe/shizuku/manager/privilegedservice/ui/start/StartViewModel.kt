@@ -37,7 +37,9 @@ class StartViewModel(
 
     fun startService() {
         viewModelScope.launch {
-            privilegedServiceManager.startService(session)
+            runCatching {
+                privilegedServiceManager.startService(session)
+            }
         }
     }
 }

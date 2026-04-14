@@ -33,6 +33,7 @@ class AutoStartManager(
     enum class WorkerState {
         AWAITING_WIFI,
         AWAITING_RETRY,
+        AWAITING_AUTHORIZATION,
         RUNNING,
         STOPPED
     }
@@ -40,7 +41,7 @@ class AutoStartManager(
     fun start(forceStart: Boolean = false) {
         if ((deviceUserRepository.getCurrentUser().id > 0 || shizukuStateMachine.isRunning()) && !forceStart) return
 
-        when (privilegedServiceManager.canStart(inBackground = true)) {
+        when (privilegedServiceManager.canStartInBackground()) {
             PreStartCheck.Success -> {
                 AutoStartWorker.enqueue(context, privilegedServiceManager.isWifiRequired)
                 updateNotification(WorkerState.AWAITING_WIFI)
@@ -120,6 +121,7 @@ class AutoStartManager(
             when (state) {
                 WorkerState.AWAITING_WIFI -> R.string.start_background_awaiting_wifi
                 WorkerState.AWAITING_RETRY -> R.string.start_background_awaiting_retry
+                WorkerState.AWAITING_AUTHORIZATION -> R.string.start_background_awaiting_auth
                 else -> null
             }
         val msg = if (msgId != null) context.getString(msgId) else null
@@ -164,5 +166,27 @@ class AutoStartManager(
                 .build()
 
         nm.notify(NOTIFICATION_ID, notification)
+    }
+
+    fun fgsNotif(): Notification {
+        val channel =
+            NotificationChannel(
+                "fgsAutoStart",
+                "fgs",
+                NotificationManager.IMPORTANCE_NONE,
+            )
+
+        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (nm.getNotificationChannel("fgsAutoStart") == null)
+            nm.createNotificationChannel(channel)
+
+        val nb = NotificationCompat.Builder(context, "fgsAutoStart")
+
+        return nb
+            .setSmallIcon(R.drawable.ic_system_icon)
+            .setContentTitle("fgs")
+            .setOngoing(true)
+            .setSilent(true)
+            .build()
     }
 }
