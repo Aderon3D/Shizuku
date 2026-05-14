@@ -1,6 +1,7 @@
 package moe.shizuku.manager.core.ui.components.listselection
 
 interface ListSelectionItem {
+    val value: Any
     val label: CharSequence? get() = null
     val labelRes: Int get() = 0
     val description: CharSequence? get() = null

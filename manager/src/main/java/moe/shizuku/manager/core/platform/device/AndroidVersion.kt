@@ -22,6 +22,9 @@ object AndroidVersion {
     @ChecksSdkIntAtLeast(api = 33)
     val isAtLeast13: Boolean = sdkVersion >= 33
 
+    @ChecksSdkIntAtLeast(api = 32)
+    val isAtLeast12v2: Boolean = sdkVersion >= 32
+
     @ChecksSdkIntAtLeast(api = 31)
     val isAtLeast12: Boolean = sdkVersion >= 31
 

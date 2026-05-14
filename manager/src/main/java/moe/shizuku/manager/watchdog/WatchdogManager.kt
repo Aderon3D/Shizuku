@@ -1,9 +1,11 @@
 package moe.shizuku.manager.watchdog
 
+import android.app.ForegroundServiceStartNotAllowedException
 import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.core.content.ContextCompat
+import com.github.michaelbull.result.onErr
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,6 +20,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import moe.shizuku.manager.core.preferences.data.PreferencesRepository
 import moe.shizuku.manager.core.extensions.TAG
+import com.github.michaelbull.result.onFailure
+import moe.shizuku.manager.core.extensions.resultOf
 import moe.shizuku.manager.watchdog.models.WatchdogState
 import moe.shizuku.manager.watchdog.services.WatchdogService
 
@@ -73,12 +77,11 @@ class WatchdogManager(
     private fun transition(targetState: WatchdogState) {
         transitionJob?.cancel()
         transitionJob = scope.launch {
-            runCatching {
+            resultOf {
                 withTimeout(5000) {
                     state.first { it == targetState }
                 }
-            }.onFailure {
-                if (it is CancellationException) throw it
+            }.onErr {
                 hasFailed.value = true
             }
         }
@@ -93,19 +96,14 @@ class WatchdogManager(
         try {
             val intent = Intent(this, WatchdogService::class.java)
             ContextCompat.startForegroundService(this, intent)
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to start service: ${e.message}")
+        } catch (e: ForegroundServiceStartNotAllowedException) {
+            Log.e(TAG, "startWatchdogService", e)
             hasFailed.value = true
         }
     }
 
     private fun Context.stopWatchdogService() {
-        try {
-            val intent = Intent(this, WatchdogService::class.java)
-            stopService(intent)
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to stop service: ${e.message}")
-            hasFailed.value = true
-        }
+        val intent = Intent(this, WatchdogService::class.java)
+        stopService(intent)
     }
 }

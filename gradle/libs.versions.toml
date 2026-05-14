@@ -1,5 +1,5 @@
 [versions]
-agp = "9.1.1"
+agp = "9.2.1"
 androidx-annotation = "1.10.0"
 androidx-appcompat = "1.7.1"
 androidx-browser = "1.10.0"
@@ -9,29 +9,30 @@ androidx-core = "1.18.0"
 androidx-documentfile = "1.1.0"
 androidx-fragment = "1.8.9"
 androidx-lifecycle = "2.10.0"
-androidx-navigation = "2.9.7"
+androidx-navigation = "2.9.8"
 androidx-preference = "1.2.1"
 androidx-recyclerview = "1.4.0"
 androidx-work = "2.11.2"
-apksig = "9.1.0"
+apksig = "9.2.1"
 arsclib = "1.3.8"
 boringssl = "20251124"
-bouncycastle = "1.83"
+bouncycastle = "1.84"
 coil = "3.4.0"
-gson = "2.13.2"
+gson = "2.14.0"
 hidden-api = "4.4.0"
 hiddenapibypass = "6.1"
 koin = "4.2.1"
 koin-plugin = "0.6.2"
-kotlin = "2.3.20"
-kotlinx-coroutines = "1.10.2"
+kotlin = "2.3.21"
+kotlinx-coroutines = "1.11.0"
 kotlinx-serialization = "1.11.0"
 leakcanary = "2.14"
 libadb = "3.1.1"
 libsu = "6.0.0"
-material = "1.14.0-beta01"
+material = "1.14.0"
 okhttp = "5.3.2"
 refine = "4.4.0"
+result = "2.3.1"
 rikkax-lifecycle = "1.0.1"
 
 [libraries]
@@ -79,6 +80,7 @@ material = { group = "com.google.android.material", name = "material", version.r
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 refine-annotation = { group = "dev.rikka.tools.refine", name = "annotation", version.ref = "refine" }
 refine-annotation-processor = { group = "dev.rikka.tools.refine", name = "annotation-processor", version.ref = "refine" }
+result = { group = "com.michael-bull.kotlin-result", name = "kotlin-result", version.ref = "result" }
 rikkax-lifecycle-resource-livedata = { group = "dev.rikka.rikkax.lifecycle", name = "lifecycle-resource-livedata", version.ref = "rikkax-lifecycle" }
 
 [bundles]

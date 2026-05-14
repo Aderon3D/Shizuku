@@ -4,16 +4,14 @@ import android.app.UiModeManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import moe.shizuku.manager.core.platform.services.systemService
+
+private val Context.uiModeManager: UiModeManager by systemService()
 
 val Context.isWatch: Boolean
-    get() {
-        val uiModeManager = getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
-        return uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_WATCH
-    }
+    get() = uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_WATCH
+
 
 val Context.isTelevision: Boolean
-    get() {
-        val uiModeManager = getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
-        return uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
-                || packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
-    }
+    get() = uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
+            || packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)

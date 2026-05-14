@@ -2,7 +2,7 @@ package moe.shizuku.manager.core.extensions
 
 import java.util.Locale
 
-fun String.appendRandomSuffix(n: Int = 5): String {
+fun String.appendRandomSuffix(n: Int): String {
     require(n > 0) { "The length of the random suffix (n) must be greater than 0." }
 
     val letters = ('a'..'z')

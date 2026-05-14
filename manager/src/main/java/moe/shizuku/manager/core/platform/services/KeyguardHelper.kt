@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import kotlinx.coroutines.suspendCancellableCoroutine
+import moe.shizuku.manager.core.extensions.resultOf
 import kotlin.coroutines.resume
 
 class KeyguardHelper(private val context: Context) {
@@ -23,7 +24,7 @@ class KeyguardHelper(private val context: Context) {
         }
         context.registerReceiver(receiver, IntentFilter(Intent.ACTION_USER_PRESENT))
         cont.invokeOnCancellation {
-            runCatching { context.unregisterReceiver(receiver) }
+            resultOf { context.unregisterReceiver(receiver) }
         }
     }
 }

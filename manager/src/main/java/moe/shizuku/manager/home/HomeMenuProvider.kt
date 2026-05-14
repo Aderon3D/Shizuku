@@ -9,6 +9,7 @@ import moe.shizuku.manager.R
 import moe.shizuku.manager.core.ui.components.listselection.ListSelectionBottomSheet
 import moe.shizuku.manager.home.components.AboutDialog
 import moe.shizuku.manager.home.models.HelpItem
+import moe.shizuku.manager.home.models.HelpListItem
 
 class HomeMenuProvider(
     private val fragment: HomeFragment
@@ -42,7 +43,7 @@ class HomeMenuProvider(
         ListSelectionBottomSheet.show(
             fragment.childFragmentManager,
             title = R.string.help_and_feedback,
-            items = HelpItem.entries
+            items = HelpItem.entries.map { HelpListItem(it) }
         )
     }
 }

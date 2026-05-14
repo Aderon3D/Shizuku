@@ -6,11 +6,11 @@ import moe.shizuku.manager.R
 import moe.shizuku.manager.core.preferences.data.PreferencesRepository
 import moe.shizuku.manager.core.preferences.data.string
 import moe.shizuku.manager.core.extensions.toast
-import moe.shizuku.manager.core.platform.services.pkg.PackageInstallerHelper
+import moe.shizuku.manager.core.platform.services.packages.installer.PackageInstallerHelper
 import moe.shizuku.manager.core.utils.ApkUtils
 import moe.shizuku.manager.updater.data.ReleaseRepository
 import moe.shizuku.manager.updater.models.AppRelease
-import moe.shizuku.manager.updater.models.Version
+import moe.shizuku.manager.core.utils.Version
 import java.io.File
 
 class UpdateHelper(

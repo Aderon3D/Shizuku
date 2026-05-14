@@ -3,16 +3,12 @@ package moe.shizuku.manager.core.utils.runnable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import kotlin.coroutines.cancellation.CancellationException
+import com.github.michaelbull.result.Result
 
-abstract class Runnable(
-    private val throws: Boolean = true
-) {
-    private val _status = MutableStateFlow<RunnableStatus>(RunnableStatus.Pending)
-    val status: StateFlow<RunnableStatus> = _status
+abstract class Runnable<out T, out E> {
+    private val _status = MutableStateFlow<RunnableStatus<T, E>>(RunnableStatus.Pending)
+    val status: StateFlow<RunnableStatus<T, E>> = _status
 
-    // Emits a new running status
-    // Useful when a runnable implementation provides additional status information
     fun refresh() {
         _status.update { current ->
             if (current is RunnableStatus.Running) {
@@ -23,15 +19,12 @@ abstract class Runnable(
         }
     }
 
-    suspend fun run() {
+    suspend fun run(): Result<T, E> {
         _status.update { RunnableStatus.Running() }
-        runCatching { onRun() }
-            .onSuccess { _status.update { RunnableStatus.Completed } }
-            .onFailure { e ->
-                _status.update { RunnableStatus.Failed(e) }
-                if (throws || e is CancellationException || e !is Exception) throw e
-            }
+        val result = onRun()
+        _status.update { RunnableStatus.Finished(result) }
+        return result
     }
 
-    abstract suspend fun onRun()
+    protected abstract suspend fun onRun(): Result<T, E>
 }

@@ -1,37 +1,49 @@
 package moe.shizuku.manager.watchdog.services
 
+import android.app.ForegroundServiceStartNotAllowedException
 import android.app.Service
 import android.content.Intent
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
-import android.os.Build
 import android.os.IBinder
 import androidx.core.app.ServiceCompat
+import com.github.michaelbull.result.onErr
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import moe.shizuku.manager.autostart.AutoStartManager
 import moe.shizuku.manager.core.platform.device.AndroidVersion
-import moe.shizuku.manager.privilegedservice.data.ShizukuStateMachine
-import moe.shizuku.manager.watchdog.utils.WatchdogNotifications
+import moe.shizuku.manager.core.extensions.resultOf
+import moe.shizuku.manager.privilegedservice.PrivilegedServiceStateMachine
+import moe.shizuku.manager.privilegedservice.models.PrivilegedServiceState
+import moe.shizuku.manager.watchdog.notifications.CrashNotificationProvider
+import moe.shizuku.manager.watchdog.notifications.WatchdogNotificationProvider
 import org.koin.android.ext.android.inject
 
 class WatchdogService : Service() {
 
-    private val watchdogNotifications: WatchdogNotifications by inject()
+    private val notificationProvider: WatchdogNotificationProvider by inject()
+    private val crashNotificationProvider: CrashNotificationProvider by inject()
     private val autoStartManager: AutoStartManager by inject()
-    private val shizukuStateMachine: ShizukuStateMachine by inject()
-
-    private val crashListener: (ShizukuStateMachine.State) -> Unit = {
-        if (it == ShizukuStateMachine.State.CRASHED) {
-            watchdogNotifications.showCrashNotification()
-            autoStartManager.start()
-        }
-    }
+    private val privilegedServiceStateMachine: PrivilegedServiceStateMachine by inject()
+    private val scope = CoroutineScope(Dispatchers.Main + Job())
 
     override fun onCreate() {
         super.onCreate()
         _isRunning.value = true
-        shizukuStateMachine.addListener(crashListener)
+
+        privilegedServiceStateMachine.state
+            .onEach { state ->
+                if (state is PrivilegedServiceState.Crashed) {
+                    crashNotificationProvider.showCrashNotification()
+                    autoStartManager.start()
+                }
+            }
+            .launchIn(scope)
     }
 
     override fun onStartCommand(
@@ -48,17 +60,22 @@ class WatchdogService : Service() {
             FOREGROUND_SERVICE_TYPE_SPECIAL_USE
         } else 0
 
-        ServiceCompat.startForeground(
-            this,
-            WatchdogNotifications.ID_WATCHDOG,
-            watchdogNotifications.createWatchdogNotification(),
-            fgsType
-        )
+        resultOf {
+            ServiceCompat.startForeground(
+                this,
+                WatchdogNotificationProvider.ID_WATCHDOG,
+                notificationProvider.createWatchdogNotification(),
+                fgsType
+            )
+        }.onErr {
+            val isFgsRestriction = AndroidVersion.isAtLeast12 &&
+                    it is ForegroundServiceStartNotAllowedException
+            if (!isFgsRestriction) stopSelf() else throw it
+        }
         return START_STICKY
     }
 
     override fun onDestroy() {
-        shizukuStateMachine.removeListener(crashListener)
         _isRunning.value = false
         super.onDestroy()
     }

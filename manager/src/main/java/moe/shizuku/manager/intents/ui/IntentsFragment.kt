@@ -14,6 +14,8 @@ import moe.shizuku.manager.R
 import moe.shizuku.manager.core.ui.helpers.viewBinding
 import moe.shizuku.manager.databinding.IntentsFragmentBinding
 import moe.shizuku.manager.intents.models.IntentsUiState
+import moe.shizuku.manager.intents.receivers.ManualStartReceiver
+import moe.shizuku.manager.intents.receivers.ManualStopReceiver
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class IntentsFragment : Fragment(R.layout.intents_fragment) {
@@ -53,10 +55,17 @@ class IntentsFragment : Fragment(R.layout.intents_fragment) {
         state: IntentsUiState
     ) = with(binding) {
         fieldExtra.text = state.authToken
-        fieldAction.text = state.intentAction.string
 
+        setActionText(state.intentAction)
         setEnabledState(state.enabled)
         setCheckedButton(state.intentAction)
+    }
+
+    private fun setActionText(action: IntentsUiState.IntentAction) = with(binding) {
+        fieldAction.text = when (action) {
+            IntentsUiState.IntentAction.START -> ManualStartReceiver.ACTION
+            IntentsUiState.IntentAction.STOP -> ManualStopReceiver.ACTION
+        }
     }
 
     private fun setEnabledState(enabled: Boolean) = with(binding) {

@@ -8,62 +8,87 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.ForegroundInfo
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import androidx.work.workDataOf
+import com.github.michaelbull.result.fold
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import moe.shizuku.manager.R
-import moe.shizuku.manager.core.platform.device.AndroidVersion
 import moe.shizuku.manager.autostart.AutoStartNotificationProvider.Companion.RUNNING_ID
-import moe.shizuku.manager.core.utils.runnable.RunnableStatus
+import moe.shizuku.manager.autostart.models.AutoStartState
+import moe.shizuku.manager.core.extensions.isWifiConnected
+import moe.shizuku.manager.core.platform.device.AndroidVersion
 import moe.shizuku.manager.privilegedservice.PrivilegedServiceManager
-import moe.shizuku.manager.privilegedservice.models.StartStep
+import moe.shizuku.manager.start.StartStep
 
 class AutoStartWorker(
-    context: Context,
+    private val context: Context,
     params: WorkerParameters,
     private val notificationProvider: AutoStartNotificationProvider,
-    private val privilegedServiceManager: PrivilegedServiceManager,
-    private val autoStartManager: AutoStartManager
+    private val privilegedServiceManager: PrivilegedServiceManager
 ) : CoroutineWorker(context, params) {
 
-    override suspend fun doWork(): Result {
+    private var isSuccess = false
+
+    override suspend fun doWork(): Result = try {
+        notificationProvider.updateNotification(AutoStartState.Running(isAwaitingAuth = false))
+
+        coroutineScope {
             val session = privilegedServiceManager.createStartSession()
 
-            coroutineScope {
-                val job = launch {
-                    session.steps.collect { steps ->
-                        checkAwaitingAuth(steps)
-                    }
+            val job = launch {
+                session.steps.collect { steps ->
+                    checkAwaitingAuth(steps)
                 }
-
-                privilegedServiceManager.startService(session)
-                job.cancel()
             }
 
-            val result = session.status.value
-            if (result is RunnableStatus.Failed) {
-                autoStartManager.reportError(result.throwable)
-                return Result.retry()
-            } else return Result.success()
+            privilegedServiceManager.startService(session).also {
+                job.cancel()
+            }
+        }.fold(
+            success = {
+                isSuccess = true
+                Result.success()
+            },
+            failure = {
+                notificationProvider.showErrorNotification()
+                Result.retry()
+            }
+        )
+    } finally {
+        val state = resolveAutoStartState(isSuccess)
+        notificationProvider.updateNotification(state)
     }
+
+    private fun resolveAutoStartState(isSuccess: Boolean): AutoStartState =
+        if (!isStopped) {
+            if (isSuccess) AutoStartState.Success
+            else AutoStartState.Waiting.Retry
+        } else if (AndroidVersion.isAtLeast12) {
+            when (stopReason) {
+                WorkInfo.STOP_REASON_CANCELLED_BY_APP -> AutoStartState.Cancelled
+                WorkInfo.STOP_REASON_CONSTRAINT_CONNECTIVITY -> AutoStartState.Waiting.Wifi
+                else -> AutoStartState.Waiting.Retry
+            }
+        } else {
+            if (!context.isWifiConnected) AutoStartState.Waiting.Wifi
+            else AutoStartState.Waiting.Retry
+        }
 
     private var isForeground = false
 
-    private suspend fun checkAwaitingAuth(steps: List<StartStep>) {
-        val enableWirelessDebuggingStep = steps.find {
-            it is StartStep.EnableWirelessDebugging
-        } as? StartStep.EnableWirelessDebugging
+    private suspend fun checkAwaitingAuth(steps: List<StartStep<*, *>>) {
+        val enableWirelessDebuggingStep =
+            steps.filterIsInstance<StartStep.EnableWirelessDebugging>().firstOrNull()
 
         val isAwaitingAuth = enableWirelessDebuggingStep?.isAwaitingAuth ?: false
-
-        setProgress(workDataOf(WORK_DATA_AWAITING_AUTH to isAwaitingAuth))
 
         if (isAwaitingAuth && !isForeground) {
             setForeground(getForegroundInfo())
             isForeground = true
         }
+
+        notificationProvider.updateNotification(AutoStartState.Running(isAwaitingAuth))
     }
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
@@ -74,7 +99,7 @@ class AutoStartWorker(
         return ForegroundInfo(
             RUNNING_ID,
             notificationProvider.buildNotification(
-                applicationContext.getString(R.string.start_background_awaiting_auth)
+                AutoStartState.Running(isAwaitingAuth = true)
             ),
             fgsType
         )
@@ -82,24 +107,5 @@ class AutoStartWorker(
 
     companion object {
         const val WORK_NAME = "adb_start_worker"
-        const val WORK_DATA_AWAITING_AUTH = "awaiting_auth"
-
-        fun enqueue(context: Context, isWifiRequired: Boolean) {
-            val cb = Constraints.Builder()
-            if (isWifiRequired) {
-                cb.setRequiredNetworkType(NetworkType.UNMETERED)
-            }
-            val constraints = cb.build()
-
-            val request =
-                OneTimeWorkRequestBuilder<AutoStartWorker>().setConstraints(constraints)
-                    .build()
-
-            WorkManager.getInstance(context).enqueueUniqueWork(
-                WORK_NAME,
-                ExistingWorkPolicy.REPLACE,
-                request
-            )
-        }
     }
 }

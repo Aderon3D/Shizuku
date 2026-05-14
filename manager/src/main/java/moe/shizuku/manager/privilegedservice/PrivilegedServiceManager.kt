@@ -3,42 +3,38 @@ package moe.shizuku.manager.privilegedservice
 import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
-import androidx.annotation.RequiresApi
-import com.topjohnwu.superuser.Shell
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
+import com.github.michaelbull.result.Err
+import com.github.michaelbull.result.Ok
+import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.fold
+import com.github.michaelbull.result.mapError
+import com.github.michaelbull.result.onErr
 import moe.shizuku.manager.core.extensions.TAG
 import moe.shizuku.manager.core.extensions.hasWriteSecureSettings
+import moe.shizuku.manager.core.extensions.resultOf
 import moe.shizuku.manager.core.platform.adb.AdbPortHelper
 import moe.shizuku.manager.core.platform.adb.AdbSession
 import moe.shizuku.manager.core.platform.adb.AdbSettingsManager
-import moe.shizuku.manager.core.platform.adb.models.WirelessDebuggingResult
+import moe.shizuku.manager.core.platform.adb.models.AdbSettingsError
 import moe.shizuku.manager.core.preferences.data.PreferencesRepository
 import moe.shizuku.manager.core.preferences.models.StartMode
-import moe.shizuku.manager.core.utils.RootUtils
+import moe.shizuku.manager.core.utils.root.RootUtils
 import moe.shizuku.manager.core.utils.runnable.RunnableSequence
-import moe.shizuku.manager.privilegedservice.data.ShizukuStateMachine
-import moe.shizuku.manager.privilegedservice.models.PreStartCheck
-import moe.shizuku.manager.privilegedservice.models.StartStep
+import moe.shizuku.manager.core.utils.runnable.RunnableSequenceError
+import moe.shizuku.manager.start.StartStep
+import moe.shizuku.manager.start.models.PreStartCheckError
 import moe.shizuku.manager.tcpmode.TcpManager
 import rikka.shizuku.Shizuku
 import java.io.File
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class PrivilegedServiceManager(
     private val context: Context,
     private val adbSettingsManager: AdbSettingsManager,
     private val adbPortHelper: AdbPortHelper,
-    private val tcpManager: TcpManager,
+    private val adbSessionFactory: AdbSession.Factory,
     private val preferencesRepository: PreferencesRepository,
-    private val shizukuStateMachine: ShizukuStateMachine,
-    private val adbSessionFactory: AdbSession.Factory
+    private val privilegedServiceStateMachine: PrivilegedServiceStateMachine,
+    private val tcpManager: TcpManager
 ) {
     private val starterFilePath by lazy {
         File(context.applicationInfo.nativeLibraryDir, "libshizuku.so").absolutePath
@@ -48,168 +44,120 @@ class PrivilegedServiceManager(
     }
     val adbCommand: String by lazy { "adb shell $starterFilePath" }
 
-    private var adbSession: AdbSession? = null
-
     val isWifiRequired: Boolean
-        get() = preferencesRepository.startMode.get() == StartMode.WADB &&
-                (adbPortHelper.tcpPort <= 0 || !preferencesRepository.tcpMode.get())
+        get() {
+            val isStartModeWadb = preferencesRepository.startMode.get() == StartMode.WADB
+            val isTcpPortOpen = tcpManager.isTcpPortOpen
+            val isTcpModeEnabled = preferencesRepository.tcpMode.get()
 
-    fun canStartInBackground(): PreStartCheck =
-        canStartCommon() ?: run {
-            if (context.hasWriteSecureSettings()) PreStartCheck.Success
-            else PreStartCheck.Failure.WriteSecureSettingsNotGranted
-        }.also { Log.i(TAG, "canStartInBackground: ${it::class.simpleName}") }
+            return isStartModeWadb && (isTcpPortOpen || !isTcpModeEnabled)
+        }
 
-    suspend fun canStart(): PreStartCheck =
-        canStartCommon() ?: run {
-            adbSettingsManager.enableUsbDebugging()
-                .onFailure { return@run PreStartCheck.Failure.UsbDebuggingDisabled }
-
-            @SuppressLint("NewApi") // Already checked in canStartCommon
-            when (adbSettingsManager.enableWirelessDebugging()) {
-                is WirelessDebuggingResult.Success -> PreStartCheck.Success
-                is WirelessDebuggingResult.NotSupported -> PreStartCheck.Failure.TlsNotSupported
-                is WirelessDebuggingResult.NoWifi -> PreStartCheck.Failure.WifiRequired
-                is WirelessDebuggingResult.NoWriteSecureSettings -> PreStartCheck.Failure.WirelessDebuggingDisabled
-                is WirelessDebuggingResult.NotAuthorized -> PreStartCheck.Failure.AuthorizationRequired
+    fun canStartInBackground(): Result<Unit, PreStartCheckError.Background> =
+        canStartCommon().fold(
+            failure = { Err(it as PreStartCheckError.Background) },
+            success = {
+                if (context.hasWriteSecureSettings()) Ok(Unit)
+                else Err(PreStartCheckError.WriteSecureSettingsNotGranted)
             }
-        }.also { Log.i(TAG, "canStart: ${it::class.simpleName}") }
+        ).also { Log.i(TAG, "canStartInBackground: $it") }
 
-    private fun canStartCommon(): PreStartCheck? =
+    suspend fun canStart(): Result<Unit, PreStartCheckError.Foreground> =
+        canStartCommon().fold(
+            failure = { Err(it as PreStartCheckError.Foreground) },
+            success = {
+                adbSettingsManager.setUsbDebugging(true)
+                    .mapError { PreStartCheckError.UsbDebuggingDisabled }
+                    .onErr { return Err(it) }
+
+                @SuppressLint("NewApi") // Already checked in canStartCommon
+                return adbSettingsManager.setWirelessDebugging(true)
+                    .mapError {
+                        when (it) {
+                            AdbSettingsError.NotSupported -> PreStartCheckError.TlsNotSupported
+                            AdbSettingsError.NoWifi -> PreStartCheckError.WifiRequired
+                            AdbSettingsError.NotAuthorized -> PreStartCheckError.AuthorizationRequired
+                            AdbSettingsError.NoWriteSecureSettings -> PreStartCheckError.WirelessDebuggingDisabled
+                        }
+                    }
+            }
+        )
+
+    private fun canStartCommon(): Result<Unit, PreStartCheckError> =
         when (preferencesRepository.startMode.get()) {
             StartMode.ROOT -> {
-                if (RootUtils.isRooted()) PreStartCheck.Success
-                else PreStartCheck.Failure.NotRooted
+                if (RootUtils.isRooted() == true) Ok(Unit) // TODO handle null
+                else Err(PreStartCheckError.NotRooted)
             }
 
             StartMode.WADB -> {
-                if (adbPortHelper.tcpPort > 0) PreStartCheck.Success
-                else if (!adbSettingsManager.hasWirelessDebugging) PreStartCheck.Failure.TlsNotSupported
-                else null
+                if (adbPortHelper.tcpPort.isOk) Ok(Unit)
+                else if (!adbSettingsManager.hasWirelessDebugging) Err(PreStartCheckError.TlsNotSupported)
+                else Ok(Unit)
             }
         }
 
-    fun createStartSession(): RunnableSequence<StartStep> {
-        val steps = mutableListOf<StartStep>()
+    fun createStartSession(): RunnableSequence<StartStep<*, *>> {
+        val steps = mutableListOf<StartStep<*, *>>()
+        val startMode = preferencesRepository.startMode.get()
+        var adbSession: AdbSession? = null
 
-        when (preferencesRepository.startMode.get()) {
+        if (startMode == StartMode.WADB) {
+            adbSession = adbSessionFactory.create()
+        }
+
+        when (startMode) {
             StartMode.ROOT -> {
-                steps.add(StartStep.GetRootShell(::getRootShell))
+                steps.add(StartStep.RequestRootPermission())
             }
 
             StartMode.WADB -> {
                 val tcpMode = preferencesRepository.tcpMode.get()
                 val targetTcpPort = preferencesRepository.tcpPort.get()
+                val session = adbSession!!
 
                 if (!tcpMode && tcpManager.isTcpPortOpen) {
-                    steps.add(StartStep.CloseTcpPort(::closeTcpPort))
+                    steps.add(StartStep.CloseTcpPort(session, tcpManager))
                 }
 
                 if (!adbSettingsManager.isUsbDebuggingEnabled) {
-                    steps.add(StartStep.EnableUsbDebugging(adbSettingsManager::enableUsbDebugging))
+                    steps.add(StartStep.EnableUsbDebugging(adbSettingsManager))
                 }
 
                 if (adbSettingsManager.hasWirelessDebugging &&
                     !adbSettingsManager.isWirelessDebuggingEnabled &&
                     isWifiRequired
                 ) {
-                    steps.add(StartStep.EnableWirelessDebugging(::enableWirelessDebugging))
+                    steps.add(StartStep.EnableWirelessDebugging(adbSettingsManager))
                 }
 
-                steps.add(StartStep.SearchForPort(::searchForPort))
-                steps.add(StartStep.ConnectToPort(::connectToPort))
+                steps.add(StartStep.SearchForPort(session, adbPortHelper, isWifiRequired))
+                steps.add(StartStep.ConnectToPort(session))
 
                 if (tcpMode && !tcpManager.isTcpPortOpen(targetTcpPort)) {
-                    steps.add(StartStep.OpenTcpPort(::openTcpPort))
+                    steps.add(StartStep.OpenTcpPort(session, tcpManager, targetTcpPort))
                 }
             }
         }
 
-        steps.add(StartStep.ExecuteCommand(::executeCommand))
-        steps.add(StartStep.WaitForService(::waitForService))
+        steps.add(StartStep.ExecuteCommand(adbSession, startMode, internalCommand))
+        steps.add(StartStep.WaitForService(privilegedServiceStateMachine))
 
         return RunnableSequence(steps.toList())
     }
 
-    suspend fun startService(sequence: RunnableSequence<StartStep>) {
-        shizukuStateMachine.set(ShizukuStateMachine.State.STARTING)
-
-        if (preferencesRepository.startMode.get() == StartMode.WADB) {
-            adbSession = adbSessionFactory.create()
+    suspend fun startService(sequence: RunnableSequence<StartStep<*, *>>): Result<Unit, RunnableSequenceError> {
+        privilegedServiceStateMachine.setStarting()
+        return sequence.run().also {
+            privilegedServiceStateMachine.refresh()
         }
-
-        sequence.run()
-
-        // Clean-up
-        shizukuStateMachine.update()
-        adbSession?.close()
-        adbSession = null
     }
 
     fun stopService() {
-        if (!shizukuStateMachine.isRunning()) return
+        if (!privilegedServiceStateMachine.isRunning) return
 
-        shizukuStateMachine.set(ShizukuStateMachine.State.STOPPING)
-        runCatching { Shizuku.exit() }
+        privilegedServiceStateMachine.setStoppping()
+        resultOf { Shizuku.exit() } // TODO catch specific error
     }
 
-    // HELPER FUNCTIONS FOR START STEPS
-
-    private suspend fun executeCommand() {
-        when (preferencesRepository.startMode.get()) {
-            StartMode.ROOT -> {
-                suspendCancellableCoroutine { cont ->
-                    Shell.cmd(internalCommand).submit {
-                        // TODO show log output
-                        if (it.isSuccess) cont.resume(Unit)
-                        else cont.resumeWithException(Exception("Failed to start with root"))
-                    }
-                }
-            }
-
-            StartMode.WADB -> {
-                adbSession!!.withClient { client ->
-                    client.command("shell:$internalCommand") { } // TODO show log output
-                }
-            }
-        }
-    }
-
-    private suspend fun getRootShell() {
-        withContext(Dispatchers.IO) {
-            Shell.getShell {
-                if (!it.isRoot) throw Exception("Device is not rooted")
-            }
-        }
-    }
-
-    @RequiresApi(30)
-    private suspend fun enableWirelessDebugging(step: StartStep.EnableWirelessDebugging) {
-        withContext(Dispatchers.IO) {
-            adbSettingsManager.enableWirelessDebugging { isAwaitingAuth ->
-                step.updateAwaitingAuth(isAwaitingAuth)
-            }
-        }
-    }
-
-    private suspend fun searchForPort() {
-        adbSession!!.port = adbPortHelper.getAdbPort(forceTls = isWifiRequired)
-    }
-
-    private suspend fun connectToPort() {
-        adbSession!!.withClient { /* Connect only */ }
-    }
-
-    private suspend fun openTcpPort() {
-        val targetPort = preferencesRepository.tcpPort.get()
-        tcpManager.openTcpPort(targetPort, adbSession!!)
-    }
-
-    private suspend fun closeTcpPort() {
-        tcpManager.closeTcpPort(adbSession!!)
-    }
-
-    private suspend fun waitForService() = withTimeout(60_000) {
-        shizukuStateMachine.asFlow().first { it == ShizukuStateMachine.State.RUNNING }
-    }
 }

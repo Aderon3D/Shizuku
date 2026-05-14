@@ -2,9 +2,13 @@ package moe.shizuku.manager.shell
 
 import android.content.Context
 import android.content.Intent
+import android.os.DeadObjectException
 import android.os.IBinder
 import android.os.Parcel
 import android.util.Log
+import com.github.michaelbull.result.onErr
+import moe.shizuku.manager.core.extensions.isBinderDeadException
+import moe.shizuku.manager.core.extensions.resultOf
 import rikka.shizuku.Shizuku
 
 class ShellBinderRequestHandler {
@@ -17,15 +21,16 @@ class ShellBinderRequestHandler {
         }
 
         val data = Parcel.obtain()
-        try {
+        resultOf {
             data.writeStrongBinder(shizukuBinder)
             data.writeString(context.applicationInfo.sourceDir)
             binder.transact(1, data, null, IBinder.FLAG_ONEWAY)
-        } catch (e: Throwable) {
-            e.printStackTrace()
-        } finally {
-            data.recycle()
+        }.onErr {
+            if (it.isBinderDeadException) {
+                Log.w("ShellBinderRequestHandler", "Error handling request", it)
+            }
         }
+        data.recycle()
     }
     
 }

@@ -2,6 +2,7 @@ package moe.shizuku.manager.permission.ui.authorizedapps
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.michaelbull.result.onErr
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -17,22 +18,28 @@ import moe.shizuku.manager.permission.data.AuthorizedAppsRepository
 import moe.shizuku.manager.permission.models.AuthorizedAppsEvent
 import moe.shizuku.manager.permission.models.AuthorizedAppsItem
 import moe.shizuku.manager.permission.models.AuthorizedAppsUiState
+import moe.shizuku.manager.privilegedservice.PrivilegedServiceStateMachine
 import rikka.shizuku.Shizuku
 
 class AuthorizedAppsViewModel(
-    private val authorizedAppsRepository: AuthorizedAppsRepository
+    private val authorizedAppsRepository: AuthorizedAppsRepository,
+    stateMachine: PrivilegedServiceStateMachine,
 ) : ViewModel() {
     private val _isRefreshing = MutableStateFlow(false)
 
 
     val uiState: StateFlow<AuthorizedAppsUiState> = combine(
-        authorizedAppsRepository.appsList, _isRefreshing
-    ) { list, refreshing ->
+        authorizedAppsRepository.appsList,
+        stateMachine.isRunningFlow,
+        _isRefreshing
+    ) { list, running, refreshing ->
         if (list == null) {
             AuthorizedAppsUiState.Loading
         } else {
-            AuthorizedAppsUiState.Result(
-                apps = list, isRefreshing = refreshing
+            AuthorizedAppsUiState.Success(
+                apps = list,
+                isServiceRunning = running,
+                isRefreshing = refreshing
             )
         }
     }.stateIn(
@@ -53,8 +60,8 @@ class AuthorizedAppsViewModel(
     }
 
     fun toggleApp(app: AuthorizedAppsItem.App) {
-        viewModelScope.launch(Dispatchers.IO) {
-            authorizedAppsRepository.updatePermission(app, !app.isGranted).onFailure {
+        viewModelScope.launch {
+            authorizedAppsRepository.updatePermission(app, !app.isGranted).onErr {
                 if (it is SecurityException) handleSecurityException()
                 else _events.trySend(
                     AuthorizedAppsEvent.ShowError(R.string.authorized_apps_error_toggle)
@@ -66,9 +73,9 @@ class AuthorizedAppsViewModel(
     fun toggleAll(grant: Boolean) {
         val state = uiState.value
 
-        if (state !is AuthorizedAppsUiState.Result) return
+        if (state !is AuthorizedAppsUiState.Success) return
 
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             var anyFailed = false
             var securityExceptionOccurred = false
 
@@ -80,7 +87,7 @@ class AuthorizedAppsViewModel(
                     continue
                 }
 
-                authorizedAppsRepository.updatePermission(app, grant).onFailure {
+                authorizedAppsRepository.updatePermission(app, grant).onErr {
                     if (it is SecurityException) {
                         securityExceptionOccurred = true
                     } else {

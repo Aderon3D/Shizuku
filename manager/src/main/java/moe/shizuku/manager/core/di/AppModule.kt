@@ -1,9 +1,14 @@
 package moe.shizuku.manager.core.di
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import moe.shizuku.manager.autostart.AutoStartNotificationProvider
 import moe.shizuku.manager.autostart.AutoStartManager
 import moe.shizuku.manager.autostart.AutoStartWorker
 import moe.shizuku.manager.autostart.StartOnBootManager
+import moe.shizuku.manager.pairing.AdbPairingNotificationProvider
+import moe.shizuku.manager.watchdog.notifications.WatchdogNotificationProvider
 import moe.shizuku.manager.core.locale.data.LocaleMigrator
 import moe.shizuku.manager.core.locale.data.LocaleRepository
 import moe.shizuku.manager.core.locale.data.LocaleXmlDataSource
@@ -11,27 +16,34 @@ import moe.shizuku.manager.core.platform.services.KeyguardHelper
 import moe.shizuku.manager.core.platform.adb.AdbPortHelper
 import moe.shizuku.manager.core.platform.adb.AdbSession
 import moe.shizuku.manager.core.platform.adb.AdbSettingsManager
+import moe.shizuku.manager.core.platform.adb.AdbMdns
+import moe.shizuku.manager.intents.AuthErrorNotificationProvider
+import moe.shizuku.manager.core.platform.services.notifications.NotificationChannelProvider
 import moe.shizuku.manager.core.platform.services.notifications.NotificationHelper
-import moe.shizuku.manager.core.platform.services.pkg.PackageInstallerHelper
-import moe.shizuku.manager.core.platform.services.pkg.PackageInfoRepository
+import moe.shizuku.manager.core.platform.services.packages.installer.PackageInstallerHelper
+import moe.shizuku.manager.core.platform.services.packages.manager.PackageInfoRepository
 import moe.shizuku.manager.core.platform.services.user.DeviceUserRepository
 import moe.shizuku.manager.core.platform.services.BatteryOptimizationHelper
-import moe.shizuku.manager.core.platform.services.pkg.PackageManagerHelper
+import moe.shizuku.manager.core.platform.services.notifications.NotificationChannelHelper
+import moe.shizuku.manager.core.platform.services.packages.manager.PackageManagerHelper
 import moe.shizuku.manager.core.preferences.data.PreferencesRepository
 import moe.shizuku.manager.core.ui.components.listselection.ListSelectionViewModel
 import moe.shizuku.manager.core.ui.helpers.ThemeHelper
 import moe.shizuku.manager.core.utils.ApkSigner
 import moe.shizuku.manager.core.utils.ApkUtils
-import moe.shizuku.manager.core.utils.RootUtils
+import moe.shizuku.manager.core.utils.root.RootUtils
 import moe.shizuku.manager.home.HomeViewModel
 import moe.shizuku.manager.intents.data.TokenRepository
 import moe.shizuku.manager.intents.ui.IntentsViewModel
+import moe.shizuku.manager.intents.usecases.ValidateTokenUseCase
 import moe.shizuku.manager.permission.PermissionManager
 import moe.shizuku.manager.permission.data.AuthorizedAppsRepository
 import moe.shizuku.manager.permission.ui.authorizedapps.AuthorizedAppsViewModel
 import moe.shizuku.manager.privilegedservice.PrivilegedServiceManager
-import moe.shizuku.manager.privilegedservice.ui.pairing.AdbPairingViewModel
-import moe.shizuku.manager.privilegedservice.ui.start.StartViewModel
+import moe.shizuku.manager.pairing.ui.AdbPairingViewModel
+import moe.shizuku.manager.privilegedservice.PrivilegedServiceStateMachine
+import moe.shizuku.manager.privilegedservice.ServiceMetadataRepository
+import moe.shizuku.manager.start.ui.StartViewModel
 import moe.shizuku.manager.settings.ui.SettingsViewModel
 import moe.shizuku.manager.shell.ShellBinderRequestHandler
 import moe.shizuku.manager.stealth.ui.StealthViewModel
@@ -39,55 +51,63 @@ import moe.shizuku.manager.tcpmode.TcpManager
 import moe.shizuku.manager.updater.UpdateHelper
 import moe.shizuku.manager.updater.data.ReleaseRemoteDataSource
 import moe.shizuku.manager.updater.data.ReleaseRepository
-import moe.shizuku.manager.privilegedservice.data.ShizukuStateMachine
+import moe.shizuku.manager.watchdog.notifications.CrashNotificationProvider
 import moe.shizuku.manager.watchdog.WatchdogManager
-import moe.shizuku.manager.watchdog.utils.WatchdogNotifications
 import org.koin.core.module.Module
-import org.koin.core.module.dsl.createdAtStart
-import org.koin.core.module.dsl.withOptions
+import org.koin.dsl.bind
 import org.koin.dsl.module
+import org.koin.plugin.module.dsl.create
 import org.koin.plugin.module.dsl.factory
 import org.koin.plugin.module.dsl.single
 import org.koin.plugin.module.dsl.viewModel
 import org.koin.plugin.module.dsl.worker
 
 val appModule: Module = module {
+    fun coroutineScope() = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    single { create(::coroutineScope) }
+
+    single<AdbMdns>()
     single<AdbPortHelper>()
     single<AdbSettingsManager>()
     single<ApkSigner>()
     single<ApkUtils>()
     single<AuthorizedAppsRepository>()
     single<AutoStartManager>()
-    single<AutoStartNotificationProvider>()
+    single<BatteryOptimizationHelper>()
     single<DeviceUserRepository>()
-    single<RootUtils>()
     single<KeyguardHelper>()
     single<LocaleMigrator>()
     single<LocaleRepository>()
     single<LocaleXmlDataSource>()
-    single<NotificationHelper>()
     single<PackageInfoRepository>()
     single<PackageInstallerHelper>()
     single<PackageManagerHelper>()
     single<PermissionManager>()
-    single<BatteryOptimizationHelper>()
     single<PreferencesRepository>()
     single<PrivilegedServiceManager>()
+    single<PrivilegedServiceStateMachine>()
     single<ReleaseRemoteDataSource>()
     single<ReleaseRepository>()
+    single<ServiceMetadataRepository>()
     single<ShellBinderRequestHandler>()
-    single<ShizukuStateMachine>()
     single<StartOnBootManager>()
     single<TcpManager>()
-    single<ThemeHelper>() withOptions {
-        createdAtStart()
-    }
+    single<ThemeHelper>()
     single<TokenRepository>()
     single<UpdateHelper>()
     single<WatchdogManager>()
-    single<WatchdogNotifications>()
+
+    // Notifications
+    single<NotificationHelper>()
+    single<NotificationChannelHelper>()
+    single<AdbPairingNotificationProvider>() bind NotificationChannelProvider::class
+    single<AuthErrorNotificationProvider>() bind NotificationChannelProvider::class
+    single<AutoStartNotificationProvider>() bind NotificationChannelProvider::class
+    single<CrashNotificationProvider>() bind NotificationChannelProvider::class
+    single<WatchdogNotificationProvider>() bind NotificationChannelProvider::class
 
     factory<AdbSession.Factory>()
+    factory<ValidateTokenUseCase>()
 
     viewModel<AdbPairingViewModel>()
     viewModel<AuthorizedAppsViewModel>()

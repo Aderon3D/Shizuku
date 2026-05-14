@@ -1,31 +1,36 @@
 package moe.shizuku.manager.core.platform.adb
 
+import com.github.michaelbull.result.Err
+import com.github.michaelbull.result.Ok
+import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.andThen
+import com.github.michaelbull.result.fold
+import com.github.michaelbull.result.mapError
+import com.github.michaelbull.result.onOk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import moe.shizuku.manager.core.extensions.resultOf
 import moe.shizuku.manager.core.platform.adb.client.AdbClient
 import moe.shizuku.manager.core.platform.adb.client.AdbKey
-import moe.shizuku.manager.core.platform.adb.client.AdbKeyException
 import moe.shizuku.manager.core.platform.adb.client.PreferenceAdbKeyStore
+import moe.shizuku.manager.core.platform.adb.models.AdbConnectionError
 import moe.shizuku.manager.core.preferences.data.PreferencesRepository
 import java.io.EOFException
+import java.io.IOException
 import java.net.SocketTimeoutException
+import javax.net.ssl.SSLProtocolException
 
 class AdbSession(
     private val preferencesRepository: PreferencesRepository,
     port: Int
 ) : AutoCloseable {
+    private val mutex = Mutex()
     private var key: AdbKey? = null
-
-    private suspend fun getKey() = key ?: withContext(Dispatchers.IO) {
-        runCatching {
-            AdbKey(
-                PreferenceAdbKeyStore(preferencesRepository.prefs),
-                "shizuku"
-            )
-        }.getOrElse { throw AdbKeyException(it) }.also { key = it }
-    }
+    private var client: AdbClient? = null
+    private var isConnected = false
 
     var port: Int = port
         set(value) {
@@ -35,48 +40,83 @@ class AdbSession(
             }
         }
 
-    private var _client: AdbClient? = null
-
-    suspend fun <T> withClient(block: suspend (AdbClient) -> T): T = withContext(Dispatchers.IO) {
-        block(getClient())
+    private suspend fun getKey() = key ?: withContext(Dispatchers.IO) {
+        AdbKey(
+            PreferenceAdbKeyStore(preferencesRepository.prefs),
+            "shizuku"
+        ).also { key = it }
     }
 
-    private suspend fun getClient(): AdbClient {
-        val currentClient = _client
-        if (currentClient != null) return currentClient
-
+    private suspend fun createClient(): AdbClient {
         val port = this.port
-        check (port > 0) { "Port must be greater than 0" }
+        require(port > 0) { "Port must be greater than 0" }
 
-        val newClient = AdbClient("127.0.0.1", port, getKey())
-        newClient.connectWithRetry()
-        _client = newClient
-        return newClient
+        return AdbClient("127.0.0.1", port, getKey())
     }
 
-    private suspend fun AdbClient.connectWithRetry() {
-        var delayTime = 0L
-        val maxAttempts = 5
-        for (attempt in 1..maxAttempts) {
-            if (delayTime > 0) delay(delayTime)
+    private suspend fun getClient(): AdbClient = mutex.withLock {
+        client?.let { return@withLock it }
 
-            resultOf { connect() }
-                .onSuccess { return }
-                .onFailure {
-                    if (attempt >= maxAttempts) throw it
-
-                    if (it is EOFException || it is SocketTimeoutException) {
-                        delayTime += 1000
-                        continue
-                    } else throw it
-                }
+        createClient().also {
+            client = it
+            isConnected = false
         }
     }
 
+    suspend fun connect(): Result<AdbClient, AdbConnectionError> {
+        val client = getClient()
+
+        return if (isConnected) Ok(client)
+        else connectWithRetry(client).onOk {
+            isConnected = true
+        }
+    }
+
+    private suspend fun connectWithRetry(client: AdbClient): Result<AdbClient, AdbConnectionError> {
+        var delayTime = 0L
+        val maxAttempts = 5
+
+        for (attempt in 1..maxAttempts) {
+            if (delayTime > 0) delay(delayTime)
+
+            resultOf { client.connect() }
+                .fold(
+                    success = { return Ok(client) },
+                    failure = {
+                        when (it) {
+                            is SSLProtocolException -> return Err(AdbConnectionError.NotPaired)
+                            is EOFException, is SocketTimeoutException -> {
+                                if (attempt < maxAttempts) delayTime += 1000
+                                else return Err(AdbConnectionError.ConnectionFailed(it))
+                            }
+
+                            is IOException -> return Err(AdbConnectionError.ConnectionFailed(it))
+                            else -> throw it
+                        }
+                    }
+                )
+        }
+
+        error("No return value after $maxAttempts attempts")
+    }
+
+    suspend fun <T> withClient(block: suspend (AdbClient) -> T): Result<T, AdbConnectionError> =
+        withContext(Dispatchers.IO) {
+            connect().andThen { client ->
+                resultOf { block(client) }
+                    .mapError {
+                        if (it is IOException) {
+                            closeClient()
+                            AdbConnectionError.ConnectionFailed(it)
+                        } else throw it
+                    }
+            }
+        }
+
     private fun closeClient() {
-        val client = _client
-        _client = null
         client?.close()
+        client = null
+        isConnected = false
     }
 
     override fun close(): Unit = closeClient()

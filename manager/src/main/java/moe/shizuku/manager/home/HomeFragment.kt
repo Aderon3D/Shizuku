@@ -13,18 +13,18 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import com.github.michaelbull.result.onErr
+import com.github.michaelbull.result.onOk
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import moe.shizuku.manager.R
 import moe.shizuku.manager.autostart.AutoStartManager
 import moe.shizuku.manager.core.extensions.applySystemBarsPadding
+import moe.shizuku.manager.core.extensions.collectAsEvents
 import moe.shizuku.manager.core.extensions.isTelevision
 import moe.shizuku.manager.core.extensions.openUrl
 import moe.shizuku.manager.core.extensions.snackbar
-import moe.shizuku.manager.core.ui.helpers.viewBinding
 import moe.shizuku.manager.core.platform.adb.AdbPortHelper
 import moe.shizuku.manager.core.platform.adb.AdbSettingsManager
 import moe.shizuku.manager.core.platform.services.BatteryOptimizationHelper
@@ -32,22 +32,19 @@ import moe.shizuku.manager.core.platform.settings.SystemSettingsPage
 import moe.shizuku.manager.core.preferences.data.PreferencesRepository
 import moe.shizuku.manager.core.preferences.models.StartMode
 import moe.shizuku.manager.core.ui.components.listselection.ListSelectionViewModel
+import moe.shizuku.manager.core.ui.helpers.viewBinding
 import moe.shizuku.manager.databinding.HomeFragmentBinding
 import moe.shizuku.manager.databinding.HomeSimpleCardBinding
 import moe.shizuku.manager.databinding.HomeStatusCardBinding
 import moe.shizuku.manager.home.models.HomeEvent
+import moe.shizuku.manager.home.models.PrivilegedServiceUiState
+import moe.shizuku.manager.pairing.ui.showAccessibilityDialog
 import moe.shizuku.manager.privilegedservice.PrivilegedServiceManager
-import moe.shizuku.manager.privilegedservice.models.PreStartCheck.Failure
-import moe.shizuku.manager.privilegedservice.models.PreStartCheck.Success
-import moe.shizuku.manager.privilegedservice.models.ServiceStatus
-import moe.shizuku.manager.privilegedservice.ui.pairing.showAccessibilityDialog
+import moe.shizuku.manager.privilegedservice.PrivilegedServiceStateMachine
+import moe.shizuku.manager.start.models.PreStartCheckError
 import moe.shizuku.manager.updater.UpdateHelper
-import moe.shizuku.manager.privilegedservice.data.ShizukuStateMachine
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import rikka.lifecycle.Status
-import rikka.shizuku.Shizuku
-import rikka.shizuku.ShizukuApiConstants
 
 class HomeFragment : Fragment(R.layout.home_fragment) {
     private val homeModel: HomeViewModel by viewModel()
@@ -55,21 +52,13 @@ class HomeFragment : Fragment(R.layout.home_fragment) {
     private val preferencesRepository: PreferencesRepository by inject()
     private val batteryOptimizationHelper: BatteryOptimizationHelper by inject()
     private val updateHelper: UpdateHelper by inject()
-    private val stateMachine: ShizukuStateMachine by inject()
     private val privilegedServiceManager: PrivilegedServiceManager by inject()
+    private val privilegedServiceStateMachine: PrivilegedServiceStateMachine by inject()
     private val adbSettingsManager: AdbSettingsManager by inject()
     private val adbPortHelper: AdbPortHelper by inject()
     private val autoStartManager: AutoStartManager by inject()
 
     private val binding by viewBinding(HomeFragmentBinding::bind)
-
-    private val stateListener: (ShizukuStateMachine.State) -> Unit = {
-        if (stateMachine.isRunning()) {
-            homeModel.reload()
-        } else if (stateMachine.isDead()) {
-            homeModel.reload()
-        }
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -84,17 +73,23 @@ class HomeFragment : Fragment(R.layout.home_fragment) {
             Lifecycle.State.RESUMED
         )
 
-        homeModel.serviceStatus.observe(viewLifecycleOwner) {
-            if (it.status == Status.SUCCESS) {
-                val status = homeModel.serviceStatus.value?.data ?: return@observe
-                binding.statusCard.update(status)
-            }
-        }
-
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    homeModel.events.collect { event ->
+                    homeModel.uiState.collect { state ->
+                        binding.statusCard.update(state.serviceState)
+                        binding.authorizedAppsCard.summary.apply {
+                            isVisible = true
+                            text = resources.getQuantityString(
+                                R.plurals.authorized_apps_count,
+                                state.authorizedAppsCount,
+                                state.authorizedAppsCount
+                            )
+                        }
+                    }
+                }
+                launch {
+                    homeModel.events.collectAsEvents { event ->
                         handleEvent(event)
                     }
                 }
@@ -103,36 +98,24 @@ class HomeFragment : Fragment(R.layout.home_fragment) {
                         homeModel.handleSelectionResult(it)
                     }
                 }
-                launch {
-//                    appsModel.uiState.collect { state ->
-//                        val grantedCount = state.apps.count { it.isGranted }
-//                        binding.authorizedAppsCard.title.text = resources.getQuantityString(
-//                            R.plurals.authorized_apps_count,
-//                            grantedCount,
-//                            grantedCount,
-//                        )
-//                    }
-                }
             }
         }
 
         homeModel.checkBatteryOptimization()
 
-        lifecycleScope.launch {
-            if (updateHelper.isCheckForUpdatesEnabled() && updateHelper.isNewUpdateAvailable()) {
-                snackbar(
-                    msg = getString(R.string.update_available),
-                    duration = Snackbar.LENGTH_INDEFINITE
-                ).setAction(R.string.update) {
-                    lifecycleScope.launch {
-                        updateHelper.update()
-                    }
-                }.show()
-                updateHelper.updateLastPromptedVersion()
-            }
-        }
-
-        stateMachine.addListener(stateListener)
+//        lifecycleScope.launch {
+//            if (updateHelper.isCheckForUpdatesEnabled() && updateHelper.isNewUpdateAvailable()) {
+//                snackbar(
+//                    msg = getString(R.string.update_available),
+//                    duration = Snackbar.LENGTH_INDEFINITE
+//                ).setAction(R.string.update) {
+//                    lifecycleScope.launch {
+//                        updateHelper.update()
+//                    }
+//                }.show()
+//                updateHelper.updateLastPromptedVersion()
+//            }
+//        }
     }
 
     private fun handleEvent(event: HomeEvent) {
@@ -158,8 +141,7 @@ class HomeFragment : Fragment(R.layout.home_fragment) {
                     msg = getString(R.string.home_battery_optimization),
                     duration = Snackbar.LENGTH_INDEFINITE
                 ).setAction(R.string.fix) {
-                    val intent = batteryOptimizationHelper.getBatteryOptimizationIntent()
-                    startActivity(intent)
+                    startActivity(batteryOptimizationHelper.intent)
                 }.show()
             }
         }
@@ -168,7 +150,7 @@ class HomeFragment : Fragment(R.layout.home_fragment) {
     private fun setupCards() = with(binding) {
         statusCard.apply {
             buttonStart.apply {
-                isVisible = adbPortHelper.tcpPort > 0 ||
+                isVisible = adbPortHelper.tcpPort.isOk ||
                         adbSettingsManager.hasWirelessDebugging ||
                         preferencesRepository.startMode.get() == StartMode.ROOT
                 setOnClickListener {
@@ -225,48 +207,32 @@ class HomeFragment : Fragment(R.layout.home_fragment) {
         )
     }
 
-    private fun HomeStatusCardBinding.update(status: ServiceStatus) {
-        val ok = status.isRunning
-        val isRoot = status.uid == 0
-        val apiVersion = status.apiVersion
-        val patchVersion = status.patchVersion
-        if (ok) {
-            icon.setImageResource(R.drawable.ic_server_ok_24dp)
-        } else {
-            icon.setImageResource(R.drawable.ic_server_error_24dp)
-        }
-        val user = if (isRoot) "root" else "adb"
-        val title =
-            if (ok) {
-                getString(R.string.status_running)
-            } else {
-                getString(R.string.status_stopped)
-            }
-        val versionStr =
-            getString(
-                R.string.status_version,
-                "$apiVersion.$patchVersion",
-                user,
-            )
-        val updateStr =
-            getString(
-                R.string.status_version_update,
-                "${Shizuku.getLatestServiceVersion()}.${ShizukuApiConstants.SERVER_PATCH_VERSION}",
-            )
-        val summary =
-            if (ok) {
-                if (apiVersion != Shizuku.getLatestServiceVersion() ||
-                    status.patchVersion != ShizukuApiConstants.SERVER_PATCH_VERSION
-                ) {
-                    "$versionStr. $updateStr"
-                } else {
-                    versionStr
+    private fun HomeStatusCardBinding.update(status: PrivilegedServiceUiState) {
+        when (status) {
+            is PrivilegedServiceUiState.Running -> {
+                val user = when (status.mode) {
+                    PrivilegedServiceUiState.Running.Mode.ROOT -> "root"
+                    PrivilegedServiceUiState.Running.Mode.ADB -> "adb"
                 }
-            } else {
-                ""
+
+                val updateStr = getString(R.string.status_version_update)
+
+                title.text = getString(R.string.status_running)
+                icon.setImageResource(R.drawable.ic_server_ok_24dp)
+                summary.text = buildString {
+                    append(status.version)
+                    append(", ")
+                    append(user)
+                    if (!status.isLatestVersion) append(". $updateStr")
+                }
             }
-        this.title.text = title
-        this.summary.text = summary
+
+            is PrivilegedServiceUiState.Stopped -> {
+                title.text = getString(R.string.status_stopped)
+                icon.setImageResource(R.drawable.ic_server_error_24dp)
+                summary.text = null
+            }
+        }
     }
 
     private fun HomeSimpleCardBinding.setup(
@@ -297,21 +263,26 @@ class HomeFragment : Fragment(R.layout.home_fragment) {
     }
 
     suspend fun start() {
-        val canStart = withContext(Dispatchers.IO) {
-            privilegedServiceManager.canStart()
-        }
-
-        when (canStart) {
-            is Success -> findNavController().navigate(R.id.navigate_to_start)
-            is Failure -> {
-                snackbar(canStart.msgRes).run {
-                    if (canStart == Failure.WirelessDebuggingDisabled) {
+        privilegedServiceManager.canStart()
+            .onOk { findNavController().navigate(R.id.navigate_to_start) }
+            .onErr {
+                val msgRes = when (it) {
+                    PreStartCheckError.NotRooted -> R.string.start_error_root
+                    PreStartCheckError.TlsNotSupported -> R.string.start_error_tls_not_supported
+                    PreStartCheckError.UsbDebuggingDisabled -> R.string.start_error_usb_debugging_disabled
+                    PreStartCheckError.WirelessDebuggingDisabled -> R.string.start_error_wireless_debugging_disabled
+                    PreStartCheckError.WifiRequired -> R.string.start_error_wifi_required
+                    PreStartCheckError.AuthorizationRequired -> R.string.start_error_authorization_required
+                    PreStartCheckError.WriteSecureSettingsNotGranted -> 0
+                }
+                snackbar(msgRes).run {
+                    if (it == PreStartCheckError.WirelessDebuggingDisabled) {
                         setAction(R.string.enable) {
                             SystemSettingsPage.Developer.HighlightWirelessDebugging.launch(
                                 requireContext()
                             )
                         }
-                    } else if (canStart == Failure.UsbDebuggingDisabled) {
+                    } else if (it == PreStartCheckError.UsbDebuggingDisabled) {
                         setAction(R.string.enable) {
                             SystemSettingsPage.Developer.HighlightUsbDebugging.launch(requireContext())
                         }
@@ -319,7 +290,6 @@ class HomeFragment : Fragment(R.layout.home_fragment) {
                     show()
                 }
             }
-        }
     }
 
     @RequiresApi(Build.VERSION_CODES.R)
@@ -336,7 +306,7 @@ class HomeFragment : Fragment(R.layout.home_fragment) {
     }
 
     private fun stop() {
-        if (stateMachine.isRunning()) {
+        if (privilegedServiceStateMachine.isRunning) {
             MaterialAlertDialogBuilder(requireContext())
                 .setMessage(R.string.stop_dialog_message)
                 .setPositiveButton(android.R.string.ok) { _, _ ->
@@ -349,11 +319,7 @@ class HomeFragment : Fragment(R.layout.home_fragment) {
 
     override fun onResume() {
         super.onResume()
-        homeModel.reload()
+        homeModel.checkPermissionOwner()
     }
 
-    override fun onDestroyView() {
-        stateMachine.removeListener(stateListener)
-        super.onDestroyView()
-    }
 }

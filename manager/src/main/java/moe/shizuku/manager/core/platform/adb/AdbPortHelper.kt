@@ -4,45 +4,48 @@ import android.content.Context
 import android.os.Build
 import android.os.SystemProperties
 import androidx.annotation.RequiresApi
-import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import moe.shizuku.manager.core.extensions.isTelevision
-import moe.shizuku.manager.core.platform.adb.client.AdbMdns
-import moe.shizuku.manager.core.platform.adb.models.WirelessDebuggingResult
-import kotlin.coroutines.resume
+import moe.shizuku.manager.core.extensions.isValidPort
+import moe.shizuku.manager.core.platform.adb.models.AdbPortError
+import com.github.michaelbull.result.Err
+import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.Ok
+import com.github.michaelbull.result.mapError
+import com.github.michaelbull.result.onErr
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class AdbPortHelper(
     private val context: Context,
+    private val adbMdns: AdbMdns,
     private val adbSettingsManager: AdbSettingsManager
 ) {
-    suspend fun getAdbPort(forceTls: Boolean = false): Int =
-        tcpPort.takeUnless { it <= 0 || forceTls }
-            ?: if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) getTlsPort()
-            else throw IllegalStateException("ADB port not found")
+    suspend fun getAdbPort(forceTls: Boolean = false): Result<Int, AdbPortError> =
+        tcpPort.takeIf { it.isOk && !forceTls }
+            ?: if (adbSettingsManager.hasWirelessDebugging) getTlsPort()
+            else Err(AdbPortError.NotFound)
 
-    val tcpPort: Int
-        get() = SystemProperties.getInt("service.adb.tcp.port", -1).takeUnless { it == -1 }
-            ?: SystemProperties.getInt("persist.adb.tcp.port", -1).takeUnless { it == -1 }
-            ?: if (context.isTelevision && !adbSettingsManager.hasWirelessDebugging) 5555 else -1
+    val tcpPort: Result<Int, AdbPortError>
+        get() {
+            val port = SystemProperties.getInt("service.adb.tcp.port", -1).takeIf { it.isValidPort }
+                ?: SystemProperties.getInt("persist.adb.tcp.port", -1).takeIf { it.isValidPort }
+                ?: if (context.isTelevision && !adbSettingsManager.hasWirelessDebugging) 5555 else null
+
+            return port?.let { Ok(it) } ?: Err(AdbPortError.NotFound)
+        }
 
     @RequiresApi(Build.VERSION_CODES.R)
-    private suspend fun getTlsPort(): Int {
-        val isWirelessDebuggingEnabled = adbSettingsManager.enableWirelessDebugging()
+    suspend fun getTlsPort(): Result<Int, AdbPortError> = withContext(Dispatchers.IO) {
+        adbSettingsManager.setWirelessDebugging(true)
+            .mapError { AdbPortError.SettingsError(it) }
+            .onErr { Err(it) }
 
-        check (isWirelessDebuggingEnabled == WirelessDebuggingResult.Success)
-        { "Wireless debugging not enabled" }
-
-        return suspendCancellableCoroutine { cont ->
-            var mdns: AdbMdns? = null
-            mdns = AdbMdns(context, AdbMdns.TLS_CONNECT) { port ->
-                if (port in 1..65535) {
-                    mdns?.stop()
-                    if (cont.isActive) cont.resume(port)
-                }
-            }
-            mdns.start()
-            cont.invokeOnCancellation {
-                mdns.stop()
-            }
-        }
+        withTimeoutOrNull(10_000L) {
+            adbMdns.connectFlow.first()
+                .let { Ok(it) }
+        } ?: Err(AdbPortError.NotFound)
     }
+
 }

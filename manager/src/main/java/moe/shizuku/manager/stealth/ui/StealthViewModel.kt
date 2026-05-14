@@ -10,7 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import moe.shizuku.manager.R
 import moe.shizuku.manager.core.extensions.appendRandomSuffix
-import moe.shizuku.manager.core.platform.services.pkg.PackageManagerHelper
+import moe.shizuku.manager.core.platform.services.packages.manager.PackageManagerHelper
 import moe.shizuku.manager.core.utils.ApkUtils
 import java.io.File
 
@@ -72,7 +72,7 @@ class StealthViewModel(
     }
 
     fun setPackageName(packageName: String? = null) {
-        _packageName = packageName ?: packageManagerHelper.packageName.appendRandomSuffix()
+        _packageName = packageName ?: packageManagerHelper.packageName.appendRandomSuffix(5)
     }
 
     fun createApk(apkType: ApkType) {

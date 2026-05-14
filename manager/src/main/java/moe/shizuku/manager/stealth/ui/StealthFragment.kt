@@ -27,7 +27,7 @@ import moe.shizuku.manager.core.extensions.dp
 import moe.shizuku.manager.core.extensions.toast
 import moe.shizuku.manager.core.ui.helpers.viewBinding
 import moe.shizuku.manager.databinding.StealthFragmentBinding
-import moe.shizuku.manager.core.platform.services.pkg.PackageInstallerHelper
+import moe.shizuku.manager.core.platform.services.packages.installer.PackageInstallerHelper
 import moe.shizuku.manager.core.utils.ApkUtils
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel

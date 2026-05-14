@@ -11,7 +11,10 @@ import moe.shizuku.manager.core.platform.adb.AdbPortHelper
 import moe.shizuku.manager.core.platform.adb.AdbSession
 import moe.shizuku.manager.core.platform.adb.AdbSettingsManager
 import moe.shizuku.manager.tcpmode.models.TcpState
+import com.github.michaelbull.result.fold
+import com.github.michaelbull.result.get
 import java.io.EOFException
+import java.io.IOException
 import java.net.SocketException
 
 class TcpManager(
@@ -26,17 +29,27 @@ class TcpManager(
     private val refreshSignal = Channel<Unit>(Channel.CONFLATED)
     private val refreshFlow = refreshSignal.receiveAsFlow()
 
+    // TCP PORT CHECKS
+
+    private val tcpPort: Int?
+        get() = adbPortHelper.tcpPort.get()
+
+    val isTcpPortOpen: Boolean
+        get() = tcpPort != null
+
+    fun isTcpPortOpen(targetPort: Int): Boolean =
+        tcpPort == targetPort
+
     val tcpState: Flow<TcpState> = combine(
         preferencesRepository.tcpMode.flow,
         preferencesRepository.tcpPort.flow,
         refreshFlow
     ) { tcpMode, targetPort, _ ->
-        val currentPort = adbPortHelper.tcpPort
-
         TcpState(
             current =
-                if (currentPort > 0) TcpState.Port.Enabled(currentPort)
-                else TcpState.Port.Disabled,
+                tcpPort?.let { TcpState.Port.Enabled(it) } ?:
+                TcpState.Port.Disabled
+            ,
             target =
                 if (tcpMode) TcpState.Port.Enabled(targetPort)
                 else TcpState.Port.Disabled
@@ -47,73 +60,71 @@ class TcpManager(
         refreshSignal.trySend(Unit)
     }
 
-    // TCP PORT CHECKS
-
-    val isTcpPortOpen: Boolean
-        get() = adbPortHelper.tcpPort > 0
-
-    fun isTcpPortOpen(targetPort: Int): Boolean =
-        adbPortHelper.tcpPort == targetPort
-
     // OPEN/CLOSE TCP PORT
 
     suspend fun openTcpPort(targetPort: Int) {
         if (isTcpPortOpen(targetPort)) return
 
-        val currentPort = adbPortHelper.getAdbPort()
-
-        adbSessionFactory.create(currentPort).use { session ->
+        adbSessionFactory.create(tcpPort ?: return).use { session ->
             openTcpPort(targetPort, session)
         }
     }
 
-    suspend fun openTcpPort(targetPort: Int, session: AdbSession): Result<Unit> = runCatching {
-        if (isTcpPortOpen(targetPort)) return@runCatching
-
-        session.withClient { client ->
+    suspend fun openTcpPort(targetPort: Int, session: AdbSession): Result<Unit> =
+        if (isTcpPortOpen(targetPort)) Result.success(Unit)
+        else session.withClient { client ->
             runCatching {
                 client.command("tcpip:$targetPort")
             }.onFailure {
                 if (it !is EOFException && it !is SocketException) throw it
             }
-        }
-        session.port = targetPort
-        refresh()
-    }.onFailure {
-        Log.e(TAG, "Couldn't open TCP port", it)
-        refresh()
-        throw it
-    }
+        }.fold(
+            success = {
+                session.port = targetPort
+                refresh()
+                Result.success(Unit)
+            },
+            failure = { error ->
+                val exception = when (error) {
+                    is moe.shizuku.manager.core.platform.adb.models.AdbConnectionError.ConnectionFailed -> error.e
+                    else -> IOException(error.toString())
+                }
+                Log.e(TAG, "Couldn't open TCP port", exception)
+                refresh()
+                Result.failure(exception)
+            }
+        )
 
     suspend fun closeTcpPort() {
-        if (!isTcpPortOpen) return
 
-        val tcpPort = adbPortHelper.tcpPort
-
-        adbSessionFactory.create(tcpPort).use { session ->
+        adbSessionFactory.create(tcpPort ?: return).use { session ->
             closeTcpPort(session)
         }
     }
 
-    suspend fun closeTcpPort(session: AdbSession): Result<Unit> = runCatching {
-        if (!isTcpPortOpen) return@runCatching
+    suspend fun closeTcpPort(session: AdbSession): Result<Unit> =
+        if (!isTcpPortOpen) Result.success(Unit)
+        else {
+            check(adbSettingsManager.setUsbDebugging(true).isOk)
+            { "USB debugging not enabled" }
 
-        check (adbSettingsManager.enableUsbDebugging().isSuccess)
-        { "USB debugging not enabled" }
-
-        with(session) {
-            port = adbPortHelper.tcpPort
-            withClient { client ->
+            session.withClient { client ->
                 client.command("usb:")
-            }
-            port = 0
+            }.fold(
+                success = {
+                    session.port = 0
+                    refresh()
+                    Result.success(Unit)
+                },
+                failure = { error ->
+                    val exception = when (error) {
+                        is moe.shizuku.manager.core.platform.adb.models.AdbConnectionError.ConnectionFailed -> error.e
+                        else -> IOException(error.toString())
+                    }
+                    Log.e(TAG, "Couldn't close TCP port", exception)
+                    refresh()
+                    Result.failure(exception)
+                }
+            )
         }
-        refresh()
-    }.onFailure {
-        if (isTcpPortOpen) {
-            Log.e(TAG, "Couldn't close TCP port", it)
-            refresh()
-            throw it
-        }
-    }
 }

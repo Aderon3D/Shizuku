@@ -1,88 +1,52 @@
 package moe.shizuku.manager.core.ui.helpers
 
-import android.app.Activity
-import android.app.Application
-import android.os.Bundle
+import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.lifecycle.lifecycleScope
 import com.google.android.material.color.DynamicColors
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.map
 import moe.shizuku.manager.R
 import moe.shizuku.manager.core.extensions.isNightMode
 import moe.shizuku.manager.core.extensions.isWatch
 import moe.shizuku.manager.core.preferences.data.PreferencesRepository
-import moe.shizuku.manager.core.preferences.models.Theme
 
 class ThemeHelper(
-    private val application: Application,
+    private val context: Context,
     private val preferencesRepository: PreferencesRepository
 ) {
-    private data class ThemeState(
-        val theme: Theme,
-        val amoled: Boolean,
-        val dynamic: Boolean
-    )
+    val recreateTrigger: Flow<Unit> = combine(
+        preferencesRepository.theme.flow,
+        preferencesRepository.amoledBlack.flow,
+        preferencesRepository.dynamicColor.flow
+    ) { theme, amoled, dynamic ->
+        Triple(theme, amoled, dynamic)
+    }
+        .drop(1)
+        .distinctUntilChanged()
+        .map { }
 
     fun applyTheme(activity: AppCompatActivity) {
-        val amoledBlack =
-            preferencesRepository.amoledBlack.get() || application.applicationContext.isWatch
-        val dynamicColor = preferencesRepository.dynamicColor.get()
+        val theme = preferencesRepository.theme.get().value
+        val currentTheme = AppCompatDelegate.getDefaultNightMode()
+        if (theme != currentTheme)
+            AppCompatDelegate.setDefaultNightMode(theme)
 
         activity.setTheme(R.style.Theme_App)
 
+        // Dynamic color overrides theme overlays, apply first
+        val dynamicColor = preferencesRepository.dynamicColor.get()
         if (dynamicColor) {
             DynamicColors.applyToActivityIfAvailable(activity)
         }
 
+        val amoledBlack = preferencesRepository.amoledBlack.get() ||
+                context.isWatch
         if (activity.resources.isNightMode && amoledBlack) {
             activity.theme.applyStyle(R.style.ThemeOverlay_App_AmoledBlack, true)
-        }
-    }
-
-    init {
-        application.registerActivityLifecycleCallbacks(object :
-            Application.ActivityLifecycleCallbacks {
-            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
-                if (activity is AppCompatActivity) {
-                    applyTheme(activity)
-                    observe(activity)
-                }
-            }
-
-            override fun onActivityStarted(activity: Activity) {}
-            override fun onActivityResumed(activity: Activity) {}
-            override fun onActivityPaused(activity: Activity) {}
-            override fun onActivityStopped(activity: Activity) {}
-            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
-            override fun onActivityDestroyed(activity: Activity) {}
-        })
-    }
-
-    fun observe(activity: AppCompatActivity) {
-        activity.lifecycleScope.launch {
-            combine(
-                preferencesRepository.theme.flow,
-                preferencesRepository.amoledBlack.flow,
-                preferencesRepository.dynamicColor.flow
-            ) { theme, amoled, dynamic ->
-                ThemeState(theme, amoled, dynamic)
-            }
-                .drop(1) // Skip initial value to avoid recreation on launch
-                .distinctUntilChanged() // Only trigger if the combination actually changes
-                .collect { state ->
-                    activity.window.setWindowAnimations(android.R.style.Animation_Dialog)
-
-                    val currentNightMode = AppCompatDelegate.getDefaultNightMode()
-                    if (currentNightMode != state.theme.value) {
-                        AppCompatDelegate.setDefaultNightMode(state.theme.value)
-                    } else {
-                        activity.recreate()
-                    }
-                }
         }
     }
 }

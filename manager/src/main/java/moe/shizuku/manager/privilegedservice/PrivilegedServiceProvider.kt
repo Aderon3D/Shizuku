@@ -10,7 +10,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import moe.shizuku.api.BinderContainer
 import moe.shizuku.manager.core.extensions.TAG
-import moe.shizuku.manager.privilegedservice.data.ShizukuStateMachine
 import org.koin.android.ext.android.inject
 import rikka.shizuku.Shizuku
 import rikka.shizuku.ShizukuApiConstants
@@ -24,7 +23,7 @@ class PrivilegedServiceProvider : ShizukuProvider() {
         private const val METHOD_SEND_USER_SERVICE = "sendUserService"
     }
 
-    private val stateMachine: ShizukuStateMachine by inject()
+    private val privilegedServiceStateMachine: PrivilegedServiceStateMachine by inject()
 
     override fun onCreate(): Boolean {
         disableAutomaticSuiInitialization()
@@ -46,7 +45,7 @@ class PrivilegedServiceProvider : ShizukuProvider() {
 
         runBlocking(workerHandler.asCoroutineDispatcher()) {
             withTimeout(5000) {
-                stateMachine.asFlow().first { it == ShizukuStateMachine.State.RUNNING }
+                privilegedServiceStateMachine.isRunningFlow.first { true }
 
                 val serviceArgs =
                     Bundle().apply { putString(ShizukuApiConstants.USER_SERVICE_ARG_TOKEN, token) }

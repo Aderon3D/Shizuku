@@ -15,10 +15,12 @@ import kotlinx.coroutines.flow.onEach
 import moe.shizuku.manager.autostart.receivers.BootCompleteReceiver
 import moe.shizuku.manager.core.preferences.data.PreferencesRepository
 import moe.shizuku.manager.core.extensions.isTelevision
-import moe.shizuku.manager.core.utils.RootUtils
+import moe.shizuku.manager.core.platform.adb.AdbSettingsManager
+import moe.shizuku.manager.core.utils.root.RootUtils
 
 class StartOnBootManager(
     private val context: Context,
+    private val adbSettingsManager: AdbSettingsManager,
     preferencesRepository: PreferencesRepository
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -33,11 +35,9 @@ class StartOnBootManager(
     }
 
     val canStartOnBoot: Boolean
-        get() {
-            return Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ||
-                    context.isTelevision ||
-                    RootUtils.isRooted()
-        }
+        get() = adbSettingsManager.hasWirelessDebugging ||
+                context.isTelevision ||
+                (RootUtils.isRooted() ?: false)
 
     val adbAuthNeverSaved: Boolean
         get() = !context.isTelevision && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU

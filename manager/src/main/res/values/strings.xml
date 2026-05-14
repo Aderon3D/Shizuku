@@ -22,7 +22,7 @@
     <string name="status_running">Running</string>
     <string name="status_stopped">Stopped</string>
     <string name="status_version">Version %1$s, %2$s</string>
-    <string name="status_version_update">Start again to update to version %1$s</string>
+    <string name="status_version_update">Restart service to update to latest version.</string>
     <string name="status_version_up_to_date">Version %1$s is up to date</string>
     <string name="status_adb_restricted">ADB is restricted</string>
     <string name="status_adb_restricted_message">Please disable \"%1$s\" in Developer Options. You
@@ -51,6 +51,7 @@
     <string name="start_error_tls_not_supported">To start Shizuku on-device, you must enable ADB over TCP using a second device</string>
     <string name="start_error_write_secure_settings">%1$s permission is not granted.</string>
     <string name="start_error_authorization_required">Please authorize wireless debugging on this network to continue.</string>
+    <string name="start_error_port_not_found">Could not find ADB port.</string>
 
     <!-- Start Steps -->
     <string name="start_step_get_root_shell">Getting root shell</string>
@@ -58,6 +59,7 @@
     <string name="start_step_enabling_wireless_debugging">Enabling wireless debugging</string>
     <string name="start_step_closing_tcp_port">Closing TCP port</string>
     <string name="start_step_searching_for_port">Searching for port</string>
+    <string name="start_step_port_discovered">Port: %1$d</string>
     <string name="start_step_awaiting_authorization">Awaiting authorization</string>
     <string name="start_step_connecting_to_port">Connecting to port</string>
     <string name="start_step_opening_tcp_port">Opening TCP port</string>
@@ -65,15 +67,16 @@
     <string name="start_step_waiting_for_service">Waiting for service</string>
 
     <!-- Start - Background -->
+    <string name="start_channel">Background start</string>
     <string name="start_background">Starting Shizuku…</string>
     <string name="start_background_awaiting_wifi">Awaiting Wi-Fi connection before proceeding</string>
     <string name="start_background_awaiting_retry">Waiting to retry</string>
     <string name="start_background_attempt_now">Attempt now</string>
     <string name="start_background_error">Error while starting Shizuku</string>
     <string name="start_background_error_notify_dev">Tap to notify the developer.</string>
-    <string name="start_background_error_permission">Permission error</string>
+    <string name="start_background_error_permission">Permission needed</string>
     <string name="start_background_error_permission_message">Shizuku needs WRITE_SECURE_SETTINGS to
-        start on boot. Tap to learn how to grant it.</string>
+        start on boot. Please start the service manually to grant it.</string>
 
     <!-- Pairing - Tutorials -->
     <string name="pairing_summary">Wireless debugging mode requires you to complete a one-time
@@ -355,5 +358,6 @@
     <string name="authorized_apps_error_toggle_all">Failed to toggle some apps.</string>
     <string name="authorized_apps_error_toggle">Couldn\'t toggle permission</string>
     <string name="start_background_awaiting_auth">Awaiting wireless debugging authorization</string>
+    <string name="intents_auth_errors">Intent errors</string>
 
 </resources>

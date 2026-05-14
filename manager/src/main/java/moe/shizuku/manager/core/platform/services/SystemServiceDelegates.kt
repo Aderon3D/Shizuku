@@ -6,6 +6,7 @@ import android.os.IInterface
 import androidx.core.content.ContextCompat
 import rikka.shizuku.ShizukuBinderWrapper
 import rikka.shizuku.SystemServiceHelper
+import kotlin.properties.ReadOnlyProperty
 
 inline fun <reified T : IInterface> systemService(
     name: String,
@@ -18,6 +19,16 @@ inline fun <reified T : IInterface> systemService(
 
 inline fun <reified T : Any> systemService(context: Context) =
     lazy(LazyThreadSafetyMode.NONE) {
-        ContextCompat.getSystemService(context, T::class.java)
-            ?: throw IllegalStateException("System service ${T::class.java.simpleName} not found")
+        context.requireSystemService<T>()
     }
+
+inline fun <reified T : Any> systemService() =
+    ReadOnlyProperty<Context, T> { context, _ ->
+        context.requireSystemService<T>()
+    }
+
+@PublishedApi
+internal inline fun <reified T : Any> Context.requireSystemService(): T {
+    return ContextCompat.getSystemService(this, T::class.java)
+        ?: throw IllegalStateException("System service ${T::class.java.simpleName} not found")
+}

@@ -11,9 +11,7 @@
         <item name="materialCardViewStyle">@style/Widget.App.Card</item>
     </style>
 
-    <style name="ThemeOverlay.App.AmoledBlack" parent="ThemeOverlay.Material3.Dark">
-        <item name="android:colorPrimary">@android:color/black</item>
-        <item name="android:colorPrimaryDark">@android:color/black</item>
+    <style name="ThemeOverlay.App.AmoledBlack" parent="">
         <item name="android:colorBackground">@android:color/black</item>
         <item name="colorSurface">@android:color/black</item>
         <item name="colorSurfaceContainerLow">?colorSurfaceContainerLowest</item>

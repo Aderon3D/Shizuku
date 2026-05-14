@@ -8,9 +8,12 @@ import org.koin.core.component.get
 
 class ManualStopReceiver : AuthenticatedReceiver() {
     override fun onAuthenticated(context: Context, intent: Intent) {
-        val applicationId = BuildConfig.APPLICATION_ID
-        if (intent.action != "${applicationId}.STOP") return
+        if (intent.action != ACTION) return
 
         get<PrivilegedServiceManager>().stopService()
+    }
+
+    companion object {
+        const val ACTION = "${BuildConfig.APPLICATION_ID}.STOP"
     }
 }

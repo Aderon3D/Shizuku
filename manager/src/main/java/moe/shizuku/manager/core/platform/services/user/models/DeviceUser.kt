@@ -1,0 +1,7 @@
+package moe.shizuku.manager.core.platform.services.user.models
+
+data class DeviceUser(
+    val id: Int,
+    val name: String,
+    val isCurrentUser: Boolean
+)

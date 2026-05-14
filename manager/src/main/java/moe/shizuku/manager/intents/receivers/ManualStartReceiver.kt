@@ -9,10 +9,12 @@ import org.koin.core.component.get
 
 class ManualStartReceiver : AuthenticatedReceiver(), KoinComponent {
     override fun onAuthenticated(context: Context, intent: Intent) {
-        val applicationId = BuildConfig.APPLICATION_ID
-        if (intent.action != "${applicationId}.START") return
+        if (intent.action != ACTION) return
 
-        val autoStartManager: AutoStartManager = get()
-        autoStartManager.start()
+        get<AutoStartManager>().start()
+    }
+
+    companion object {
+        const val ACTION = "${BuildConfig.APPLICATION_ID}.START"
     }
 }

@@ -4,6 +4,7 @@ import android.os.Build
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.michaelbull.result.get
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -28,13 +29,13 @@ import moe.shizuku.manager.core.preferences.models.UpdateChannel
 import moe.shizuku.manager.settings.models.SettingsEvent
 import moe.shizuku.manager.settings.models.SettingsUiState
 import moe.shizuku.manager.tcpmode.TcpManager
-import moe.shizuku.manager.privilegedservice.data.ShizukuStateMachine
+import moe.shizuku.manager.privilegedservice.PrivilegedServiceStateMachine
 
 class SettingsViewModel(
     private val preferencesRepository: PreferencesRepository,
     private val localeRepository: LocaleRepository,
     private val batteryOptimizationHelper: BatteryOptimizationHelper,
-    private val stateMachine: ShizukuStateMachine,
+    private val privilegedServiceStateMachine: PrivilegedServiceStateMachine,
     private val tcpManager: TcpManager,
     private val adbSettingsManager: AdbSettingsManager,
     private val adbPortHelper: AdbPortHelper,
@@ -118,7 +119,7 @@ class SettingsViewModel(
     }
 
     fun onTcpModeChanged(newValue: Boolean) {
-        val isTcpModeActive = adbPortHelper.tcpPort > 0
+        val isTcpModeActive = adbPortHelper.tcpPort.isOk
 
         if (isTcpModeActive == newValue) {
             applyTcpModeChange(newValue)
@@ -128,7 +129,7 @@ class SettingsViewModel(
         if (!newValue) {
             _events.trySend(SettingsEvent.PromptStopTcp)
         } else {
-            if (stateMachine.isRunning()) {
+            if (privilegedServiceStateMachine.isRunning) {
                 _events.trySend(SettingsEvent.Snackbar(R.string.tcp_restarting_wifi))
             }
             applyTcpModeChange(true)
@@ -147,10 +148,10 @@ class SettingsViewModel(
 
     fun onTcpPortChanged(input: String) {
         val newPort = input.toIntOrNull() ?: preferencesRepository.tcpPort.default
-        val currentPort = adbPortHelper.tcpPort
+        val currentPort = adbPortHelper.tcpPort.get()
         val needsRestart = (currentPort != newPort)
 
-        if (stateMachine.isRunning() && needsRestart) {
+        if (privilegedServiceStateMachine.isRunning && needsRestart) {
             _events.trySend(SettingsEvent.Snackbar(R.string.tcp_restarting))
         }
         applyTcpPortChange(newPort)
@@ -177,7 +178,7 @@ class SettingsViewModel(
     fun onStopTcp() {
         viewModelScope.launch {
             tcpManager.closeTcpPort()
-            if (adbPortHelper.tcpPort <= 0) {
+            if (adbPortHelper.tcpPort.isErr) {
                 applyTcpModeChange(false)
             } else {
                 _events.trySend(SettingsEvent.Snackbar(R.string.tcp_error_closing))
@@ -186,7 +187,7 @@ class SettingsViewModel(
     }
 
     private fun shouldRequestBatteryOptimization(settingsValue: Boolean) =
-        settingsValue && !batteryOptimizationHelper.isIgnoringBatteryOptimizations()
+        settingsValue && !batteryOptimizationHelper.isIgnoringBatteryOptimizations
 
     private fun requestBatteryOptimization(pref: Preference<*>) {
         pendingBatteryOptimization = pref
@@ -196,7 +197,7 @@ class SettingsViewModel(
     fun onBatteryOptimizationResult() {
         Log.d(TAG, "onBatteryOptimizationResult: $pendingBatteryOptimization")
         val setting = pendingBatteryOptimization ?: return
-        if (batteryOptimizationHelper.isIgnoringBatteryOptimizations()) {
+        if (batteryOptimizationHelper.isIgnoringBatteryOptimizations) {
             when (setting) {
                 preferencesRepository.startOnBoot -> onStartOnBootChanged(true)
                 preferencesRepository.watchdog -> onWatchdogChanged(true)

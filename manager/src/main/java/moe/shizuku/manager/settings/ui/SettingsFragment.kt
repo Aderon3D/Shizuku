@@ -33,6 +33,10 @@ import moe.shizuku.manager.core.ui.components.listselection.ListSelectionViewMod
 import moe.shizuku.manager.settings.models.SettingsEvent
 import moe.shizuku.manager.settings.models.SettingsUiState
 import moe.shizuku.manager.settings.ui.components.TextInputDialog
+import moe.shizuku.manager.settings.ui.components.listitems.LocaleListItem
+import moe.shizuku.manager.settings.ui.components.listitems.StartModeListItem
+import moe.shizuku.manager.settings.ui.components.listitems.ThemeListItem
+import moe.shizuku.manager.settings.ui.components.listitems.UpdateChannelListItem
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import moe.shizuku.manager.core.preferences.data.Preference as ShizukuPreference
@@ -151,7 +155,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
     // -------------------
 
     private fun handleState(state: SettingsUiState) {
-        startModePreference.summary = getString(state.startModeValue.labelRes)
+        startModePreference.summary =
+            getString(StartModeListItem(state.startModeValue).labelRes)
         startOnBootPreference.apply {
             isEnabled = state.isStartOnBootToggleable
             isChecked = state.startOnBootValue
@@ -176,11 +181,14 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
         languagePreference.summary = state.languageValue.nameOwnLocale.takeUnless { it.isEmpty() }
             ?: getString(R.string.settings_system)
-        themePreference.summary = getString(state.themeValue.labelRes)
+        themePreference.summary = getString(
+            ThemeListItem(state.themeValue).labelRes
+        )
         amoledBlackPreference.isVisible = state.isAmoledBlackVisible
         dynamicColorPreference.isVisible = state.isDynamicColorVisible
 
-        updateChannelPreference.summary = getString(state.updateChannelValue.labelRes)
+        updateChannelPreference.summary =
+            getString(UpdateChannelListItem(state.updateChannelValue).labelRes)
     }
 
     private fun handleEvent(event: SettingsEvent) {
@@ -212,8 +220,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
             childFragmentManager,
             title = R.string.start_mode,
             footer = R.string.start_mode_footer,
-            items = StartMode.entries,
-            selectedItem = viewModel.uiState.value.startModeValue
+            items = StartMode.entries.map { StartModeListItem(it) },
+            selectedItem = StartModeListItem(viewModel.uiState.value.startModeValue)
         )
 
     private val tcpPortInput by lazy {
@@ -232,24 +240,24 @@ class SettingsFragment : PreferenceFragmentCompat() {
         ListSelectionBottomSheet.show(
             childFragmentManager,
             title = R.string.settings_language,
-            items = localeRepository.getLocaleEntries(),
-            selectedItem = viewModel.uiState.value.languageValue
+            items = localeRepository.getLocaleEntries().map { LocaleListItem(it) },
+            selectedItem = LocaleListItem(viewModel.uiState.value.languageValue)
         )
 
     private fun showThemeSelector() =
         ListSelectionBottomSheet.show(
             childFragmentManager,
             title = R.string.settings_theme,
-            items = Theme.entries,
-            selectedItem = viewModel.uiState.value.themeValue
+            items = Theme.entries.map { ThemeListItem(it) },
+            selectedItem = ThemeListItem(viewModel.uiState.value.themeValue)
         )
 
     private fun showUpdateChannelSelector() =
         ListSelectionBottomSheet.show(
             childFragmentManager,
             title = R.string.settings_update_channel,
-            items = UpdateChannel.entries,
-            selectedItem = viewModel.uiState.value.updateChannelValue
+            items = UpdateChannel.entries.map { UpdateChannelListItem(it) },
+            selectedItem = UpdateChannelListItem(viewModel.uiState.value.updateChannelValue)
         )
 
     // -------------------
@@ -280,8 +288,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private fun showBatteryOptimizationSnackbar() =
         snackbar(R.string.settings_battery_optimization)
             .setAction(R.string.fix) {
-                val intent = batteryOptimizationHelper.getBatteryOptimizationIntent()
-                batteryOptimizationLauncher.launch(intent)
+                batteryOptimizationLauncher.launch(batteryOptimizationHelper.intent)
             }
             .show()
 

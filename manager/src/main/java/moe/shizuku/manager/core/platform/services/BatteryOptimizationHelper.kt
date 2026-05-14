@@ -11,13 +11,13 @@ import moe.shizuku.manager.core.extensions.isTelevision
 class BatteryOptimizationHelper(private val context: Context) {
     private val powerManager: PowerManager by systemService(context)
 
-    fun isIgnoringBatteryOptimizations(): Boolean {
-        return context.isTelevision || powerManager.isIgnoringBatteryOptimizations(context.packageName)
-    }
+    val isIgnoringBatteryOptimizations: Boolean
+        get() = context.isTelevision ||
+                powerManager.isIgnoringBatteryOptimizations(context.packageName)
 
-    @SuppressLint("BatteryLife")
-    fun getBatteryOptimizationIntent(): Intent {
-        return Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+    val intent: Intent by lazy {
+        @SuppressLint("BatteryLife")
+        Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
             data = "package:${context.packageName}".toUri()
         }
     }

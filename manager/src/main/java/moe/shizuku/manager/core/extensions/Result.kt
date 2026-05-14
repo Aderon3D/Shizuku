@@ -1,23 +1,30 @@
 package moe.shizuku.manager.core.extensions
 
+import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.Err
+import com.github.michaelbull.result.Ok
 import kotlinx.coroutines.CancellationException
 
-inline fun <R> resultOf(block: () -> R): Result<R> {
+// Modified runCatching from library
+// Catches Exception instead of Throwable
+// Rethrows CancellationException
+
+inline fun <V> resultOf(block: () -> V): Result<V, Exception> {
     return try {
-        Result.success(block())
+        Ok(block())
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
-        Result.failure(e)
+        Err(e)
     }
 }
 
-inline fun <T, R> T.resultOf(block: T.() -> R): Result<R> {
+inline infix fun <T, V> T.resultOf(block: T.() -> V): Result<V, Exception> {
     return try {
-        Result.success(block())
+        Ok(block())
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
-        Result.failure(e)
+        Err(e)
     }
 }

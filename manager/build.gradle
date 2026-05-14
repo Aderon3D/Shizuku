@@ -120,22 +120,27 @@ dependencies {
     implementation libs.bundles.androidx
     implementation libs.material
 
+    // Dependency injection
     implementation platform(libs.koin.bom)
     implementation libs.bundles.koin
 
-    implementation libs.okhttp
-    implementation libs.coil
-    implementation libs.bouncycastle.bcpkix
-    implementation libs.apksig
-    implementation libs.arsclib
-    implementation libs.hiddenapibypass
+    implementation libs.apksig // Signing APKs (stealth mode)
+    implementation libs.arsclib // Modifying APKs (stealth mode)
+    implementation libs.bouncycastle.bcpkix // To generate ADB key
+    implementation libs.coil // Image caching
+    implementation libs.hiddenapibypass // Hidden APIs
+    implementation libs.okhttp // Network
+    implementation libs.result // Result class for proper domain error handling
+
+    // ADB
     implementation(libs.libadb) {
         exclude group: "org.bouncycastle", module: "bcprov-jdk15to18"
     }
-    implementation libs.libsu
-    implementation libs.boringssl
+    implementation libs.libsu // Root
 
-    implementation libs.rikkax.lifecycle.resource.livedata
+    // TODO remove
+    implementation libs.rikkax.lifecycle.resource.livedata // Prefer flows
+    implementation libs.boringssl // Prefer libadb
 
     debugImplementation libs.leakcanary.android
 }

@@ -134,13 +134,13 @@
         </service>
 
         <service
-            android:name=".privilegedservice.services.AdbPairingService"
+            android:name=".pairing.services.AdbPairingService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="shortService" />
 
         <service
-            android:name=".privilegedservice.services.AdbPairingAccessibilityService"
+            android:name=".pairing.services.AdbPairingAccessibilityService"
             android:exported="true"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
             tools:ignore="AccessibilityPolicy">
@@ -216,7 +216,6 @@
 
         <receiver android:name=".autostart.receivers.NotifAttemptReceiver" />
         <receiver android:name=".autostart.receivers.NotifCancelReceiver" />
-        <receiver android:name=".autostart.receivers.NotifRestoreReceiver" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

@@ -30,8 +30,8 @@ class IntentsViewModel(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = IntentsUiState(
             enabled = true,
-            intentAction = IntentsUiState.IntentAction.START,
-            authToken = ""
+            intentAction = _intentAction.value,
+            authToken = tokenRepository.getAuthToken()
         )
     )
 

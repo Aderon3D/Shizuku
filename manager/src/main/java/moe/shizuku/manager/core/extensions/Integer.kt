@@ -7,3 +7,6 @@ val Int.dp: Int
 
 val Int.toUserId: Int
     get() = this / 100000
+
+val Int.isValidPort
+    get() = this in 1..65535

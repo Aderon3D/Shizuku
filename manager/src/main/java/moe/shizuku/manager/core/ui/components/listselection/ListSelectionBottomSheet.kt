@@ -20,7 +20,7 @@ class ListSelectionBottomSheet : StyledBottomSheet() {
             @StringRes title: Int,
             @StringRes footer: Int? = null,
             items: List<ListSelectionItem>,
-            selectedItem: Any? = null
+            selectedItem: ListSelectionItem? = null
         ) {
             ListSelectionBottomSheet().apply {
                 this.titleRes = title
@@ -34,7 +34,7 @@ class ListSelectionBottomSheet : StyledBottomSheet() {
     private val viewModel: ListSelectionViewModel by viewModel(ownerProducer = { requireParentFragment() })
 
     private var items: List<ListSelectionItem>? = null
-    private var selectedItem: Any? = null
+    private var selectedItem: ListSelectionItem? = null
 
     private val adapter = ListSelectionAdapter { item ->
         viewModel.select(item)

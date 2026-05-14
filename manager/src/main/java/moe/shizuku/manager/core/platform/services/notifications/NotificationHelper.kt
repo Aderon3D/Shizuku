@@ -8,23 +8,18 @@ import android.content.Context
 import androidx.core.app.NotificationManagerCompat
 import moe.shizuku.manager.core.extensions.hasPermission
 import moe.shizuku.manager.core.platform.device.AndroidVersion
-import moe.shizuku.manager.core.platform.services.systemService
 
 class NotificationHelper(
-    private val context: Context,
-    private val notificationChannels: List<NotificationChannelProvider>
+    private val context: Context
 ) {
-    private val notificationManager: NotificationManagerCompat by systemService(context)
+    private val notificationManager: NotificationManagerCompat by lazy {
+        NotificationManagerCompat.from(context)
+    }
 
     private val hasPostNotificationsPermission: Boolean
         get() = if (AndroidVersion.isAtLeast13) {
             context.hasPermission(POST_NOTIFICATIONS)
         } else true
-
-    fun createChannels() {
-        val channels = notificationChannels.map { it.provideChannel() }
-        notificationManager.createNotificationChannelsCompat(channels)
-    }
 
     fun notify(id: Int, notification: Notification) {
         if (hasPostNotificationsPermission) {
@@ -33,6 +28,11 @@ class NotificationHelper(
         }
     }
 
+    fun cancel(id: Int) {
+        notificationManager.cancel(id)
+    }
+
+    // TODO implement
     fun isNotificationChannelEnabled(channelId: String): Boolean {
         if (!notificationManager.areNotificationsEnabled()) return false
 

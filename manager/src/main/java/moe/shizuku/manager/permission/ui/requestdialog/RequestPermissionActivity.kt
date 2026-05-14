@@ -19,16 +19,16 @@ import kotlinx.coroutines.withTimeout
 import moe.shizuku.manager.R
 import moe.shizuku.manager.core.ui.helpers.viewBinding
 import moe.shizuku.manager.databinding.ConfirmationDialogBinding
-import moe.shizuku.manager.privilegedservice.data.ShizukuStateMachine
 import org.koin.android.ext.android.inject
 import rikka.shizuku.Shizuku
 import rikka.shizuku.ShizukuApiConstants.REQUEST_PERMISSION_REPLY_ALLOWED
 import rikka.shizuku.ShizukuApiConstants.REQUEST_PERMISSION_REPLY_IS_ONETIME
+import moe.shizuku.manager.privilegedservice.PrivilegedServiceStateMachine
 
 class RequestPermissionActivity : AppCompatActivity() {
     private lateinit var dialog: Dialog
     private val binding by viewBinding(ConfirmationDialogBinding::inflate)
-    private val shizukuStateMachine: ShizukuStateMachine by inject()
+    private val privilegedServiceStateMachine: PrivilegedServiceStateMachine by inject()
 
     private fun setResult(
         requestUid: Int,
@@ -75,7 +75,7 @@ class RequestPermissionActivity : AppCompatActivity() {
     private fun waitForBinder(): Boolean = runBlocking {
         try {
             withTimeout(5000) {
-                shizukuStateMachine.asFlow().first { it == ShizukuStateMachine.State.RUNNING }
+                privilegedServiceStateMachine.isRunningFlow.first { true }
             }
             true
         } catch (e: TimeoutCancellationException) {
