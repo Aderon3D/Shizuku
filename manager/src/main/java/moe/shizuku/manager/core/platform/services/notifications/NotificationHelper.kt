@@ -22,8 +22,8 @@ class NotificationHelper(
         } else true
 
     fun notify(id: Int, notification: Notification) {
+        @SuppressLint("MissingPermission")
         if (hasPostNotificationsPermission) {
-            @SuppressLint("MissingPermission")
             notificationManager.notify(id, notification)
         }
     }
@@ -32,7 +32,6 @@ class NotificationHelper(
         notificationManager.cancel(id)
     }
 
-    // TODO implement
     fun isNotificationChannelEnabled(channelId: String): Boolean {
         if (!notificationManager.areNotificationsEnabled()) return false
 
@@ -49,6 +48,6 @@ class NotificationHelper(
 
         return channel.importance != NotificationManager.IMPORTANCE_NONE &&
                 !channelGroup.isBlocked
-
     }
+
 }

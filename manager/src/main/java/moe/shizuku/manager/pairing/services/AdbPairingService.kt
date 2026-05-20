@@ -33,7 +33,7 @@ import moe.shizuku.manager.core.platform.device.AndroidVersion
 import moe.shizuku.manager.core.preferences.data.PreferencesRepository
 import com.github.michaelbull.result.onOk
 import moe.shizuku.manager.core.extensions.resultOf
-import moe.shizuku.manager.pairing.AdbPairingNotificationProvider
+import moe.shizuku.manager.pairing.notifications.AdbPairingNotification
 import moe.shizuku.manager.pairing.models.PairingState
 import org.koin.android.ext.android.inject
 import java.net.ConnectException
@@ -42,7 +42,7 @@ import java.net.ConnectException
 class AdbPairingService : Service() {
     private val preferencesRepository: PreferencesRepository by inject()
     private val adbMdns: AdbMdns by inject()
-    private val notificationProvider: AdbPairingNotificationProvider by inject()
+    private val notificationProvider: AdbPairingNotification by inject()
 
     private val serviceScope = CoroutineScope(Dispatchers.Main + Job())
     private var discoveryJob: Job? = null
@@ -101,7 +101,7 @@ class AdbPairingService : Service() {
 
         ServiceCompat.startForeground(
             this,
-            AdbPairingNotificationProvider.NOTIFICATION_ID,
+            AdbPairingNotification.NOTIFICATION_ID,
             notification,
             foregroundServiceType
         )
@@ -134,7 +134,7 @@ class AdbPairingService : Service() {
 
     private fun handleReply(intent: Intent) {
         val code = RemoteInput.getResultsFromIntent(intent)
-            ?.getCharSequence(AdbPairingNotificationProvider.PAIRING_CODE_KEY)?.toString()
+            ?.getCharSequence(AdbPairingNotification.PAIRING_CODE_KEY)?.toString()
 
         if (code != null) {
             val currentState = state.value

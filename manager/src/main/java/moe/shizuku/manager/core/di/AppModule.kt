@@ -3,12 +3,13 @@ package moe.shizuku.manager.core.di
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import moe.shizuku.manager.autostart.AutoStartNotificationProvider
+import moe.shizuku.manager.autostart.notifications.AutoStartNotification
 import moe.shizuku.manager.autostart.AutoStartManager
 import moe.shizuku.manager.autostart.AutoStartWorker
 import moe.shizuku.manager.autostart.StartOnBootManager
-import moe.shizuku.manager.pairing.AdbPairingNotificationProvider
-import moe.shizuku.manager.watchdog.notifications.WatchdogNotificationProvider
+import moe.shizuku.manager.autostart.notifications.AutoStartNotificationChannel
+import moe.shizuku.manager.pairing.notifications.AdbPairingNotification
+import moe.shizuku.manager.watchdog.notifications.WatchdogNotification
 import moe.shizuku.manager.core.locale.data.LocaleMigrator
 import moe.shizuku.manager.core.locale.data.LocaleRepository
 import moe.shizuku.manager.core.locale.data.LocaleXmlDataSource
@@ -17,25 +18,26 @@ import moe.shizuku.manager.core.platform.adb.AdbPortHelper
 import moe.shizuku.manager.core.platform.adb.AdbSession
 import moe.shizuku.manager.core.platform.adb.AdbSettingsManager
 import moe.shizuku.manager.core.platform.adb.AdbMdns
-import moe.shizuku.manager.intents.AuthErrorNotificationProvider
-import moe.shizuku.manager.core.platform.services.notifications.NotificationChannelProvider
+import moe.shizuku.manager.intents.notifications.IntentsErrorNotification
+import moe.shizuku.manager.core.platform.services.notifications.AppNotificationChannel
 import moe.shizuku.manager.core.platform.services.notifications.NotificationHelper
 import moe.shizuku.manager.core.platform.services.packages.installer.PackageInstallerHelper
 import moe.shizuku.manager.core.platform.services.packages.manager.PackageInfoRepository
 import moe.shizuku.manager.core.platform.services.user.DeviceUserRepository
 import moe.shizuku.manager.core.platform.services.BatteryOptimizationHelper
-import moe.shizuku.manager.core.platform.services.notifications.NotificationChannelHelper
+import moe.shizuku.manager.core.platform.services.notifications.NotificationChannelManager
 import moe.shizuku.manager.core.platform.services.packages.manager.PackageManagerHelper
 import moe.shizuku.manager.core.preferences.data.PreferencesRepository
 import moe.shizuku.manager.core.ui.components.listselection.ListSelectionViewModel
 import moe.shizuku.manager.core.ui.helpers.ThemeHelper
 import moe.shizuku.manager.core.utils.ApkSigner
 import moe.shizuku.manager.core.utils.ApkUtils
-import moe.shizuku.manager.core.utils.root.RootUtils
 import moe.shizuku.manager.home.HomeViewModel
 import moe.shizuku.manager.intents.data.TokenRepository
+import moe.shizuku.manager.intents.notifications.IntentsNotificationChannel
 import moe.shizuku.manager.intents.ui.IntentsViewModel
 import moe.shizuku.manager.intents.usecases.ValidateTokenUseCase
+import moe.shizuku.manager.pairing.notifications.AdbPairingNotificationChannel
 import moe.shizuku.manager.permission.PermissionManager
 import moe.shizuku.manager.permission.data.AuthorizedAppsRepository
 import moe.shizuku.manager.permission.ui.authorizedapps.AuthorizedAppsViewModel
@@ -51,8 +53,10 @@ import moe.shizuku.manager.tcpmode.TcpManager
 import moe.shizuku.manager.updater.UpdateHelper
 import moe.shizuku.manager.updater.data.ReleaseRemoteDataSource
 import moe.shizuku.manager.updater.data.ReleaseRepository
-import moe.shizuku.manager.watchdog.notifications.CrashNotificationProvider
+import moe.shizuku.manager.watchdog.notifications.CrashNotification
 import moe.shizuku.manager.watchdog.WatchdogManager
+import moe.shizuku.manager.watchdog.notifications.CrashNotificationChannel
+import moe.shizuku.manager.watchdog.notifications.WatchdogNotificationChannel
 import org.koin.core.module.Module
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -99,12 +103,17 @@ val appModule: Module = module {
 
     // Notifications
     single<NotificationHelper>()
-    single<NotificationChannelHelper>()
-    single<AdbPairingNotificationProvider>() bind NotificationChannelProvider::class
-    single<AuthErrorNotificationProvider>() bind NotificationChannelProvider::class
-    single<AutoStartNotificationProvider>() bind NotificationChannelProvider::class
-    single<CrashNotificationProvider>() bind NotificationChannelProvider::class
-    single<WatchdogNotificationProvider>() bind NotificationChannelProvider::class
+    single<NotificationChannelManager>()
+    single<AdbPairingNotification>()
+    single<IntentsErrorNotification>()
+    single<AutoStartNotification>()
+    single<CrashNotification>()
+    single<WatchdogNotification>()
+    single<AdbPairingNotificationChannel>() bind AppNotificationChannel::class
+    single<IntentsNotificationChannel>() bind AppNotificationChannel::class
+    single<AutoStartNotificationChannel>() bind AppNotificationChannel::class
+    single<CrashNotificationChannel>() bind AppNotificationChannel::class
+    single<WatchdogNotificationChannel>() bind AppNotificationChannel::class
 
     factory<AdbSession.Factory>()
     factory<ValidateTokenUseCase>()

@@ -20,14 +20,14 @@ import moe.shizuku.manager.core.platform.device.AndroidVersion
 import moe.shizuku.manager.core.extensions.resultOf
 import moe.shizuku.manager.privilegedservice.PrivilegedServiceStateMachine
 import moe.shizuku.manager.privilegedservice.models.PrivilegedServiceState
-import moe.shizuku.manager.watchdog.notifications.CrashNotificationProvider
-import moe.shizuku.manager.watchdog.notifications.WatchdogNotificationProvider
+import moe.shizuku.manager.watchdog.notifications.CrashNotification
+import moe.shizuku.manager.watchdog.notifications.WatchdogNotification
 import org.koin.android.ext.android.inject
 
 class WatchdogService : Service() {
 
-    private val notificationProvider: WatchdogNotificationProvider by inject()
-    private val crashNotificationProvider: CrashNotificationProvider by inject()
+    private val notificationProvider: WatchdogNotification by inject()
+    private val crashNotificationProvider: CrashNotification by inject()
     private val autoStartManager: AutoStartManager by inject()
     private val privilegedServiceStateMachine: PrivilegedServiceStateMachine by inject()
     private val scope = CoroutineScope(Dispatchers.Main + Job())
@@ -63,7 +63,7 @@ class WatchdogService : Service() {
         resultOf {
             ServiceCompat.startForeground(
                 this,
-                WatchdogNotificationProvider.ID_WATCHDOG,
+                WatchdogNotification.ID_WATCHDOG,
                 notificationProvider.createWatchdogNotification(),
                 fgsType
             )

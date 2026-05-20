@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.Intent
 import com.github.michaelbull.result.onErr
 import com.github.michaelbull.result.onOk
-import moe.shizuku.manager.intents.AuthErrorNotificationProvider
+import moe.shizuku.manager.intents.notifications.IntentsErrorNotification
 import moe.shizuku.manager.intents.usecases.ValidateTokenUseCase
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
@@ -17,7 +17,7 @@ abstract class AuthenticatedReceiver : BroadcastReceiver(), KoinComponent {
         intent: Intent,
     ) {
         val validateTokenUseCase: ValidateTokenUseCase = get()
-        val notificationProvider: AuthErrorNotificationProvider = get()
+        val notificationProvider: IntentsErrorNotification = get()
 
         val authToken = intent.getStringExtra("auth")
 

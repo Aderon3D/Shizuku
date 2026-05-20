@@ -1,13 +1,11 @@
 package moe.shizuku.manager
 
 import android.app.Application
-import android.os.Build
 import com.topjohnwu.superuser.Shell
 import moe.shizuku.manager.core.di.appModule
 import moe.shizuku.manager.core.locale.data.LocaleMigrator
 import moe.shizuku.manager.core.platform.device.AndroidVersion
-import moe.shizuku.manager.core.platform.services.notifications.NotificationChannelHelper
-import moe.shizuku.manager.core.platform.services.notifications.NotificationHelper
+import moe.shizuku.manager.core.platform.services.notifications.NotificationChannelManager
 import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -17,7 +15,7 @@ import org.lsposed.hiddenapibypass.HiddenApiBypass
 
 class MainApplication : Application() {
     private val localeMigrator: LocaleMigrator by inject()
-    private val notificationChannelHelper: NotificationChannelHelper by inject()
+    private val notificationChannelHelper: NotificationChannelManager by inject()
 
     override fun onCreate() {
         super.onCreate()

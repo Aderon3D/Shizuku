@@ -12,11 +12,12 @@ import moe.shizuku.manager.start.models.PreStartCheckError
 import com.github.michaelbull.result.onOk
 import moe.shizuku.manager.autostart.AutoStartWorker.Companion.WORK_NAME
 import moe.shizuku.manager.autostart.models.AutoStartState
+import moe.shizuku.manager.autostart.notifications.AutoStartNotification
 import moe.shizuku.manager.privilegedservice.PrivilegedServiceStateMachine
 
 class AutoStartManager(
     private val context: Context,
-    private val notificationProvider: AutoStartNotificationProvider,
+    private val notificationProvider: AutoStartNotification,
     private val privilegedServiceManager: PrivilegedServiceManager,
     private val privilegedServiceStateMachine: PrivilegedServiceStateMachine
 ) {

@@ -2,20 +2,16 @@ package moe.shizuku.manager.autostart
 
 import android.content.Context
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
-import androidx.work.Constraints
 import androidx.work.CoroutineWorker
-import androidx.work.ExistingWorkPolicy
 import androidx.work.ForegroundInfo
-import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
-import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.github.michaelbull.result.fold
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import moe.shizuku.manager.autostart.AutoStartNotificationProvider.Companion.RUNNING_ID
+import moe.shizuku.manager.autostart.notifications.AutoStartNotification.Companion.RUNNING_ID
 import moe.shizuku.manager.autostart.models.AutoStartState
+import moe.shizuku.manager.autostart.notifications.AutoStartNotification
 import moe.shizuku.manager.core.extensions.isWifiConnected
 import moe.shizuku.manager.core.platform.device.AndroidVersion
 import moe.shizuku.manager.privilegedservice.PrivilegedServiceManager
@@ -24,7 +20,7 @@ import moe.shizuku.manager.start.StartStep
 class AutoStartWorker(
     private val context: Context,
     params: WorkerParameters,
-    private val notificationProvider: AutoStartNotificationProvider,
+    private val notificationProvider: AutoStartNotification,
     private val privilegedServiceManager: PrivilegedServiceManager
 ) : CoroutineWorker(context, params) {
 

@@ -1,8 +1,6 @@
 package moe.shizuku.manager.pairing.ui
 
 import android.app.ForegroundServiceStartNotAllowedException
-import android.app.NotificationManager
-import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -17,25 +15,19 @@ import moe.shizuku.manager.core.platform.device.RomInfo
 import moe.shizuku.manager.core.platform.settings.SystemSettingsHelper
 import moe.shizuku.manager.core.ui.helpers.viewBinding
 import moe.shizuku.manager.databinding.PairingFragmentBinding
-import moe.shizuku.manager.pairing.AdbPairingNotificationProvider
+import moe.shizuku.manager.pairing.notifications.AdbPairingNotification
 import moe.shizuku.manager.pairing.services.AdbPairingService
+import org.koin.android.ext.android.inject
 
 @RequiresApi(Build.VERSION_CODES.R)
 class PairingFragment : Fragment(R.layout.pairing_fragment) {
     private val binding by viewBinding(PairingFragmentBinding::bind)
-
-    private var notificationEnabled: Boolean = false
+    private val notificationProvider: AdbPairingNotification by inject()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         binding.root.applySystemBarsPadding(bottom = true, start = true, end = true)
-
-        notificationEnabled = isNotificationEnabled()
-
-        if (notificationEnabled) {
-            startPairingService()
-        }
 
         binding.apply {
             miui.isVisible = RomInfo.isMiui
@@ -46,17 +38,9 @@ class PairingFragment : Fragment(R.layout.pairing_fragment) {
         }
     }
 
-    private fun isNotificationEnabled(): Boolean {
-        val nm =
-            requireContext().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val channel = nm.getNotificationChannel(AdbPairingNotificationProvider.CHANNEL_ID)
-        return nm.areNotificationsEnabled() &&
-                (channel == null || channel.importance != NotificationManager.IMPORTANCE_NONE)
-    }
-
     override fun onResume() {
         super.onResume()
-        startPairingService()
+        if (notificationProvider.isChannelEnabled()) startPairingService()
     }
 
     private fun startPairingService() {

@@ -1,29 +1,18 @@
-package moe.shizuku.manager.intents
+package moe.shizuku.manager.intents.notifications
 
 import android.content.Context
-import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.navigation.NavDeepLinkBuilder
 import moe.shizuku.manager.R
-import moe.shizuku.manager.core.platform.services.notifications.NotificationChannelProvider
+import moe.shizuku.manager.core.platform.services.notifications.AppNotificationChannel
 import moe.shizuku.manager.core.platform.services.notifications.NotificationHelper
 import moe.shizuku.manager.intents.models.TokenValidationError
 
-class AuthErrorNotificationProvider(
+class IntentsErrorNotification(
     private val context: Context,
+    private val channel: AppNotificationChannel,
     private val notificationHelper: NotificationHelper
-) : NotificationChannelProvider {
-
-    companion object {
-        const val CHANNEL_ID = "auth_errors"
-        const val NOTIFICATION_ID = 1450
-    }
-
-    override fun provideChannel(): NotificationChannelCompat =
-        NotificationChannelCompat.Builder(CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_HIGH)
-            .setName(context.getString(R.string.intents_auth_errors))
-            .build()
+) {
 
     fun showAuthErrorNotification(e: TokenValidationError) {
         val title = when (e) {
@@ -37,7 +26,7 @@ class AuthErrorNotificationProvider(
         }
 
         val notification = NotificationCompat
-            .Builder(context, CHANNEL_ID)
+            .Builder(context, channel.id)
             .setContentTitle(context.getString(title))
             .setContentText(context.getString(msg))
             .setContentIntent(intentsPendingIntent)
@@ -54,4 +43,9 @@ class AuthErrorNotificationProvider(
             .setDestination(R.id.intents_fragment)
             .createPendingIntent()
     }
+
+    companion object {
+        const val NOTIFICATION_ID = 1450
+    }
+
 }

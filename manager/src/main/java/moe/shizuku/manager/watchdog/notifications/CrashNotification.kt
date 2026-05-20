@@ -3,29 +3,18 @@ package moe.shizuku.manager.watchdog.notifications
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.net.toUri
 import moe.shizuku.manager.R
-import moe.shizuku.manager.core.platform.services.notifications.NotificationChannelProvider
+import moe.shizuku.manager.core.platform.services.notifications.AppNotificationChannel
 import moe.shizuku.manager.core.platform.services.notifications.NotificationHelper
 import moe.shizuku.manager.core.platform.settings.SystemSettingsPage
 
-class CrashNotificationProvider(
+class CrashNotification(
     private val context: Context,
+    private val channel: AppNotificationChannel,
     private val notificationHelper: NotificationHelper
-) : NotificationChannelProvider {
-
-    companion object {
-        const val ID_CRASH: Int = 1002
-        const val CHANNEL_ID_CRASH: String = "crash_reports"
-    }
-
-    override fun provideChannel(): NotificationChannelCompat =
-        NotificationChannelCompat.Builder(CHANNEL_ID_CRASH, NotificationManagerCompat.IMPORTANCE_DEFAULT)
-            .setName(context.getString(R.string.watchdog_crash_reports))
-            .build()
+) {
 
     fun showCrashNotification() {
         val learnMoreIntent = Intent(Intent.ACTION_VIEW).apply {
@@ -36,14 +25,14 @@ class CrashNotificationProvider(
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
 
-        val disableIntent = SystemSettingsPage.Notifications.NotificationChannel(CHANNEL_ID_CRASH)
+        val disableIntent = SystemSettingsPage.Notifications.NotificationChannel(channel.id)
             .buildIntent(context)
         val disablePendingIntent = PendingIntent.getActivity(
             context, 0, disableIntent,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
 
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID_CRASH)
+        val notification = NotificationCompat.Builder(context, channel.id)
             .setContentTitle(context.getString(R.string.watchdog_crash_alert))
             .setContentText(context.getString(R.string.watchdog_crash_alert_message))
             .setSmallIcon(R.drawable.ic_system_icon)
@@ -54,4 +43,9 @@ class CrashNotificationProvider(
 
         notificationHelper.notify(ID_CRASH, notification)
     }
+
+    companion object {
+        const val ID_CRASH: Int = 1002
+    }
+
 }

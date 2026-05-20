@@ -1,38 +1,23 @@
-package moe.shizuku.manager.autostart
+package moe.shizuku.manager.autostart.notifications
 
 import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.PendingIntentCompat
 import moe.shizuku.manager.R
 import moe.shizuku.manager.autostart.models.AutoStartState
 import moe.shizuku.manager.autostart.receivers.NotifAttemptReceiver
 import moe.shizuku.manager.autostart.receivers.NotifCancelReceiver
-import moe.shizuku.manager.core.platform.services.notifications.NotificationChannelProvider
+import moe.shizuku.manager.core.platform.services.notifications.AppNotificationChannel
 import moe.shizuku.manager.core.platform.services.notifications.NotificationHelper
 
-class AutoStartNotificationProvider(
+class AutoStartNotification(
     private val context: Context,
+    private val channel: AppNotificationChannel,
     private val notificationHelper: NotificationHelper
-) : NotificationChannelProvider {
-    companion object {
-        const val CHANNEL_ID = "autostart"
-        const val RUNNING_ID: Int = 1447
-        const val ENQUEUED_ID: Int = 1448
-        const val RESULT_ID: Int = 1449
-    }
-
-    override fun provideChannel(): NotificationChannelCompat =
-        NotificationChannelCompat.Builder(
-            CHANNEL_ID,
-            NotificationManagerCompat.IMPORTANCE_LOW
-        )
-            .setName(context.getString(R.string.start_channel))
-            .build()
+) {
 
     fun buildNotification(state: AutoStartState): Notification {
         val msgId = when (state) {
@@ -53,7 +38,7 @@ class AutoStartNotificationProvider(
         val attemptNowIntent = Intent(context, NotifAttemptReceiver::class.java)
         val attemptNowPendingIntent = attemptNowIntent.toPendingIntent()
 
-        val nb = NotificationCompat.Builder(context, CHANNEL_ID)
+        val nb = NotificationCompat.Builder(context, channel.id)
 
         msgId?.let {
             val msg = context.getString(it)
@@ -108,7 +93,7 @@ class AutoStartNotificationProvider(
 
     fun showErrorNotification() {
         val msg = TODO()
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+        val notification = NotificationCompat.Builder(context, channel.id)
             .setSmallIcon(R.drawable.ic_system_icon)
             .setContentTitle(context.getString(R.string.start_background_error))
             .setContentText(msg)
@@ -122,7 +107,7 @@ class AutoStartNotificationProvider(
     fun showPermissionErrorNotification() {
         val notification =
             NotificationCompat
-                .Builder(context, CHANNEL_ID)
+                .Builder(context, channel.id)
                 .setSmallIcon(R.drawable.ic_system_icon)
                 .setContentTitle(context.getString(R.string.start_background_error_permission))
                 .setContentText(context.getString(R.string.start_background_error_permission_message))
@@ -130,4 +115,11 @@ class AutoStartNotificationProvider(
 
         notificationHelper.notify(RESULT_ID, notification)
     }
+
+    companion object {
+        const val RUNNING_ID: Int = 1447
+        const val ENQUEUED_ID: Int = 1448
+        const val RESULT_ID: Int = 1449
+    }
+
 }
