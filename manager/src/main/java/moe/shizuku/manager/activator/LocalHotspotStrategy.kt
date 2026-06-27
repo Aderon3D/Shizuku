@@ -39,6 +39,9 @@ class LocalHotspotStrategy(private val context: Context) : ActivatorStrategy {
         private const val POLL_ATTEMPTS = 15
         private const val POLL_DELAY_MS = 1000L
         private const val HOTSPOT_TIMEOUT_MS = 15_000L
+
+        @Volatile
+        var hotspotReservation: WifiManager.LocalOnlyHotspotReservation? = null
     }
 
     override val name: String get() = "local_hotspot"
@@ -147,11 +150,5 @@ class LocalHotspotStrategy(private val context: Context) : ActivatorStrategy {
     fun stopHotspot() {
         hotspotReservation?.close()
         hotspotReservation = null
-    }
-
-    companion object {
-        @Volatile
-        var hotspotReservation: WifiManager.LocalOnlyHotspotReservation? = null
-            private set
     }
 }
