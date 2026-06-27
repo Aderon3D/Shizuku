@@ -246,6 +246,11 @@
     <string name="watchdog_shizuku_crashed_text">Watchdog restarted the service. Tap to learn about potential fixes to prevent future crashes.</string>
     <string name="watchdog_shizuku_crashed_action_turn_off_alerts">Turn Off Alerts</string>
 
+    <!-- Activator (No-Wi-Fi startup) -->
+    <string name="home_activator_title">Start without Wi-Fi</string>
+    <string name="home_activator_description">Start Shizuku without a Wi-Fi connection. Uses hotspot fallback and system settings to activate ADB. After initial start, Shizuku will run in TCP mode and no longer needs Wi-Fi until reboot.</string>
+    <string name="home_activator_start_button">Start (No Wi-Fi)</string>
+
     <!-- Misc -->
     <string name="dialog_cannot_open_browser_title">Can\'t start browser</string>
     <string name="toast_copied_to_clipboard">Copied to clipboard</string>

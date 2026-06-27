@@ -28,6 +28,7 @@ class HomeAdapter(private val homeModel: HomeViewModel, private val appsModel: A
         private const val ID_LEARN_MORE = 6L
         private const val ID_ADB_PERMISSION_LIMITED = 7L
         private const val ID_AUTOMATION = 8L
+        private const val ID_ACTIVATOR = 9L
     }
 
     override fun onCreateCreatorPool(): IndexCreatorPool {
@@ -64,6 +65,11 @@ class HomeAdapter(private val homeModel: HomeViewModel, private val appsModel: A
             ) addItem(StartWirelessAdbViewHolder.creator(scope), null, ID_START_WADB)
 
             addItem(StartAdbViewHolder.CREATOR, null, ID_START_ADB)
+
+            // Show activator card on Android 11+ (wireless debugging capable)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                addItem(ActivatorViewHolder.creator(), null, ID_ACTIVATOR)
+            }
         }
         addItem(AutomationViewHolder.CREATOR, null, ID_AUTOMATION)
         addItem(LearnMoreViewHolder.CREATOR, null, ID_LEARN_MORE)

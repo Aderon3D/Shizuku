@@ -18,6 +18,7 @@ import moe.shizuku.manager.R
 import moe.shizuku.manager.AppConstants
 import moe.shizuku.manager.ShizukuSettings
 import moe.shizuku.manager.ShizukuSettings.LaunchMethod
+import moe.shizuku.manager.activator.ActivatorService
 import moe.shizuku.manager.starter.Starter
 import moe.shizuku.manager.utils.EnvironmentUtils
 import moe.shizuku.manager.utils.SettingsPage
@@ -45,6 +46,10 @@ object ShizukuReceiverStarter {
         } else if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.R || EnvironmentUtils.isTelevision() || EnvironmentUtils.getAdbTcpPort() > 0)
             && ShizukuSettings.getLastLaunchMode() == LaunchMethod.ADB) {
                 if (context.checkSelfPermission(WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_GRANTED) {
+                    // Try the no-Wi-Fi activator first
+                    ActivatorService.start(context)
+                    // Also enqueue the Wi-Fi-based worker as fallback
+                    // (ActivatorService will stop itself quickly if it succeeds)
                     AdbStartWorker.enqueue(context)
                     updateNotification(context, WorkerState.AWAITING_WIFI)
                 } else {
