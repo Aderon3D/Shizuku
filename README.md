@@ -20,7 +20,8 @@ An Android app that allows other apps to use system-level APIs that require ADB/
 
 ## ⚠️ Disclaimer
 
-This is a **FORK** of Shizuku. If you are looking for the original version, please visit the [RikkaApps/Shizuku](https://github.com/RikkaApps/Shizuku) repository.
+This is a **FORK** of the thedjchi/Shizuku fork. If you are looking for the original version, please visit the [RikkaApps/Shizuku](https://github.com/RikkaApps/Shizuku) repository.  
+If you are looking for the upstream fork, see [thedjchi/Shizuku](https://github.com/thedjchi/Shizuku).
 
 ## ⬇️ Download
 
@@ -31,8 +32,9 @@ All versions are distributed via [GitHub Releases](https://github.com/thedjchi/S
 ## ✨ Added Features
 
 This version of Shizuku includes some extra features over the original version, such as:
-* **More robust "start on boot":** waits for a Wi-Fi connection before starting the Shizuku service
-* **TCP mode:** (i.e., the `adb tcpip` command) once Shizuku successfully starts with Wi-Fi after a reboot, you can stop/restart Shizuku without a Wi-Fi connection!
+* **Start without Wi-Fi:** activate Shizuku after reboot without connecting to Wi-Fi or a PC. Uses a multi-strategy activator chain (direct settings → local hotspot → guided) to start ADB wirelessly on devices that don't have a network connection
+* **More robust "start on boot":** waits for a Wi-Fi connection before starting the Shizuku service, or uses the no-Wi-Fi activator first
+* **TCP mode:** (i.e., the `adb tcpip` command) once Shizuku successfully starts after a reboot, you can stop/restart Shizuku without a Wi-Fi connection!
 * **Watchdog service:** automatically restarts Shizuku if it stops unexpectedly, and can alert you of crashes/potential fixes
 * **Start/stop intents:** toggle Shizuku on-demand using automation apps (e.g., Tasker, MacroDroid, Automate)
 * **[BETA] Stealth mode:** hide Shizuku from other apps that don't work when Shizuku is installed
@@ -45,13 +47,38 @@ This version of Shizuku includes some extra features over the original version, 
 
 Please read the [wiki](https://github.com/thedjchi/Shizuku/wiki) for setup, info, and troubleshooting steps.
 
+### 🚀 Starting Shizuku Without Wi-Fi
+
+After a reboot, Shizuku normally requires you to be on Wi-Fi to use wireless debugging, or requires a PC to run ADB commands. This fork adds a **"Start (No Wi-Fi)"** button on the home screen that activates ADB without either.
+
+Tap the **"Start (No Wi-Fi)"** card on the home screen, and the activator will automatically try three strategies:
+
+| # | Strategy | How it works | Works on |
+|---|----------|-------------|----------|
+| 1 | **Direct ADB** | Sets `adb_wifi_enabled=1` in system settings | Stock Android (Pixel, Motorola, Nokia, AOSP) |
+| 2 | **Local Hotspot** | Creates a local-only hotspot via `WifiManager.startLocalOnlyHotspot()`, then enables wireless ADB | All OEMs (Samsung, Xiaomi, OnePlus, Oppo) that block adbd without a network interface |
+| 3 | **Guided** | Shows a notification asking you to enable hotspot from Quick Settings, then taps "Done" | Always works as a fallback |
+
+Once ADB is detected, the activator:
+1. Connects to ADB on the discovered port (37000-44000 or 5555)
+2. Runs `adb tcpip 5555` to switch to persistent TCP mode
+3. Starts the Shizuku service
+4. Disables wireless debugging (not needed with TCP mode)
+
+> 💡 **Tip:** After the first successful start, TCP mode keeps running until the next reboot. You can restart Shizuku anytime using the **"Start (No Wi-Fi)"** button or automation intents without needing Wi-Fi again.
+
+### Start on Boot
+
+When "Start on boot" is enabled, the activator runs first — if it succeeds, the Wi-Fi-based worker is never needed. If it fails, Shizuku falls back to waiting for a Wi-Fi connection (the original behavior).
+
 ## ☑️ Requirements
 
 **Minimum Version: Android 7+**
 - **Root mode:** Requires a rooted device
 - **Wireless Debugging mode:** Works on Android 11+ and all Android TVs
+- **No-Wi-Fi mode:** Works on Android 11+ (requires `WRITE_SECURE_SETTINGS` + `CHANGE_WIFI_STATE` grants)
 - **PC mode:** Works on all devices
-- **Start on boot:** Available only when using Wireless Debugging or Root mode
+- **Start on boot:** Available when using Wireless Debugging, No-Wi-Fi, or Root mode
 
 ## 🔒 Privacy
 
@@ -72,9 +99,11 @@ Shizuku takes user privacy very seriously.
 * **ACCESS_NETWORK_STATE:** used to determine when Wi-Fi is available for background start via wireless debugging
 * **POST_NOTIFICATIONS:** required for pairing notification and other alerts
 * **RECEIVE_BOOT_COMPLETED:** required for start on boot
-* **FOREGROUND_SERVICE:** prevents watchdog from being killed
+* **FOREGROUND_SERVICE:** prevents watchdog and activator from being killed
 * **REQUEST_IGNORE_BATTERY_OPTIMIZATIONS:** prevents start on boot and watchdog services from being killed
 * **WRITE_SECURE_SETTINGS:** used to toggle USB and wireless debugging in the background when starting/stopping Shizuku
+* **CHANGE_WIFI_STATE:** required for the no-Wi-Fi activator to start a local-only hotspot (auto-granted, normal permission)
+* **ACCESS_FINE_LOCATION:** required on Android 12–13 for local hotspot detection (runtime permission; hotspot strategy falls back gracefully if not granted)
 * **REQUEST_DELETE_PACKAGES:** used to request uninstall for Shizuku/stub when using stealth mode
 * **REQUEST_INSTALL_PACKAGES:** used to request install for app updates, as well as Shizuku stub when using stealth mode
 
@@ -106,6 +135,23 @@ The API guide and a demo project are available in the [Shizuku-API](https://gith
 - Run gradle task `:manager:assembleDebug` or `:manager:assembleRelease`
 
 The `:manager:assembleDebug` task generates a debuggable server. You can attach a debugger to `shizuku_server` to debug the server. In Android Studio, ensure `Run/Debug configurations > Always install with package manager` is checked, so that the server will use the latest code.
+
+### Activator Architecture
+
+The no-Wi-Fi activator lives in `moe.shizuku.manager.activator` (`manager/src/main/java/.../activator/`). The activation flow:
+
+```
+ActivatorService (foreground service)
+  └─ ActivatorEngine (orchestrator, tries strategies in order)
+       ├─ DirectAdbStrategy      — set adb_wifi_enabled=1 via WRITE_SECURE_SETTINGS
+       ├─ LocalHotspotStrategy   — start LocalOnlyHotspot → then enable ADB
+       └─ GuidedFallbackStrategy — notification guiding user to toggle hotspot
+  └─ AdbStarter.startAdb()      — existing ADB connection + TCP mode
+  └─ Starter.waitForBinder()     — wait for Shizuku binder
+  └─ WatchdogService.start()     — start watchdog if enabled
+```
+
+Each strategy implements `ActivatorStrategy` and is tried sequentially with a per-strategy timeout of 45 seconds. The engine short-circuits on success. The `AdbPortScanner` utility probes `localhost:37000-44000` and port `5555` for the ADB CNXN protocol handshake.
 
 ### Submitting Changes
 
